@@ -373,7 +373,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for cloudos_cli.utils.cli_helpers</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;CLI helper utilities for debug mode and exception handling.&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""CLI helper utilities for debug mode and exception handling."""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">rich_click</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">click</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -388,48 +388,48 @@
 <div class="viewcode-block" id="custom_exception_handler">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html#cloudos_cli.utils.cli_helpers.custom_exception_handler">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">custom_exception_handler</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom exception handler that respects debug mode&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Custom exception handler that respects debug mode"""</span>
     <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">(</span><span class="n">stderr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="c1"># Initialise logger</span>
-    <span class="n">debug_mode</span> <span class="o">=</span> <span class="s1">&#39;--debug&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+    <span class="n">debug_mode</span> <span class="o">=</span> <span class="s1">'--debug'</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
     <span class="n">setup_logging</span><span class="p">(</span><span class="n">debug_mode</span><span class="p">)</span>
-    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CloudOS&quot;</span><span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"CloudOS"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">get_debug_mode</span><span class="p">():</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">exc_value</span><span class="p">)</span>
-        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[yellow]Debug mode: showing full traceback[/yellow]&quot;</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[yellow]Debug mode: showing full traceback[/yellow]"</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">__excepthook__</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Extract a clean error message</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">exc_value</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">exc_value</span><span class="p">,</span> <span class="s1">'message'</span><span class="p">):</span>
             <span class="n">error_msg</span> <span class="o">=</span> <span class="n">exc_value</span><span class="o">.</span><span class="n">message</span>
         <span class="k">elif</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_value</span><span class="p">):</span>
             <span class="n">error_msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_value</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">exc_value</span><span class="p">)</span>
-        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[bold red]Error: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">[/bold red]&quot;</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[bold red]Error: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">[/bold red]"</span><span class="p">)</span>
 
         <span class="c1"># For network errors, give helpful context</span>
-        <span class="k">if</span> <span class="s1">&#39;HTTPSConnectionPool&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_value</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">&#39;Max retries exceeded&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_value</span><span class="p">):</span>
-            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[yellow]Tip: This appears to be a network connectivity issue. Please check your internet connection and try again.[/yellow]&quot;</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="s1">'HTTPSConnectionPool'</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_value</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">'Max retries exceeded'</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_value</span><span class="p">):</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[yellow]Tip: This appears to be a network connectivity issue. Please check your internet connection and try again.[/yellow]"</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="pass_debug_to_subcommands">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html#cloudos_cli.utils.cli_helpers.pass_debug_to_subcommands">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">pass_debug_to_subcommands</span><span class="p">(</span><span class="n">group_cls</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">RichGroup</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom Group class that passes --debug option to all subcommands&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Custom Group class that passes --debug option to all subcommands"""</span>
 
     <span class="k">class</span><span class="w"> </span><span class="nc">DebugGroup</span><span class="p">(</span><span class="n">group_cls</span><span class="p">):</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">add_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-            <span class="c1"># Add debug option to the command if it doesn&#39;t already have it</span>
+            <span class="c1"># Add debug option to the command if it doesn't already have it</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">Command</span><span class="p">,</span> <span class="n">click</span><span class="o">.</span><span class="n">Group</span><span class="p">)):</span>
-                <span class="n">has_debug</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;debug&#39;</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">cmd</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+                <span class="n">has_debug</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">'debug'</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">cmd</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">has_debug</span><span class="p">:</span>
                     <span class="n">debug_option</span> <span class="o">=</span> <span class="n">click</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-                        <span class="p">[</span><span class="s1">&#39;--debug&#39;</span><span class="p">],</span> 
+                        <span class="p">[</span><span class="s1">'--debug'</span><span class="p">],</span> 
                         <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Show detailed error information and tracebacks&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">'Show detailed error information and tracebacks'</span><span class="p">,</span>
                         <span class="n">is_eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                         <span class="n">expose_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_debug_callback</span>
@@ -439,13 +439,13 @@
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">_debug_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Callback to handle debug flag&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""Callback to handle debug flag"""</span>
             <span class="k">global</span> <span class="n">_global_debug</span>
             <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
                 <span class="n">_global_debug</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">'debug'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">'debug'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">return</span> <span class="n">value</span>
 
     <span class="k">return</span> <span class="n">DebugGroup</span></div>
@@ -455,7 +455,7 @@
 <div class="viewcode-block" id="get_debug_mode">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html#cloudos_cli.utils.cli_helpers.get_debug_mode">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_debug_mode</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get current debug mode state&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Get current debug mode state"""</span>
     <span class="k">return</span> <span class="n">_global_debug</span></div>
 
 
@@ -463,13 +463,13 @@
 <div class="viewcode-block" id="setup_debug">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html#cloudos_cli.utils.cli_helpers.setup_debug">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">setup_debug</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Setup debug mode globally and in context&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Setup debug mode globally and in context"""</span>
     <span class="k">global</span> <span class="n">_global_debug</span>
     <span class="n">_global_debug</span> <span class="o">=</span> <span class="n">value</span>
     <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">'debug'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">'debug'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="n">value</span></div>
 
 </pre></div>

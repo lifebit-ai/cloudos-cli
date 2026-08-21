@@ -3469,7 +3469,7 @@ cloudos interactive-session link s3://bucket/data/file.csv,my-project/Data/resul
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-job-run-job-config">
 <span class="sig-name descname"><span class="pre">--job-config</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;job_config&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-job-run-job-config" title="Link to this definition">¶</a></dt>
-<dd><p>A config file similar to a nextflow.config file, but only with the parameters to use with your job.</p>
+<dd><p>A file listing the parameters to use with your job, as ‘name = value’ pairs inside a ‘params’ block. It is equivalent to repeating –parameter, so only flat parameters are supported: it is not a nextflow.config and cannot contain multi-line parameters, nested blocks or sections such as ‘process’ and ‘profiles’. Use –params-file for parameters that need a structured value.</p>
 </dd></dl>
 
 <dl class="std option">

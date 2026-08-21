@@ -381,7 +381,7 @@
 <div class="viewcode-block" id="is_valid_regex">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.is_valid_regex">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">is_valid_regex</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Validates whether the given string is a valid regular expression.</span>
 
 <span class="sd">    Parameters</span>
@@ -393,7 +393,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    bool</span>
 <span class="sd">        True if the string is a valid regular expression, False otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
@@ -404,11 +404,11 @@
 <div class="viewcode-block" id="is_glob_pattern">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.is_glob_pattern">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">is_glob_pattern</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Check if a given string contains glob pattern characters.</span>
 
 <span class="sd">    Glob patterns are commonly used for filename matching and include</span>
-<span class="sd">    special characters such as &#39;*&#39;, &#39;?&#39;, and &#39;[&#39;.</span>
+<span class="sd">    special characters such as '*', '?', and '['.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -419,14 +419,14 @@
 <span class="sd">    -------</span>
 <span class="sd">    bool</span>
 <span class="sd">        True if the string contains any glob pattern characters, otherwise False.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">char</span> <span class="ow">in</span> <span class="n">s</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="s2">&quot;*?[&quot;</span><span class="p">)</span></div>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">char</span> <span class="ow">in</span> <span class="n">s</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="s2">"*?["</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="is_probably_regex">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.is_probably_regex">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">is_probably_regex</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Determines if a given string is likely a regular expression.</span>
 
 <span class="sd">    This function checks whether the input string matches common patterns</span>
@@ -449,14 +449,14 @@
 <span class="sd">    -----</span>
 <span class="sd">    The function assumes the existence of `is_valid_regex(s)` which</span>
 <span class="sd">        validates whether the input string is a valid regex.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid_regex</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="c1"># Patterns that usually indicate actual regex use (not just file names)</span>
     <span class="n">regex_indicators</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="sa">r</span><span class="s2">&quot;\.\*&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\.\+&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">[dws]&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\[[^\]]+\]&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\([^\)]+\)&quot;</span><span class="p">,</span>
-        <span class="sa">r</span><span class="s2">&quot;\{\d+(,\d*)?\}&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\^&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\|&quot;</span>
+        <span class="sa">r</span><span class="s2">"\.\*"</span><span class="p">,</span> <span class="sa">r</span><span class="s2">"\.\+"</span><span class="p">,</span> <span class="sa">r</span><span class="s2">"</span><span class="se">\\</span><span class="s2">[dws]"</span><span class="p">,</span> <span class="sa">r</span><span class="s2">"\[[^\]]+\]"</span><span class="p">,</span> <span class="sa">r</span><span class="s2">"\([^\)]+\)"</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s2">"\{\d+(,\d*)?\}"</span><span class="p">,</span> <span class="sa">r</span><span class="s2">"\^"</span><span class="p">,</span> <span class="sa">r</span><span class="s2">"\$"</span><span class="p">,</span> <span class="sa">r</span><span class="s2">"\|"</span>
     <span class="p">]</span>
     <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">regex_indicators</span><span class="p">)</span></div>
 
@@ -464,8 +464,8 @@
 <div class="viewcode-block" id="classify_pattern">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.classify_pattern">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">classify_pattern</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Classifies a given string pattern into one of three categories: &quot;regex&quot;, &quot;glob&quot;, or &quot;exact&quot;.</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Classifies a given string pattern into one of three categories: "regex", "glob", or "exact".</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -475,22 +475,22 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    str: A string indicating the type of pattern:</span>
-<span class="sd">        - &quot;regex&quot; if the pattern is likely a regular expression.</span>
-<span class="sd">        - &quot;glob&quot; if the pattern matches glob-style syntax.</span>
-<span class="sd">        - &quot;exact&quot; if the pattern does not match regex or glob syntax.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        - "regex" if the pattern is likely a regular expression.</span>
+<span class="sd">        - "glob" if the pattern matches glob-style syntax.</span>
+<span class="sd">        - "exact" if the pattern does not match regex or glob syntax.</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">is_probably_regex</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;regex&quot;</span>
+        <span class="k">return</span> <span class="s2">"regex"</span>
     <span class="k">elif</span> <span class="n">is_glob_pattern</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;glob&quot;</span>
+        <span class="k">return</span> <span class="s2">"glob"</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;exact&quot;</span></div>
+        <span class="k">return</span> <span class="s2">"exact"</span></div>
 
 
 <div class="viewcode-block" id="generate_datasets_for_project">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.generate_datasets_for_project">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">generate_datasets_for_project</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Generate datasets for a specified project in a Lifebit Platform workspace.</span>
 
 <span class="sd">    This function initializes a `Datasets` object for the given project and handles</span>
@@ -520,7 +520,7 @@
 <span class="sd">        If the specified project is not found in the workspace.</span>
 <span class="sd">    BadRequestException</span>
 <span class="sd">        If the API call is unauthorized or encounters other issues.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># this avoids circular import error if import is added at the top</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Datasets</span>
@@ -534,13 +534,13 @@
             <span class="n">cromwell_token</span><span class="o">=</span><span class="kc">None</span>
         <span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2"> element in projects was found&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No </span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2"> element in projects was found"</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">except</span> <span class="n">BadRequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;Forbidden&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;It seems your call is not authorised. Please check if &#39;</span> <span class="o">+</span>
-                  <span class="s1">&#39;your workspace is restricted by Airlock and if your API key is valid.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">'Forbidden'</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">'It seems your call is not authorised. Please check if '</span> <span class="o">+</span>
+                  <span class="s1">'your workspace is restricted by Airlock and if your API key is valid.'</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">e</span>
@@ -551,7 +551,7 @@
 <div class="viewcode-block" id="get_file_or_folder_id">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.get_file_or_folder_id">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_file_or_folder_id</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">,</span> <span class="n">command_dir</span><span class="p">,</span> <span class="n">command_name</span><span class="p">,</span> <span class="n">is_file</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve the ID of a specific file or folder within a Lifebit Platform workspace.</span>
+<span class="w">    </span><span class="sd">"""Retrieve the ID of a specific file or folder within a Lifebit Platform workspace.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -585,43 +585,43 @@
 <span class="sd">    -----</span>
 <span class="sd">    - This function uses the `generate_datasets_for_project` function to create a Datasets object for the specified project.</span>
 <span class="sd">    - The `list_folder_content` method is used for files, and `list_project_content` is used for folders.</span>
-<span class="sd">    - The function assumes that the IDs are stored in the `&quot;_id&quot;` field of the metadata.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    - The function assumes that the IDs are stored in the `"_id"` field of the metadata.</span>
+<span class="sd">    """</span>
     <span class="c1"># create a Datasets() class</span>
     <span class="n">ds</span> <span class="o">=</span> <span class="n">generate_datasets_for_project</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">verify_ssl</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">is_file</span><span class="p">:</span>
         <span class="c1"># get all files from a folder</span>
         <span class="n">content</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">command_dir</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">command_name</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File &#39;</span><span class="si">{</span><span class="n">command_name</span><span class="si">}</span><span class="s2">&#39; not found in directory &#39;</span><span class="si">{</span><span class="n">command_dir</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">content</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span> <span class="o">==</span> <span class="n">command_name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"_id"</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"File '</span><span class="si">{</span><span class="n">command_name</span><span class="si">}</span><span class="s2">' not found in directory '</span><span class="si">{</span><span class="n">command_dir</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># get all folders from the project</span>
         <span class="c1"># check if the command_dir has a sub-folder</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">command_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">command_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># get the first folder which is just below the project</span>
-            <span class="n">folders</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">command_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">folders</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">command_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
             <span class="c1"># use the last folder as is listed in the first folder</span>
-            <span class="n">folder_to_search</span> <span class="o">=</span> <span class="n">command_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">folder_to_search</span> <span class="o">=</span> <span class="n">command_dir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">folders</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">list_project_content</span><span class="p">()</span>
             <span class="n">folder_to_search</span> <span class="o">=</span> <span class="n">command_dir</span>
 
-        <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">[</span><span class="s1">&#39;folders&#39;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">folder</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">folder_to_search</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">folder</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder &#39;</span><span class="si">{</span><span class="n">folder_to_search</span><span class="si">}</span><span class="s2">&#39; not found in project.&quot;</span><span class="p">)</span></div>
+        <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">[</span><span class="s1">'folders'</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">folder</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span> <span class="o">==</span> <span class="n">folder_to_search</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">folder</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"_id"</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Folder '</span><span class="si">{</span><span class="n">folder_to_search</span><span class="si">}</span><span class="s2">' not found in project."</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="extract_project">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.array_job.html#cloudos_cli.utils.array_job.extract_project">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">extract_project</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Extracts the project name and the remaining path from a given file path.</span>
 
-<span class="sd">    The function assumes that a &quot;project&quot; exists if the path contains at least three parts</span>
+<span class="sd">    The function assumes that a "project" exists if the path contains at least three parts</span>
 <span class="sd">    when split by slashes. If the path has fewer than three parts, the project name is</span>
 <span class="sd">    considered empty, and the entire path is returned as the remaining path.</span>
 
@@ -635,18 +635,18 @@
 <span class="sd">    tuple: A tuple containing:</span>
 <span class="sd">        - str: The project name (empty string if no project exists).</span>
 <span class="sd">        - str: The remaining path after the project name.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Strip slashes and split the path</span>
-    <span class="n">parts</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
-    <span class="c1"># A &quot;project&quot; exists only if there are at least 3 parts</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+    <span class="c1"># A "project" exists only if there are at least 3 parts</span>
     <span class="c1"># globs needs more than 3 parts i.e. PROJECT/Data/Downloads/*.csv</span>
     <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_glob_pattern</span><span class="p">(</span><span class="n">path</span><span class="p">))</span> <span class="ow">or</span> \
        <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">is_glob_pattern</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
         <span class="c1"># Return the first part as project name and the rest as remaining path</span>
-        <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"/"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># project is empty, use the project_name of the function</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"/"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span></div>
 
 </pre></div>
         </article>

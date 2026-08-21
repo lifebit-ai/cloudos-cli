@@ -373,9 +373,9 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for cloudos_cli.queue.queue</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">This is the main class to create job queues.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
@@ -395,108 +395,108 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <span class="n">_STANDARD_INSTANCE_TYPES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;optimal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;c4.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c4.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c4.8xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;c5.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.9xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;c5.12xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.18xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.24xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.metal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;m4.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m4.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m4.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m4.10xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m4.16xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;m5.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.8xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;m5.12xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.16xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.24xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.metal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;r4.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r4.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r4.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r4.8xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r4.16xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;r5.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.8xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;r5.12xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.16xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.24xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.metal&quot;</span><span class="p">,</span>
+    <span class="s2">"optimal"</span><span class="p">,</span>
+    <span class="s2">"c4.2xlarge"</span><span class="p">,</span> <span class="s2">"c4.4xlarge"</span><span class="p">,</span> <span class="s2">"c4.8xlarge"</span><span class="p">,</span>
+    <span class="s2">"c5.xlarge"</span><span class="p">,</span> <span class="s2">"c5.2xlarge"</span><span class="p">,</span> <span class="s2">"c5.4xlarge"</span><span class="p">,</span> <span class="s2">"c5.9xlarge"</span><span class="p">,</span>
+    <span class="s2">"c5.12xlarge"</span><span class="p">,</span> <span class="s2">"c5.18xlarge"</span><span class="p">,</span> <span class="s2">"c5.24xlarge"</span><span class="p">,</span> <span class="s2">"c5.metal"</span><span class="p">,</span>
+    <span class="s2">"m4.xlarge"</span><span class="p">,</span> <span class="s2">"m4.2xlarge"</span><span class="p">,</span> <span class="s2">"m4.4xlarge"</span><span class="p">,</span> <span class="s2">"m4.10xlarge"</span><span class="p">,</span> <span class="s2">"m4.16xlarge"</span><span class="p">,</span>
+    <span class="s2">"m5.xlarge"</span><span class="p">,</span> <span class="s2">"m5.2xlarge"</span><span class="p">,</span> <span class="s2">"m5.4xlarge"</span><span class="p">,</span> <span class="s2">"m5.8xlarge"</span><span class="p">,</span>
+    <span class="s2">"m5.12xlarge"</span><span class="p">,</span> <span class="s2">"m5.16xlarge"</span><span class="p">,</span> <span class="s2">"m5.24xlarge"</span><span class="p">,</span> <span class="s2">"m5.metal"</span><span class="p">,</span>
+    <span class="s2">"r4.xlarge"</span><span class="p">,</span> <span class="s2">"r4.2xlarge"</span><span class="p">,</span> <span class="s2">"r4.4xlarge"</span><span class="p">,</span> <span class="s2">"r4.8xlarge"</span><span class="p">,</span> <span class="s2">"r4.16xlarge"</span><span class="p">,</span>
+    <span class="s2">"r5.xlarge"</span><span class="p">,</span> <span class="s2">"r5.2xlarge"</span><span class="p">,</span> <span class="s2">"r5.4xlarge"</span><span class="p">,</span> <span class="s2">"r5.8xlarge"</span><span class="p">,</span>
+    <span class="s2">"r5.12xlarge"</span><span class="p">,</span> <span class="s2">"r5.16xlarge"</span><span class="p">,</span> <span class="s2">"r5.24xlarge"</span><span class="p">,</span> <span class="s2">"r5.metal"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">_GPU_INSTANCE_TYPES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;optimal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;c4.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c4.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c4.8xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;c5.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.9xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;c5.12xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.18xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.24xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;c5.metal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;g4dn.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;g4dn.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;g4dn.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;g4dn.8xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;g4dn.12xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;g4dn.16xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;g4dn.metal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;m4.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m4.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m4.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m4.10xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m4.16xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;m5.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.8xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;m5.12xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.16xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.24xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;m5.metal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;p3.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;p3.8xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;p3.16xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;r4.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r4.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r4.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r4.8xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r4.16xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;r5.xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.2xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.4xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.8xlarge&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;r5.12xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.16xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.24xlarge&quot;</span><span class="p">,</span> <span class="s2">&quot;r5.metal&quot;</span><span class="p">,</span>
+    <span class="s2">"optimal"</span><span class="p">,</span>
+    <span class="s2">"c4.2xlarge"</span><span class="p">,</span> <span class="s2">"c4.4xlarge"</span><span class="p">,</span> <span class="s2">"c4.8xlarge"</span><span class="p">,</span>
+    <span class="s2">"c5.xlarge"</span><span class="p">,</span> <span class="s2">"c5.2xlarge"</span><span class="p">,</span> <span class="s2">"c5.4xlarge"</span><span class="p">,</span> <span class="s2">"c5.9xlarge"</span><span class="p">,</span>
+    <span class="s2">"c5.12xlarge"</span><span class="p">,</span> <span class="s2">"c5.18xlarge"</span><span class="p">,</span> <span class="s2">"c5.24xlarge"</span><span class="p">,</span> <span class="s2">"c5.metal"</span><span class="p">,</span>
+    <span class="s2">"g4dn.xlarge"</span><span class="p">,</span> <span class="s2">"g4dn.2xlarge"</span><span class="p">,</span> <span class="s2">"g4dn.4xlarge"</span><span class="p">,</span> <span class="s2">"g4dn.8xlarge"</span><span class="p">,</span>
+    <span class="s2">"g4dn.12xlarge"</span><span class="p">,</span> <span class="s2">"g4dn.16xlarge"</span><span class="p">,</span> <span class="s2">"g4dn.metal"</span><span class="p">,</span>
+    <span class="s2">"m4.xlarge"</span><span class="p">,</span> <span class="s2">"m4.2xlarge"</span><span class="p">,</span> <span class="s2">"m4.4xlarge"</span><span class="p">,</span> <span class="s2">"m4.10xlarge"</span><span class="p">,</span> <span class="s2">"m4.16xlarge"</span><span class="p">,</span>
+    <span class="s2">"m5.xlarge"</span><span class="p">,</span> <span class="s2">"m5.2xlarge"</span><span class="p">,</span> <span class="s2">"m5.4xlarge"</span><span class="p">,</span> <span class="s2">"m5.8xlarge"</span><span class="p">,</span>
+    <span class="s2">"m5.12xlarge"</span><span class="p">,</span> <span class="s2">"m5.16xlarge"</span><span class="p">,</span> <span class="s2">"m5.24xlarge"</span><span class="p">,</span> <span class="s2">"m5.metal"</span><span class="p">,</span>
+    <span class="s2">"p3.2xlarge"</span><span class="p">,</span> <span class="s2">"p3.8xlarge"</span><span class="p">,</span> <span class="s2">"p3.16xlarge"</span><span class="p">,</span>
+    <span class="s2">"r4.xlarge"</span><span class="p">,</span> <span class="s2">"r4.2xlarge"</span><span class="p">,</span> <span class="s2">"r4.4xlarge"</span><span class="p">,</span> <span class="s2">"r4.8xlarge"</span><span class="p">,</span> <span class="s2">"r4.16xlarge"</span><span class="p">,</span>
+    <span class="s2">"r5.xlarge"</span><span class="p">,</span> <span class="s2">"r5.2xlarge"</span><span class="p">,</span> <span class="s2">"r5.4xlarge"</span><span class="p">,</span> <span class="s2">"r5.8xlarge"</span><span class="p">,</span>
+    <span class="s2">"r5.12xlarge"</span><span class="p">,</span> <span class="s2">"r5.16xlarge"</span><span class="p">,</span> <span class="s2">"r5.24xlarge"</span><span class="p">,</span> <span class="s2">"r5.metal"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">QUEUE_PRESETS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;standard-stable&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;computeEnvironmentName&quot;</span><span class="p">:</span> <span class="s2">&quot;OnDemandStandard&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;computeResources&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;allocationStrategy&quot;</span><span class="p">:</span> <span class="s2">&quot;BEST_FIT_PROGRESSIVE&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;instanceTypes&quot;</span><span class="p">:</span> <span class="n">_STANDARD_INSTANCE_TYPES</span><span class="p">,</span>
-            <span class="s2">&quot;maxvCpus&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;EC2&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;minvCpus&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">"standard-stable"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"computeEnvironmentName"</span><span class="p">:</span> <span class="s2">"OnDemandStandard"</span><span class="p">,</span>
+        <span class="s2">"computeResources"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"allocationStrategy"</span><span class="p">:</span> <span class="s2">"BEST_FIT_PROGRESSIVE"</span><span class="p">,</span>
+            <span class="s2">"instanceTypes"</span><span class="p">:</span> <span class="n">_STANDARD_INSTANCE_TYPES</span><span class="p">,</span>
+            <span class="s2">"maxvCpus"</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"EC2"</span><span class="p">,</span>
+            <span class="s2">"minvCpus"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="p">},</span>
-        <span class="s2">&quot;templateName&quot;</span><span class="p">:</span> <span class="s2">&quot;Standard stable&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;templateDescription&quot;</span><span class="p">:</span> <span class="p">(</span>
-            <span class="s2">&quot;Standard stable (on-demand) instances of all resource types from &quot;</span>
-            <span class="s2">&quot;c5, r5, m5, c4, r4, m4 instance families.&quot;</span>
+        <span class="s2">"templateName"</span><span class="p">:</span> <span class="s2">"Standard stable"</span><span class="p">,</span>
+        <span class="s2">"templateDescription"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">"Standard stable (on-demand) instances of all resource types from "</span>
+            <span class="s2">"c5, r5, m5, c4, r4, m4 instance families."</span>
         <span class="p">),</span>
     <span class="p">},</span>
-    <span class="s2">&quot;standard-cost-saving&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;computeEnvironmentName&quot;</span><span class="p">:</span> <span class="s2">&quot;OnDemandSpot&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;computeResources&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;allocationStrategy&quot;</span><span class="p">:</span> <span class="s2">&quot;SPOT_CAPACITY_OPTIMIZED&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;instanceTypes&quot;</span><span class="p">:</span> <span class="n">_STANDARD_INSTANCE_TYPES</span><span class="p">,</span>
-            <span class="s2">&quot;maxvCpus&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SPOT&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;minvCpus&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="s2">&quot;bidPercentage&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="s2">"standard-cost-saving"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"computeEnvironmentName"</span><span class="p">:</span> <span class="s2">"OnDemandSpot"</span><span class="p">,</span>
+        <span class="s2">"computeResources"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"allocationStrategy"</span><span class="p">:</span> <span class="s2">"SPOT_CAPACITY_OPTIMIZED"</span><span class="p">,</span>
+            <span class="s2">"instanceTypes"</span><span class="p">:</span> <span class="n">_STANDARD_INSTANCE_TYPES</span><span class="p">,</span>
+            <span class="s2">"maxvCpus"</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"SPOT"</span><span class="p">,</span>
+            <span class="s2">"minvCpus"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">"bidPercentage"</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
         <span class="p">},</span>
-        <span class="s2">&quot;templateName&quot;</span><span class="p">:</span> <span class="s2">&quot;Standard cost-saving&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;templateDescription&quot;</span><span class="p">:</span> <span class="p">(</span>
-            <span class="s2">&quot;Standard cost-saving (spot) instances of all resource types from &quot;</span>
-            <span class="s2">&quot;c5, r5, m5, c4, r4, m4 instance families. Spot instances allow to &quot;</span>
-            <span class="s2">&quot;save up to 80</span><span class="si">% c</span><span class="s2">ost compared to on-demand stable instances at a risk &quot;</span>
-            <span class="s2">&quot;of being prematurely terminated. Useful for short-running processes. &quot;</span>
-            <span class="s2">&quot;It is advised to use retry error strategy in the workflow for this job queue.&quot;</span>
+        <span class="s2">"templateName"</span><span class="p">:</span> <span class="s2">"Standard cost-saving"</span><span class="p">,</span>
+        <span class="s2">"templateDescription"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">"Standard cost-saving (spot) instances of all resource types from "</span>
+            <span class="s2">"c5, r5, m5, c4, r4, m4 instance families. Spot instances allow to "</span>
+            <span class="s2">"save up to 80</span><span class="si">% c</span><span class="s2">ost compared to on-demand stable instances at a risk "</span>
+            <span class="s2">"of being prematurely terminated. Useful for short-running processes. "</span>
+            <span class="s2">"It is advised to use retry error strategy in the workflow for this job queue."</span>
         <span class="p">),</span>
     <span class="p">},</span>
-    <span class="s2">&quot;read-write-optimised&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;computeEnvironmentName&quot;</span><span class="p">:</span> <span class="s2">&quot;OnDemandStandardHighDiskThroughput&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;computeResources&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;allocationStrategy&quot;</span><span class="p">:</span> <span class="s2">&quot;BEST_FIT_PROGRESSIVE&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;instanceTypes&quot;</span><span class="p">:</span> <span class="n">_STANDARD_INSTANCE_TYPES</span><span class="p">,</span>
-            <span class="s2">&quot;maxvCpus&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;EC2&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;minvCpus&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;gp3&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;usageQuantity&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;usageUnit&quot;</span><span class="p">:</span> <span class="s2">&quot;Gb&quot;</span><span class="p">},</span>
-                <span class="s2">&quot;iops&quot;</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span>
-                <span class="s2">&quot;throughput&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
-                <span class="s2">&quot;deviceName&quot;</span><span class="p">:</span> <span class="s2">&quot;/dev/xvda&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;deleteOnTermination&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s2">&quot;encrypted&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">"read-write-optimised"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"computeEnvironmentName"</span><span class="p">:</span> <span class="s2">"OnDemandStandardHighDiskThroughput"</span><span class="p">,</span>
+        <span class="s2">"computeResources"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"allocationStrategy"</span><span class="p">:</span> <span class="s2">"BEST_FIT_PROGRESSIVE"</span><span class="p">,</span>
+            <span class="s2">"instanceTypes"</span><span class="p">:</span> <span class="n">_STANDARD_INSTANCE_TYPES</span><span class="p">,</span>
+            <span class="s2">"maxvCpus"</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"EC2"</span><span class="p">,</span>
+            <span class="s2">"minvCpus"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">"volume"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"gp3"</span><span class="p">,</span>
+                <span class="s2">"size"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"usageQuantity"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">"usageUnit"</span><span class="p">:</span> <span class="s2">"Gb"</span><span class="p">},</span>
+                <span class="s2">"iops"</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span>
+                <span class="s2">"throughput"</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+                <span class="s2">"deviceName"</span><span class="p">:</span> <span class="s2">"/dev/xvda"</span><span class="p">,</span>
+                <span class="s2">"deleteOnTermination"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"encrypted"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="p">},</span>
         <span class="p">},</span>
-        <span class="s2">&quot;templateName&quot;</span><span class="p">:</span> <span class="s2">&quot;Read/write optimised&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;templateDescription&quot;</span><span class="p">:</span> <span class="p">(</span>
-            <span class="s2">&quot;Standard stable (on-demand) instances of all resource types from &quot;</span>
-            <span class="s2">&quot;c5, r5, m5, c4, r4, m4 instance families and increased disk I/O &quot;</span>
-            <span class="s2">&quot;performance. Useful for the jobs that require significant file read &quot;</span>
-            <span class="s2">&quot;and write activity. May increase the job cost.&quot;</span>
+        <span class="s2">"templateName"</span><span class="p">:</span> <span class="s2">"Read/write optimised"</span><span class="p">,</span>
+        <span class="s2">"templateDescription"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">"Standard stable (on-demand) instances of all resource types from "</span>
+            <span class="s2">"c5, r5, m5, c4, r4, m4 instance families and increased disk I/O "</span>
+            <span class="s2">"performance. Useful for the jobs that require significant file read "</span>
+            <span class="s2">"and write activity. May increase the job cost."</span>
         <span class="p">),</span>
     <span class="p">},</span>
-    <span class="s2">&quot;standard-gpu&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;computeEnvironmentName&quot;</span><span class="p">:</span> <span class="s2">&quot;OnDemandStandardGPUs&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;computeResources&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;allocationStrategy&quot;</span><span class="p">:</span> <span class="s2">&quot;BEST_FIT_PROGRESSIVE&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;instanceTypes&quot;</span><span class="p">:</span> <span class="n">_GPU_INSTANCE_TYPES</span><span class="p">,</span>
-            <span class="s2">&quot;maxvCpus&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;EC2&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;minvCpus&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">"standard-gpu"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"computeEnvironmentName"</span><span class="p">:</span> <span class="s2">"OnDemandStandardGPUs"</span><span class="p">,</span>
+        <span class="s2">"computeResources"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"allocationStrategy"</span><span class="p">:</span> <span class="s2">"BEST_FIT_PROGRESSIVE"</span><span class="p">,</span>
+            <span class="s2">"instanceTypes"</span><span class="p">:</span> <span class="n">_GPU_INSTANCE_TYPES</span><span class="p">,</span>
+            <span class="s2">"maxvCpus"</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"EC2"</span><span class="p">,</span>
+            <span class="s2">"minvCpus"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="p">},</span>
-        <span class="s2">&quot;templateName&quot;</span><span class="p">:</span> <span class="s2">&quot;Standard with GPUs&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;templateDescription&quot;</span><span class="p">:</span> <span class="p">(</span>
-            <span class="s2">&quot;Standard stable (on-demand) instances as well as GPU instances of &quot;</span>
-            <span class="s2">&quot;p3 and/or g4dn families. On-demand GPU machines typically incur higher costs.&quot;</span>
+        <span class="s2">"templateName"</span><span class="p">:</span> <span class="s2">"Standard with GPUs"</span><span class="p">,</span>
+        <span class="s2">"templateDescription"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">"Standard stable (on-demand) instances as well as GPU instances of "</span>
+            <span class="s2">"p3 and/or g4dn families. On-demand GPU machines typically incur higher costs."</span>
         <span class="p">),</span>
     <span class="p">},</span>
 <span class="p">}</span>
@@ -507,8 +507,8 @@
 
 <span class="c1"># Message shown once a workspace reaches the compute environment limit.</span>
 <span class="n">WORKSPACE_CE_LIMIT_REACHED_MESSAGE</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">&quot;You have reached the limit for compute environments in your workspace. &quot;</span>
-    <span class="sa">f</span><span class="s2">&quot;Workspaces can have up to </span><span class="si">{</span><span class="n">MAX_WORKSPACE_COMPUTE_ENVS</span><span class="si">}</span><span class="s2"> compute environments.&quot;</span>
+    <span class="s2">"You have reached the limit for compute environments in your workspace. "</span>
+    <span class="sa">f</span><span class="s2">"Workspaces can have up to </span><span class="si">{</span><span class="n">MAX_WORKSPACE_COMPUTE_ENVS</span><span class="si">}</span><span class="s2"> compute environments."</span>
 <span class="p">)</span>
 
 
@@ -516,7 +516,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.Queue">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Queue</span><span class="p">(</span><span class="n">Cloudos</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to store and operate job queues.</span>
+<span class="w">    </span><span class="sd">"""Class to store and operate job queues.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -532,14 +532,14 @@
 <span class="sd">        Whether to use SSL verification or not. Alternatively, if</span>
 <span class="sd">        a string is passed, it will be interpreted as the path to</span>
 <span class="sd">        the SSL certificate file.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">workspace_id</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">verify</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
 <div class="viewcode-block" id="Queue.get_job_queues">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.Queue.get_job_queues">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_job_queues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exclude_system_queues</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the job queues from a Lifebit Platform workspace.</span>
+<span class="w">        </span><span class="sd">"""Get all the job queues from a Lifebit Platform workspace.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -550,9 +550,9 @@
 <span class="sd">        -------</span>
 <span class="sd">        r : list</span>
 <span class="sd">            A list of dicts, each corresponding to a job queue.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">}</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/api/v1/teams/aws/v2/job-queues?teamId=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
+<span class="sd">        """</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"apikey"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="s2">"</span><span class="si">{}</span><span class="s2">/api/v1/teams/aws/v2/job-queues?teamId=</span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
                                                                                     <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">),</span>
                                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
@@ -569,15 +569,15 @@
 <div class="viewcode-block" id="Queue.get_system_job_queues">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.Queue.get_system_job_queues">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_system_job_queues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the system job queues from Lifebit Platform.</span>
+<span class="w">        </span><span class="sd">"""Get all the system job queues from Lifebit Platform.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        r : list</span>
 <span class="sd">            A list of dicts, each corresponding to a system job queue.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">}</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/api/v1/teams/aws/v2/system-job-queues?teamId=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
+<span class="sd">        """</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"apikey"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="s2">"</span><span class="si">{}</span><span class="s2">/api/v1/teams/aws/v2/system-job-queues?teamId=</span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
                                                                                             <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span><span class="p">),</span>
                                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
@@ -589,7 +589,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.Queue.process_queue_list">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">process_queue_list</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">all_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a queue list from a self.get_job_queues call.</span>
+<span class="w">        </span><span class="sd">"""Process a queue list from a self.get_job_queues call.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -603,15 +603,15 @@
 <span class="sd">        -------</span>
 <span class="sd">        df : pandas.DataFrame</span>
 <span class="sd">            A DataFrame with the requested columns from the job queues.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;name&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;label&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;description&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;isDefault&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;resourceType&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;executor&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;status&#39;</span>
+<span class="sd">        """</span>
+        <span class="n">COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'id'</span><span class="p">,</span>
+                   <span class="s1">'name'</span><span class="p">,</span>
+                   <span class="s1">'label'</span><span class="p">,</span>
+                   <span class="s1">'description'</span><span class="p">,</span>
+                   <span class="s1">'isDefault'</span><span class="p">,</span>
+                   <span class="s1">'resourceType'</span><span class="p">,</span>
+                   <span class="s1">'executor'</span><span class="p">,</span>
+                   <span class="s1">'status'</span>
                    <span class="p">]</span>
         <span class="n">df_full</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">json_normalize</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">all_fields</span><span class="p">:</span>
@@ -624,17 +624,17 @@
 <div class="viewcode-block" id="Queue.fetch_job_queue_id">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.Queue.fetch_job_queue_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fetch_job_queue_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workflow_type</span><span class="p">,</span> <span class="n">batch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">job_queue</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetches Lifebit Platform ID for a given job queue.</span>
+<span class="w">        </span><span class="sd">"""Fetches Lifebit Platform ID for a given job queue.</span>
 
 <span class="sd">        This method will try to find the</span>
 <span class="sd">        corresponding Lifebit Platform ID for the job_queue in a given workspace. If</span>
 <span class="sd">        job_queue=None, this method will select the available default queue in</span>
-<span class="sd">        the workspace, or the newest &quot;ready&quot; job queue if no default queues are</span>
+<span class="sd">        the workspace, or the newest "ready" job queue if no default queues are</span>
 <span class="sd">        available.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        workflow_type : str [&#39;wdl&#39;|&#39;cromwell&#39;|&#39;nextflow&#39;]</span>
+<span class="sd">        workflow_type : str ['wdl'|'cromwell'|'nextflow']</span>
 <span class="sd">            The type of workflow to run.</span>
 <span class="sd">        batch: bool</span>
 <span class="sd">            Whether to create a batch job or an ignite one.</span>
@@ -645,87 +645,87 @@
 <span class="sd">        -------</span>
 <span class="sd">        job_queue_id : str or None</span>
 <span class="sd">            The Lifebit Platform ID for the selected job queue, or None if batch=False.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">batch</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">&#39;wdl&#39;</span><span class="p">:</span>
-            <span class="n">workflow_type</span> <span class="o">=</span> <span class="s1">&#39;cromwell&#39;</span>
-        <span class="k">if</span> <span class="n">workflow_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;cromwell&#39;</span><span class="p">,</span> <span class="s1">&#39;nextflow&#39;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only nextflow or cromwell workflows are allowed when &#39;</span> <span class="o">+</span>
-                             <span class="s1">&#39;running using AWS batch.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">'wdl'</span><span class="p">:</span>
+            <span class="n">workflow_type</span> <span class="o">=</span> <span class="s1">'cromwell'</span>
+        <span class="k">if</span> <span class="n">workflow_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'cromwell'</span><span class="p">,</span> <span class="s1">'nextflow'</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Only nextflow or cromwell workflows are allowed when '</span> <span class="o">+</span>
+                             <span class="s1">'running using AWS batch.'</span><span class="p">)</span>
         <span class="n">job_queues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_queues</span><span class="p">()</span>
-        <span class="n">available_queues</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">job_queues</span> <span class="k">if</span> <span class="n">q</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Ready&#39;</span> <span class="ow">and</span>
-                            <span class="n">q</span><span class="p">[</span><span class="s1">&#39;executor&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">workflow_type</span><span class="p">]</span>
+        <span class="n">available_queues</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">job_queues</span> <span class="k">if</span> <span class="n">q</span><span class="p">[</span><span class="s1">'status'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'Ready'</span> <span class="ow">and</span>
+                            <span class="n">q</span><span class="p">[</span><span class="s1">'executor'</span><span class="p">]</span> <span class="o">==</span> <span class="n">workflow_type</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_queues</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">NoJobQueuesAvailableException</span><span class="p">(</span><span class="n">workflow_type</span><span class="p">)</span>
-        <span class="n">default_queue</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">available_queues</span> <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;isDefault&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)]</span>
+        <span class="n">default_queue</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">available_queues</span> <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'isDefault'</span><span class="p">,</span> <span class="kc">False</span><span class="p">)]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_queue</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">default_queue_id</span> <span class="o">=</span> <span class="n">default_queue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
-            <span class="n">default_queue_name</span> <span class="o">=</span> <span class="n">default_queue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-            <span class="n">queue_as_default</span> <span class="o">=</span> <span class="s1">&#39;Lifebit Platform default&#39;</span>
+            <span class="n">default_queue_id</span> <span class="o">=</span> <span class="n">default_queue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">'id'</span><span class="p">]</span>
+            <span class="n">default_queue_name</span> <span class="o">=</span> <span class="n">default_queue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">'label'</span><span class="p">]</span>
+            <span class="n">queue_as_default</span> <span class="o">=</span> <span class="s1">'Lifebit Platform default'</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">default_queue_id</span> <span class="o">=</span> <span class="n">available_queues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
-            <span class="n">default_queue_name</span> <span class="o">=</span> <span class="n">available_queues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-            <span class="n">queue_as_default</span> <span class="o">=</span> <span class="s1">&#39;most recent suitable&#39;</span>
+            <span class="n">default_queue_id</span> <span class="o">=</span> <span class="n">available_queues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">'id'</span><span class="p">]</span>
+            <span class="n">default_queue_name</span> <span class="o">=</span> <span class="n">available_queues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">'label'</span><span class="p">]</span>
+            <span class="n">queue_as_default</span> <span class="o">=</span> <span class="s1">'most recent suitable'</span>
         <span class="k">if</span> <span class="n">job_queue</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No job queue was specified, using the </span><span class="si">{</span><span class="n">queue_as_default</span><span class="si">}</span><span class="s1"> queue: &#39;</span> <span class="o">+</span>
-                  <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">default_queue_name</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'No job queue was specified, using the </span><span class="si">{</span><span class="n">queue_as_default</span><span class="si">}</span><span class="s1"> queue: '</span> <span class="o">+</span>
+                  <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">default_queue_name</span><span class="si">}</span><span class="s1">.'</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">default_queue_id</span>
-        <span class="n">selected_queue</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">available_queues</span> <span class="k">if</span> <span class="n">q</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">job_queue</span><span class="p">]</span>
+        <span class="n">selected_queue</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">available_queues</span> <span class="k">if</span> <span class="n">q</span><span class="p">[</span><span class="s1">'label'</span><span class="p">]</span> <span class="o">==</span> <span class="n">job_queue</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected_queue</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Queue </span><span class="se">\&#39;</span><span class="si">{</span><span class="n">job_queue</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1"> you specified was not found, using the </span><span class="si">{</span><span class="n">queue_as_default</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
-                  <span class="sa">f</span><span class="s1">&#39;queue instead: </span><span class="si">{</span><span class="n">default_queue_name</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Queue </span><span class="se">\'</span><span class="si">{</span><span class="n">job_queue</span><span class="si">}</span><span class="se">\'</span><span class="s1"> you specified was not found, using the </span><span class="si">{</span><span class="n">queue_as_default</span><span class="si">}</span><span class="s1"> '</span> <span class="o">+</span>
+                  <span class="sa">f</span><span class="s1">'queue instead: </span><span class="si">{</span><span class="n">default_queue_name</span><span class="si">}</span><span class="s1">.'</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">default_queue_id</span>
-        <span class="k">return</span> <span class="n">selected_queue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="n">selected_queue</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">'id'</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="Queue.get_preset_template">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.Queue.get_preset_template">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_preset_template</span><span class="p">(</span><span class="n">preset_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the environment and template fields for a given preset name.</span>
+<span class="w">        </span><span class="sd">"""Return the environment and template fields for a given preset name.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        preset_name : str</span>
-<span class="sd">            One of: &#39;standard-stable&#39;, &#39;standard-cost-saving&#39;,</span>
-<span class="sd">            &#39;read-write-optimised&#39;, &#39;standard-gpu&#39;.</span>
+<span class="sd">            One of: 'standard-stable', 'standard-cost-saving',</span>
+<span class="sd">            'read-write-optimised', 'standard-gpu'.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        template : dict</span>
-<span class="sd">            A dict with keys &#39;computeEnvironmentName&#39;, &#39;computeResources&#39;,</span>
-<span class="sd">            &#39;templateName&#39;, and &#39;templateDescription&#39;.</span>
+<span class="sd">            A dict with keys 'computeEnvironmentName', 'computeResources',</span>
+<span class="sd">            'templateName', and 'templateDescription'.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
 <span class="sd">            If ``preset_name`` is not a recognised preset.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">preset_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">QUEUE_PRESETS</span><span class="p">:</span>
-            <span class="n">valid</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">QUEUE_PRESETS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">QUEUE_PRESETS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Unknown preset &#39;</span><span class="si">{</span><span class="n">preset_name</span><span class="si">}</span><span class="s2">&#39;. Valid presets are: </span><span class="si">{</span><span class="n">valid</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"Unknown preset '</span><span class="si">{</span><span class="n">preset_name</span><span class="si">}</span><span class="s2">'. Valid presets are: </span><span class="si">{</span><span class="n">valid</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">QUEUE_PRESETS</span><span class="p">[</span><span class="n">preset_name</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="Queue.create_job_queue">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.Queue.create_job_queue">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_job_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">preset_name</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="s2">&quot;nextflow&quot;</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_job_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">preset_name</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="s2">"nextflow"</span><span class="p">,</span>
                          <span class="n">is_default</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new job queue in the workspace using a preset template.</span>
+<span class="w">        </span><span class="sd">"""Create a new job queue in the workspace using a preset template.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        label : str</span>
 <span class="sd">            Human-readable name for the queue.</span>
 <span class="sd">        description : str</span>
-<span class="sd">            Short description of the queue&#39;s purpose.</span>
+<span class="sd">            Short description of the queue's purpose.</span>
 <span class="sd">        preset_name : str</span>
 <span class="sd">            One of the supported preset keys (see ``QUEUE_PRESETS``).</span>
 <span class="sd">        executor : str, optional</span>
-<span class="sd">            Workflow executor.  Defaults to ``&#39;nextflow&#39;``.</span>
+<span class="sd">            Workflow executor.  Defaults to ``'nextflow'``.</span>
 <span class="sd">        is_default : bool, optional</span>
 <span class="sd">            Whether to set the queue as the workspace default. Defaults to</span>
 <span class="sd">            ``False``.</span>
@@ -739,27 +739,27 @@
 <span class="sd">        ------</span>
 <span class="sd">        BadRequestException</span>
 <span class="sd">            If the API returns a 4xx or 5xx response.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">preset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_preset_template</span><span class="p">(</span><span class="n">preset_name</span><span class="p">)</span>
         <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span>
-            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span>
-            <span class="s2">&quot;executor&quot;</span><span class="p">:</span> <span class="n">executor</span><span class="p">,</span>
-            <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;ToCreate&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;environment&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;computeEnvironmentName&quot;</span><span class="p">:</span> <span class="n">preset</span><span class="p">[</span><span class="s2">&quot;computeEnvironmentName&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;computeResources&quot;</span><span class="p">:</span> <span class="n">preset</span><span class="p">[</span><span class="s2">&quot;computeResources&quot;</span><span class="p">],</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"label"</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span>
+            <span class="s2">"executor"</span><span class="p">:</span> <span class="n">executor</span><span class="p">,</span>
+            <span class="s2">"status"</span><span class="p">:</span> <span class="s2">"ToCreate"</span><span class="p">,</span>
+            <span class="s2">"environment"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"computeEnvironmentName"</span><span class="p">:</span> <span class="n">preset</span><span class="p">[</span><span class="s2">"computeEnvironmentName"</span><span class="p">],</span>
+                <span class="s2">"computeResources"</span><span class="p">:</span> <span class="n">preset</span><span class="p">[</span><span class="s2">"computeResources"</span><span class="p">],</span>
             <span class="p">},</span>
-            <span class="s2">&quot;templateName&quot;</span><span class="p">:</span> <span class="n">preset</span><span class="p">[</span><span class="s2">&quot;templateName&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;templateDescription&quot;</span><span class="p">:</span> <span class="n">preset</span><span class="p">[</span><span class="s2">&quot;templateDescription&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;isDefault&quot;</span><span class="p">:</span> <span class="n">is_default</span><span class="p">,</span>
+            <span class="s2">"templateName"</span><span class="p">:</span> <span class="n">preset</span><span class="p">[</span><span class="s2">"templateName"</span><span class="p">],</span>
+            <span class="s2">"templateDescription"</span><span class="p">:</span> <span class="n">preset</span><span class="p">[</span><span class="s2">"templateDescription"</span><span class="p">],</span>
+            <span class="s2">"isDefault"</span><span class="p">:</span> <span class="n">is_default</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_job_queue</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_post_job_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;POST a job queue payload to the Lifebit Platform and return its ID.</span>
+<span class="w">        </span><span class="sd">"""POST a job queue payload to the Lifebit Platform and return its ID.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -775,13 +775,13 @@
 <span class="sd">        ------</span>
 <span class="sd">        BadRequestException</span>
 <span class="sd">            If the API returns a 4xx or 5xx response.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span>
+            <span class="s2">"Content-Type"</span><span class="p">:</span> <span class="s2">"application/json"</span><span class="p">,</span>
+            <span class="s2">"apikey"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_post</span><span class="p">(</span>
-            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/api/v1/teams/aws/v2/job-queue?teamId=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s2">"</span><span class="si">{}</span><span class="s2">/api/v1/teams/aws/v2/job-queue?teamId=</span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workspace_id</span>
             <span class="p">),</span>
             <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
@@ -791,18 +791,18 @@
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         <span class="n">response_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
-        <span class="n">queue_id</span> <span class="o">=</span> <span class="n">response_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">response_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">)</span>
+        <span class="n">queue_id</span> <span class="o">=</span> <span class="n">response_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"id"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">response_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"_id"</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">queue_id</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Job queue creation succeeded but the server response did not &quot;</span>
-                <span class="s2">&quot;include a queue ID.&quot;</span>
+                <span class="s2">"Job queue creation succeeded but the server response did not "</span>
+                <span class="s2">"include a queue ID."</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">queue_id</span>
 
 <div class="viewcode-block" id="Queue.count_workspace_compute_environments">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.queue.queue.html#cloudos_cli.queue.Queue.count_workspace_compute_environments">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">count_workspace_compute_environments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queues</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Count the total compute environments across all queues in the workspace.</span>
+<span class="w">        </span><span class="sd">"""Count the total compute environments across all queues in the workspace.</span>
 
 <span class="sd">        System job queues are not counted towards the workspace limit.</span>
 
@@ -817,10 +817,10 @@
 <span class="sd">        -------</span>
 <span class="sd">        count : int</span>
 <span class="sd">            The total number of compute environments in the workspace.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">queues</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">queues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_queues</span><span class="p">(</span><span class="n">exclude_system_queues</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;computeEnvironments&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">queues</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'computeEnvironments'</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">queues</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

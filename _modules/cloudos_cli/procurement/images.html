@@ -373,9 +373,9 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for cloudos_cli.procurement.images</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">This is the main class for procurement images interaction.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
@@ -390,7 +390,7 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Images</span><span class="p">(</span><span class="n">Cloudos</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for procurement images.</span>
+<span class="w">    </span><span class="sd">"""Class for procurement images.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -408,7 +408,7 @@
 <span class="sd">        The specific page</span>
 <span class="sd">    limit</span>
 <span class="sd">        The number of items per page</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">procurement_id</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">verify</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">page</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="mi">1</span>
@@ -417,7 +417,7 @@
 <div class="viewcode-block" id="Images.list_procurement_images">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images.list_procurement_images">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">list_procurement_images</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Fetch the information of images associated with all organisations of a given procurement.</span>
 
 <span class="sd">        Uses</span>
@@ -432,13 +432,13 @@
 <span class="sd">            The specific page</span>
 <span class="sd">        limit</span>
 <span class="sd">            The number of items per page</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+            <span class="s2">"Content-type"</span><span class="p">:</span> <span class="s2">"application/json"</span><span class="p">,</span>
+            <span class="s2">"apikey"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
         <span class="p">}</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/api/v1/procurements/</span><span class="si">{}</span><span class="s2">/images?page=</span><span class="si">{}</span><span class="s2">&amp;limit=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="s2">"</span><span class="si">{}</span><span class="s2">/api/v1/procurements/</span><span class="si">{}</span><span class="s2">/images?page=</span><span class="si">{}</span><span class="s2">&amp;limit=</span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
                                <span class="bp">self</span><span class="o">.</span><span class="n">procurement_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">limit</span><span class="p">),</span>
                                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
 
@@ -446,11 +446,11 @@
             <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
 
         <span class="n">raw</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-        <span class="n">image_configurations</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;imageConfigurations&quot;</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="n">pagination_metadata</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;paginationMetadata&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">image_configurations</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"imageConfigurations"</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">pagination_metadata</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"paginationMetadata"</span><span class="p">,</span> <span class="p">[])</span>
         <span class="n">response</span> <span class="o">=</span><span class="p">{</span>
-            <span class="s2">&quot;image_configurations&quot;</span><span class="p">:</span> <span class="n">image_configurations</span><span class="p">,</span>
-            <span class="s2">&quot;pagination_metadata&quot;</span><span class="p">:</span> <span class="n">pagination_metadata</span>
+            <span class="s2">"image_configurations"</span><span class="p">:</span> <span class="n">image_configurations</span><span class="p">,</span>
+            <span class="s2">"pagination_metadata"</span><span class="p">:</span> <span class="n">pagination_metadata</span>
         <span class="p">}</span>
 
         <span class="k">return</span> <span class="n">response</span></div>
@@ -459,7 +459,7 @@
 <div class="viewcode-block" id="Images.set_procurement_organisation_image">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images.set_procurement_organisation_image">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_procurement_organisation_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">organisation_id</span><span class="p">,</span> <span class="n">image_type</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">image_id</span><span class="p">,</span> <span class="n">image_name</span><span class="p">,</span> <span class="n">image_version</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Sets the value for a procurement image of a given organisation.</span>
 
 <span class="sd">        Uses</span>
@@ -479,7 +479,7 @@
 <span class="sd">            JobDefault</span>
 <span class="sd">            NextflowBatchComputeEnvironment</span>
 <span class="sd">        provider</span>
-<span class="sd">            The cloud provider. Currently only supporting &#39;aws&#39; and &#39;azure&#39;.</span>
+<span class="sd">            The cloud provider. Currently only supporting 'aws' and 'azure'.</span>
 <span class="sd">        region</span>
 <span class="sd">            The region. Currently only supporting aws and azure regions.</span>
 <span class="sd">        imageId</span>
@@ -488,22 +488,22 @@
 <span class="sd">            The new value for image name. Optional.</span>
 <span class="sd">        imageVersion</span>
 <span class="sd">            The new value for image version. Required.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+            <span class="s2">"Content-type"</span><span class="p">:</span> <span class="s2">"application/json"</span><span class="p">,</span>
+            <span class="s2">"apikey"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
         <span class="p">}</span>
         <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;organisationId&quot;</span><span class="p">:</span> <span class="n">organisation_id</span><span class="p">,</span>
-            <span class="s2">&quot;imageType&quot;</span><span class="p">:</span> <span class="n">image_type</span><span class="p">,</span>
-            <span class="s2">&quot;imageName&quot;</span><span class="p">:</span> <span class="n">image_name</span><span class="p">,</span>
-            <span class="s2">&quot;provider&quot;</span><span class="p">:</span> <span class="n">provider</span><span class="p">,</span>
-            <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="n">region</span><span class="p">,</span>
-            <span class="s2">&quot;imageId&quot;</span><span class="p">:</span> <span class="n">image_id</span><span class="p">,</span>
-            <span class="s2">&quot;imageVersion&quot;</span><span class="p">:</span> <span class="n">image_version</span>
+            <span class="s2">"organisationId"</span><span class="p">:</span> <span class="n">organisation_id</span><span class="p">,</span>
+            <span class="s2">"imageType"</span><span class="p">:</span> <span class="n">image_type</span><span class="p">,</span>
+            <span class="s2">"imageName"</span><span class="p">:</span> <span class="n">image_name</span><span class="p">,</span>
+            <span class="s2">"provider"</span><span class="p">:</span> <span class="n">provider</span><span class="p">,</span>
+            <span class="s2">"region"</span><span class="p">:</span> <span class="n">region</span><span class="p">,</span>
+            <span class="s2">"imageId"</span><span class="p">:</span> <span class="n">image_id</span><span class="p">,</span>
+            <span class="s2">"imageVersion"</span><span class="p">:</span> <span class="n">image_version</span>
         <span class="p">}</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_put</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/api/v1/procurements/</span><span class="si">{}</span><span class="s2">/images&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">procurement_id</span><span class="p">),</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_put</span><span class="p">(</span><span class="s2">"</span><span class="si">{}</span><span class="s2">/api/v1/procurements/</span><span class="si">{}</span><span class="s2">/images"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">procurement_id</span><span class="p">),</span>
                                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
@@ -517,7 +517,7 @@
 <div class="viewcode-block" id="Images.reset_procurement_organisation_image">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.procurement.images.html#cloudos_cli.procurement.images.Images.reset_procurement_organisation_image">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset_procurement_organisation_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">organisation_id</span><span class="p">,</span> <span class="n">image_type</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">region</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Sets the value for a procurement image of a given organisation</span>
 
 <span class="sd">        Uses</span>
@@ -537,22 +537,22 @@
 <span class="sd">            JobDefault</span>
 <span class="sd">            NextflowBatchComputeEnvironment</span>
 <span class="sd">        provider</span>
-<span class="sd">            The cloud provider. Currently only supporting &#39;aws&#39; and &#39;azure&#39;.</span>
+<span class="sd">            The cloud provider. Currently only supporting 'aws' and 'azure'.</span>
 <span class="sd">        region</span>
 <span class="sd">            The region. Currently only supporting aws and azure regions.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
+            <span class="s2">"Content-type"</span><span class="p">:</span> <span class="s2">"application/json"</span><span class="p">,</span>
+            <span class="s2">"apikey"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">apikey</span>
         <span class="p">}</span>
         <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;organisationId&quot;</span><span class="p">:</span> <span class="n">organisation_id</span><span class="p">,</span>
-            <span class="s2">&quot;imageType&quot;</span><span class="p">:</span> <span class="n">image_type</span><span class="p">,</span>
-            <span class="s2">&quot;provider&quot;</span><span class="p">:</span> <span class="n">provider</span><span class="p">,</span>
-            <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="n">region</span>
+            <span class="s2">"organisationId"</span><span class="p">:</span> <span class="n">organisation_id</span><span class="p">,</span>
+            <span class="s2">"imageType"</span><span class="p">:</span> <span class="n">image_type</span><span class="p">,</span>
+            <span class="s2">"provider"</span><span class="p">:</span> <span class="n">provider</span><span class="p">,</span>
+            <span class="s2">"region"</span><span class="p">:</span> <span class="n">region</span>
         <span class="p">}</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_put</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/api/v1/procurements/</span><span class="si">{}</span><span class="s2">/images/reset&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_put</span><span class="p">(</span><span class="s2">"</span><span class="si">{}</span><span class="s2">/api/v1/procurements/</span><span class="si">{}</span><span class="s2">/images/reset"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudos_url</span><span class="p">,</span>
                                <span class="bp">self</span><span class="o">.</span><span class="n">procurement_id</span><span class="p">),</span>
                                <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">)</span>
 

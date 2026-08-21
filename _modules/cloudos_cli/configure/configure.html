@@ -388,24 +388,24 @@
 <div class="viewcode-block" id="ConfigurationProfile">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConfigurationProfile</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to manage configuration profiles for the CloudOS CLI.</span>
+<span class="w">    </span><span class="sd">"""Class to manage configuration profiles for the CloudOS CLI.</span>
 <span class="sd">    This class provides methods to create, list, remove, and load profiles from</span>
 <span class="sd">    configuration files. It also allows setting a profile as the default profile.</span>
 <span class="sd">    Attributes:</span>
 <span class="sd">        config_dir (str): Directory where the configuration files are stored.</span>
 <span class="sd">        credentials_file (str): Path to the credentials file.</span>
 <span class="sd">        config_file (str): Path to the config file.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the ConfigurationProfile class.</span>
+<span class="w">        </span><span class="sd">"""Initialize the ConfigurationProfile class.</span>
 <span class="sd">        Args:</span>
 <span class="sd">            config_dir (str): Directory where the configuration files are stored.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Set the configuration directory to the user&#39;s home directory if not provided</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">config_dir</span> <span class="o">=</span> <span class="n">config_dir</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">(),</span> <span class="s2">&quot;.cloudos&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">credentials_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_dir</span><span class="p">,</span> <span class="s2">&quot;credentials&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">config_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_dir</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="c1"># Set the configuration directory to the user's home directory if not provided</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_dir</span> <span class="o">=</span> <span class="n">config_dir</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">(),</span> <span class="s2">".cloudos"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">credentials_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_dir</span><span class="p">,</span> <span class="s2">"credentials"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_dir</span><span class="p">,</span> <span class="s2">"config"</span><span class="p">)</span>
 
         <span class="c1"># Ensure the configuration directory exists</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_dir</span><span class="p">):</span>
@@ -414,7 +414,7 @@
 <div class="viewcode-block" id="ConfigurationProfile.create_profile_from_input">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile.create_profile_from_input">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_profile_from_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Interactively create a profile in credentials and config files.</span>
+<span class="w">        </span><span class="sd">"""Interactively create a profile in credentials and config files.</span>
 <span class="sd">        Parameters:</span>
 <span class="sd">        ----------</span>
 <span class="sd">        profile_name : str</span>
@@ -427,7 +427,7 @@
 <span class="sd">        The API token is stored in the credentials file, while other settings are</span>
 <span class="sd">        stored in the config file. If the profile already exists, existing values</span>
 <span class="sd">        are pre-filled for convenience.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Load or create configparser instances</span>
         <span class="n">credentials</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
@@ -445,80 +445,80 @@
         <span class="c1"># Check if the profile already exists</span>
         <span class="k">if</span> <span class="n">profile_name</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">()</span> <span class="ow">and</span> <span class="n">profile_name</span> <span class="ow">in</span> <span class="n">credentials</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
             <span class="n">profile_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_profile</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
-            <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;apikey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;apikey&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;procurement_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;procurement_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;project_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;workflow_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workflow_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;repository_platform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;repository_platform&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;execution_platform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execution_platform&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;session_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;session_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;profile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_name</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Profile &#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&#39; already exists. You can update single parameters or all.&quot;</span><span class="p">)</span>
+            <span class="n">shared_config</span><span class="p">[</span><span class="s1">'apikey'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'apikey'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">shared_config</span><span class="p">[</span><span class="s1">'cloudos_url'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'cloudos_url'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">shared_config</span><span class="p">[</span><span class="s1">'workspace_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'workspace_id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">shared_config</span><span class="p">[</span><span class="s1">'procurement_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'procurement_id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">shared_config</span><span class="p">[</span><span class="s1">'project_name'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'project_name'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">shared_config</span><span class="p">[</span><span class="s1">'workflow_name'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'workflow_name'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">shared_config</span><span class="p">[</span><span class="s1">'repository_platform'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'repository_platform'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">shared_config</span><span class="p">[</span><span class="s1">'execution_platform'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'execution_platform'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">shared_config</span><span class="p">[</span><span class="s1">'session_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'session_id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">shared_config</span><span class="p">[</span><span class="s1">'profile'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_name</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Profile '</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">' already exists. You can update single parameters or all."</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Updating profile: </span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'profile'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Updating profile: </span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating new profile: </span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Creating new profile: </span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="c1"># Ask for user input</span>
         <span class="c1"># API token</span>
-        <span class="n">present_api_token</span> <span class="o">=</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;apikey&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">present_api_token</span> <span class="o">=</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'apikey'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">present_api_token</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Mask the API token except for the last 4 characters, max 16 characters masked</span>
-            <span class="n">masked_api_token</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">present_api_token</span><span class="p">)</span> <span class="o">-</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span> <span class="o">+</span> <span class="n">present_api_token</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
-            <span class="n">api_token</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API token [</span><span class="si">{</span><span class="n">masked_api_token</span><span class="si">}</span><span class="s2">]: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">masked_api_token</span> <span class="o">=</span> <span class="s1">'*'</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">present_api_token</span><span class="p">)</span> <span class="o">-</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span> <span class="o">+</span> <span class="n">present_api_token</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
+            <span class="n">api_token</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">"API token [</span><span class="si">{</span><span class="n">masked_api_token</span><span class="si">}</span><span class="s2">]: "</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">api_token</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API token [</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">]: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">api_token</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">"API token [</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">]: "</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="c1"># If the user presses Enter, keep the existing value</span>
-        <span class="k">if</span> <span class="n">api_token</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;apikey&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">api_token</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;apikey&#39;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">api_token</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">api_token</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'apikey'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">api_token</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">'apikey'</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">api_token</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="n">api_token</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">api_token</span> <span class="o">=</span> <span class="n">api_token</span>
 
         <span class="c1"># Platform URL</span>
-        <span class="n">platform_url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Platform URL [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">platform_url</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Platform URL [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'cloudos_url'</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: "</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="c1"># If the user presses Enter, keep the existing value</span>
-        <span class="k">if</span> <span class="n">platform_url</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">platform_url</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">platform_url</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">platform_url</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'cloudos_url'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">platform_url</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">'cloudos_url'</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">platform_url</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="n">platform_url</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">platform_url</span> <span class="o">=</span> <span class="n">platform_url</span>
 
         <span class="c1"># Workspace ID</span>
         <span class="n">platform_workspace_id</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Platform workspace ID [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: &quot;</span>
+            <span class="sa">f</span><span class="s2">"Platform workspace ID [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'workspace_id'</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: "</span>
         <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="c1"># If the user presses Enter, keep the existing value</span>
-        <span class="k">if</span> <span class="n">platform_workspace_id</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">platform_workspace_id</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">platform_workspace_id</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">platform_workspace_id</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'workspace_id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">platform_workspace_id</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">'workspace_id'</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">platform_workspace_id</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="n">platform_workspace_id</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">platform_workspace_id</span> <span class="o">=</span> <span class="n">platform_workspace_id</span>
 
         <span class="c1"># Workspace ID</span>
         <span class="n">platform_procurement_id</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Platform procurement ID [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;procurement_id&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: &quot;</span>
+            <span class="sa">f</span><span class="s2">"Platform procurement ID [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'procurement_id'</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: "</span>
         <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="c1"># If the user presses Enter, keep the existing value</span>
-        <span class="k">if</span> <span class="n">platform_procurement_id</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;procurement_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">platform_procurement_id</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;procurement_id&#39;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">platform_procurement_id</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">platform_procurement_id</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'procurement_id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">platform_procurement_id</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">'procurement_id'</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">platform_procurement_id</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="n">platform_procurement_id</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">platform_procurement_id</span> <span class="o">=</span> <span class="n">platform_procurement_id</span>
 
         <span class="c1"># Project name</span>
-        <span class="n">project_name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Project name [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project_name&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">project_name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Project name [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'project_name'</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: "</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="c1"># If the user presses Enter, keep the existing value</span>
-        <span class="k">if</span> <span class="n">project_name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">project_name</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;project_name&#39;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">project_name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">project_name</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'project_name'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">project_name</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">'project_name'</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">project_name</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="n">project_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">project_name</span> <span class="o">=</span> <span class="n">project_name</span>
@@ -526,69 +526,69 @@
         <span class="c1"># Execution platform</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">platform_executor</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Platform executor [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execution_platform&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">1. aws (default)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">2. azure</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"Platform executor [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'execution_platform'</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]:</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span>
+                <span class="s2">"</span><span class="se">\t</span><span class="s2">1. aws (default)</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span>
+                <span class="s2">"</span><span class="se">\t</span><span class="s2">2. azure</span><span class="se">\n</span><span class="s2">"</span>
             <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">platform_executor</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execution_platform&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">platform_executor</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;execution_platform&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">platform_executor</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'execution_platform'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">platform_executor</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">'execution_platform'</span><span class="p">]</span>
                 <span class="k">break</span>
-            <span class="k">elif</span> <span class="n">platform_executor</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span> <span class="ow">or</span> <span class="n">platform_executor</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;aws&quot;</span><span class="p">:</span>
-                <span class="n">platform_executor</span> <span class="o">=</span> <span class="s2">&quot;aws&quot;</span>
+            <span class="k">elif</span> <span class="n">platform_executor</span> <span class="o">==</span> <span class="s2">"1"</span> <span class="ow">or</span> <span class="n">platform_executor</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"aws"</span><span class="p">:</span>
+                <span class="n">platform_executor</span> <span class="o">=</span> <span class="s2">"aws"</span>
                 <span class="k">break</span>
-            <span class="k">elif</span> <span class="n">platform_executor</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span> <span class="ow">or</span> <span class="n">platform_executor</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;azure&quot;</span><span class="p">:</span>
-                <span class="n">platform_executor</span> <span class="o">=</span> <span class="s2">&quot;azure&quot;</span>
+            <span class="k">elif</span> <span class="n">platform_executor</span> <span class="o">==</span> <span class="s2">"2"</span> <span class="ow">or</span> <span class="n">platform_executor</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"azure"</span><span class="p">:</span>
+                <span class="n">platform_executor</span> <span class="o">=</span> <span class="s2">"azure"</span>
                 <span class="k">break</span>
-            <span class="k">elif</span> <span class="n">platform_executor</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
-                <span class="n">platform_executor</span> <span class="o">=</span> <span class="s2">&quot;aws&quot;</span>
+            <span class="k">elif</span> <span class="n">platform_executor</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
+                <span class="n">platform_executor</span> <span class="o">=</span> <span class="s2">"aws"</span>
                 <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;❌ Invalid choice. Please select either 1 (aws) or 2 (azure).&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"❌ Invalid choice. Please select either 1 (aws) or 2 (azure)."</span><span class="p">)</span>
 
         <span class="c1"># Repository provider</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">repository_provider</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Repository provider [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;repository_platform&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">1. github (default)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">2. gitlab</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">3. bitbucketServer</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"Repository provider [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'repository_platform'</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]:</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span>
+                <span class="s2">"</span><span class="se">\t</span><span class="s2">1. github (default)</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span>
+                <span class="s2">"</span><span class="se">\t</span><span class="s2">2. gitlab</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span>
+                <span class="s2">"</span><span class="se">\t</span><span class="s2">3. bitbucketServer</span><span class="se">\n</span><span class="s2">"</span>
             <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">repository_provider</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;repository_platform&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">repository_provider</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;repository_platform&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">repository_provider</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'repository_platform'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">repository_provider</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">'repository_platform'</span><span class="p">]</span>
                 <span class="k">break</span>
-            <span class="k">elif</span> <span class="n">repository_provider</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span> <span class="ow">or</span> <span class="n">repository_provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;github&quot;</span><span class="p">:</span>
-                <span class="n">repository_provider</span> <span class="o">=</span> <span class="s2">&quot;github&quot;</span>
+            <span class="k">elif</span> <span class="n">repository_provider</span> <span class="o">==</span> <span class="s2">"1"</span> <span class="ow">or</span> <span class="n">repository_provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"github"</span><span class="p">:</span>
+                <span class="n">repository_provider</span> <span class="o">=</span> <span class="s2">"github"</span>
                 <span class="k">break</span>
-            <span class="k">elif</span> <span class="n">repository_provider</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span> <span class="ow">or</span> <span class="n">repository_provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;gitlab&quot;</span><span class="p">:</span>
-                <span class="n">repository_provider</span> <span class="o">=</span> <span class="s2">&quot;gitlab&quot;</span>
+            <span class="k">elif</span> <span class="n">repository_provider</span> <span class="o">==</span> <span class="s2">"2"</span> <span class="ow">or</span> <span class="n">repository_provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"gitlab"</span><span class="p">:</span>
+                <span class="n">repository_provider</span> <span class="o">=</span> <span class="s2">"gitlab"</span>
                 <span class="k">break</span>
-            <span class="k">elif</span> <span class="n">repository_provider</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span> <span class="ow">or</span> <span class="n">repository_provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;bitbucketserver&quot;</span><span class="p">:</span>
-                <span class="n">repository_provider</span> <span class="o">=</span> <span class="s2">&quot;bitbucketServer&quot;</span>
+            <span class="k">elif</span> <span class="n">repository_provider</span> <span class="o">==</span> <span class="s2">"3"</span> <span class="ow">or</span> <span class="n">repository_provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"bitbucketserver"</span><span class="p">:</span>
+                <span class="n">repository_provider</span> <span class="o">=</span> <span class="s2">"bitbucketServer"</span>
                 <span class="k">break</span>
-            <span class="k">elif</span> <span class="n">repository_provider</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
-                <span class="n">repository_provider</span> <span class="o">=</span> <span class="s2">&quot;github&quot;</span>
+            <span class="k">elif</span> <span class="n">repository_provider</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
+                <span class="n">repository_provider</span> <span class="o">=</span> <span class="s2">"github"</span>
                 <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;❌ Invalid choice. Please select either 1 (github) or 2 (gitlab) or 3 (bitbucketServer).&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"❌ Invalid choice. Please select either 1 (github) or 2 (gitlab) or 3 (bitbucketServer)."</span><span class="p">)</span>
 
         <span class="c1"># Workflow name</span>
-        <span class="n">workflow_name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Workflow name [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workflow_name&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">workflow_name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Workflow name [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'workflow_name'</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: "</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="c1"># If the user presses Enter, keep the existing value</span>
-        <span class="k">if</span> <span class="n">workflow_name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workflow_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">workflow_name</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;workflow_name&#39;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">workflow_name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">workflow_name</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'workflow_name'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">workflow_name</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">'workflow_name'</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">workflow_name</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="n">workflow_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">workflow_name</span> <span class="o">=</span> <span class="n">workflow_name</span>
 
         <span class="c1"># Interactive Analysis ID</span>
         <span class="n">session_id</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Interactive Analysis ID [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;session_id&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: &quot;</span>
+            <span class="sa">f</span><span class="s2">"Interactive Analysis ID [</span><span class="si">{</span><span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'session_id'</span><span class="p">,</span><span class="w"> </span><span class="n">profile_name</span><span class="p">)</span><span class="si">}</span><span class="s2">]: "</span>
         <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="c1"># If the user presses Enter, keep the existing value</span>
-        <span class="k">if</span> <span class="n">session_id</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;session_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">session_id</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;session_id&#39;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">session_id</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">session_id</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'session_id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">session_id</span> <span class="o">=</span> <span class="n">shared_config</span><span class="p">[</span><span class="s1">'session_id'</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">session_id</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="n">session_id</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">session_id</span> <span class="o">=</span> <span class="n">session_id</span>
@@ -598,17 +598,17 @@
             <span class="n">default_profile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determine_default_profile</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">default_profile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">default_profile</span> <span class="o">==</span> <span class="n">profile_name</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Profile &#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&#39; is already the default profile.&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Profile '</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">' is already the default profile."</span><span class="p">)</span>
                     <span class="n">default_profile</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">make_default</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Make this profile the default? (y/n) [</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">]: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-                    <span class="k">if</span> <span class="n">make_default</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span>
+                    <span class="n">make_default</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Make this profile the default? (y/n) [</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">]: "</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">make_default</span> <span class="o">==</span> <span class="s1">'y'</span><span class="p">:</span>
                         <span class="n">default_profile</span> <span class="o">=</span> <span class="kc">True</span>
                         <span class="c1"># Remove the default flag from any existing profiles</span>
                         <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
-                            <span class="k">if</span> <span class="s1">&#39;default&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">]:</span>
-                                <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">&#39;default&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
-                                    <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;False&#39;</span>
+                            <span class="k">if</span> <span class="s1">'default'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">]:</span>
+                                <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">'default'</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'true'</span><span class="p">:</span>
+                                    <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">'default'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'False'</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">default_profile</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
@@ -617,72 +617,72 @@
         <span class="c1"># Save API token into credentials file</span>
         <span class="n">credentials</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">api_token</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">credentials</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;apikey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">api_token</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">cred_file</span><span class="p">:</span>
+            <span class="n">credentials</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'apikey'</span><span class="p">]</span> <span class="o">=</span> <span class="n">api_token</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_file</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">cred_file</span><span class="p">:</span>
             <span class="n">credentials</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cred_file</span><span class="p">)</span>
 
         <span class="c1"># Save other settings into config file</span>
         <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">platform_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">platform_url</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'cloudos_url'</span><span class="p">]</span> <span class="o">=</span> <span class="n">platform_url</span>
         <span class="k">if</span> <span class="n">platform_workspace_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">platform_workspace_id</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'workspace_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">platform_workspace_id</span>
         <span class="k">if</span> <span class="n">platform_procurement_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;procurement_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">platform_procurement_id</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'procurement_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">platform_procurement_id</span>
         <span class="k">if</span> <span class="n">project_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;project_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">project_name</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'project_name'</span><span class="p">]</span> <span class="o">=</span> <span class="n">project_name</span>
         <span class="k">if</span> <span class="n">platform_executor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;execution_platform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">platform_executor</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'execution_platform'</span><span class="p">]</span> <span class="o">=</span> <span class="n">platform_executor</span>
         <span class="k">if</span> <span class="n">repository_provider</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;repository_platform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">repository_provider</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'repository_platform'</span><span class="p">]</span> <span class="o">=</span> <span class="n">repository_provider</span>
         <span class="k">if</span> <span class="n">workflow_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;workflow_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">workflow_name</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'workflow_name'</span><span class="p">]</span> <span class="o">=</span> <span class="n">workflow_name</span>
         <span class="k">if</span> <span class="n">default_profile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">default_profile</span><span class="p">)</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'default'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">default_profile</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">session_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;session_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">session_id</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'session_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">session_id</span>
 
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">conf_file</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">conf_file</span><span class="p">:</span>
             <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">conf_file</span><span class="p">)</span>
 
         <span class="c1"># if the profile existed, print message as updated</span>
-        <span class="k">if</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✅ Profile &#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&#39; updated successfully!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">shared_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'profile'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">✅ Profile '</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">' updated successfully!"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># if the profile was created, print message as created</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✅ Profile &#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&#39; created successfully!&quot;</span><span class="p">)</span></div>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">✅ Profile '</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">' created successfully!"</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ConfigurationProfile.list_profiles">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile.list_profiles">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">list_profiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lists all available profiles.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Lists all available profiles."""</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
         <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No profiles found.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"No profiles found."</span><span class="p">)</span>
             <span class="k">return</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Available profiles:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Available profiles:"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
             <span class="c1"># Check if the profile is the default one</span>
-            <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">profile</span><span class="p">]</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - </span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2"> (default)&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">profile</span><span class="p">]</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">'default'</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">" - </span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2"> (default)"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - </span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">" - </span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ConfigurationProfile.remove_profile">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile.remove_profile">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profile</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Removes a profile from the config and credentials files.</span>
+<span class="w">        </span><span class="sd">"""Removes a profile from the config and credentials files.</span>
 <span class="sd">        Parameters:</span>
 <span class="sd">        ----------</span>
 <span class="sd">        profile : str</span>
 <span class="sd">            The name of the profile to remove.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Load or create configparser instances</span>
         <span class="n">credentials</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
@@ -694,69 +694,69 @@
             <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No profiles found.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"No profiles found."</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="c1"># Check if the section exists in the config file</span>
         <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">credentials</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">profile</span><span class="p">):</span>
             <span class="c1"># check if this profile is the current default</span>
-            <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">profile</span><span class="p">]</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">profile</span><span class="p">]</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">'default'</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
                 <span class="c1"># If it is, set the first profile as default</span>
                 <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">section</span> <span class="o">!=</span> <span class="n">profile</span><span class="p">:</span>
-                        <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;True&#39;</span>
+                        <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">'default'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'True'</span>
                         <span class="k">break</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No other profiles available to set as default.&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">"No other profiles available to set as default."</span><span class="p">)</span>
             <span class="n">config</span><span class="o">.</span><span class="n">remove_section</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span>
             <span class="n">credentials</span><span class="o">.</span><span class="n">remove_section</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">credfile</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_file</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">credfile</span><span class="p">:</span>
                 <span class="n">credentials</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">credfile</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">configfile</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">configfile</span><span class="p">:</span>
                 <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">configfile</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Profile &#39;</span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2">&#39; removed successfully.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Profile '</span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2">' removed successfully."</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No profile found with the name &#39;</span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span></div>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No profile found with the name '</span><span class="si">{</span><span class="n">profile</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ConfigurationProfile.make_default_profile">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile.make_default_profile">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">make_default_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set a profile as the default profile.</span>
+<span class="w">        </span><span class="sd">"""Set a profile as the default profile.</span>
 <span class="sd">        Parameters:</span>
 <span class="sd">        ----------</span>
 <span class="sd">        profile_name : str</span>
 <span class="sd">            The name of the profile to set as default.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
         <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">profile_name</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No profile found with the name &#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No profile found with the name '</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="c1"># Check if the profile is already default</span>
-        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Profile &#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&#39; is already the default profile.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">'default'</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Profile '</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">' is already the default profile."</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="c1"># Remove the default flag from any existing profiles</span>
         <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
-            <span class="k">if</span> <span class="s1">&#39;default&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">&#39;default&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
-                    <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;False&#39;</span>
+            <span class="k">if</span> <span class="s1">'default'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">'default'</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'true'</span><span class="p">:</span>
+                    <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">'default'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'False'</span>
 
         <span class="c1"># Set the new default profile</span>
-        <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;True&#39;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">conf_file</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">][</span><span class="s1">'default'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'True'</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">conf_file</span><span class="p">:</span>
             <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">conf_file</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Profile &#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&#39; set as default.&quot;</span><span class="p">)</span></div>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Profile '</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">' set as default."</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ConfigurationProfile.load_profile">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile.load_profile">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a profile from the config and credentials files dynamically.</span>
+<span class="w">        </span><span class="sd">"""Load a profile from the config and credentials files dynamically.</span>
 
 <span class="sd">        This method now returns ALL parameters from the profile, not just predefined ones.</span>
 <span class="sd">        This makes it extensible - you can add new parameters to profiles without modifying this method.</span>
@@ -774,12 +774,12 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        # If you add accelerate_saving_results to your profile config:</span>
-<span class="sd">        config[profile_name][&#39;accelerate_saving_results&#39;] = &#39;true&#39;</span>
+<span class="sd">        config[profile_name]['accelerate_saving_results'] = 'true'</span>
 
 <span class="sd">        # It will automatically be included in the returned dictionary:</span>
-<span class="sd">        profile_data = load_profile(&#39;myprofile&#39;)</span>
-<span class="sd">        # profile_data will contain &#39;accelerate_saving_results&#39;: &#39;true&#39;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        profile_data = load_profile('myprofile')</span>
+<span class="sd">        # profile_data will contain 'accelerate_saving_results': 'true'</span>
+<span class="sd">        """</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
         <span class="n">credentials</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
 
@@ -790,8 +790,8 @@
             <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">profile_name</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Profile &quot;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s1">&quot; does not exist. Please create it &#39;</span> <span class="o">+</span>
-                             <span class="sa">f</span><span class="s1">&#39;with &quot;cloudos configure --profile </span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s1">&quot;.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Profile "</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s1">" does not exist. Please create it '</span> <span class="o">+</span>
+                             <span class="sa">f</span><span class="s1">'with "cloudos configure --profile </span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s1">".</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
 
         <span class="c1"># Dynamically load all parameters from the profile</span>
         <span class="n">profile_data</span> <span class="o">=</span> <span class="p">{}</span>
@@ -804,8 +804,8 @@
         <span class="c1"># Load all items from config file</span>
         <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">profile_name</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">profile_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="c1"># Skip the &#39;default&#39; flag as it&#39;s not a user parameter</span>
-                <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;default&#39;</span><span class="p">:</span>
+                <span class="c1"># Skip the 'default' flag as it's not a user parameter</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">'default'</span><span class="p">:</span>
                     <span class="n">profile_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
         <span class="k">return</span> <span class="n">profile_data</span></div>
@@ -814,7 +814,7 @@
 <div class="viewcode-block" id="ConfigurationProfile.check_if_profile_exists">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile.check_if_profile_exists">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">check_if_profile_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if a profile exists in the config file.</span>
+<span class="w">        </span><span class="sd">"""Check if a profile exists in the config file.</span>
 <span class="sd">        Parameters:</span>
 <span class="sd">        ----------</span>
 <span class="sd">        profile_name : str</span>
@@ -823,7 +823,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            True if the profile exists, False otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
         <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">)</span>
 
@@ -835,12 +835,12 @@
 <div class="viewcode-block" id="ConfigurationProfile.determine_default_profile">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile.determine_default_profile">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">determine_default_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the default profile from the config file.</span>
+<span class="w">        </span><span class="sd">"""Determine the default profile from the config file.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">            The name of the default profile, or None if no default is set.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
         <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">)</span>
 
@@ -849,25 +849,25 @@
 
         <span class="c1"># prioritize profiles marked as default</span>
         <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
-            <span class="k">if</span> <span class="s1">&#39;default&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">&#39;default&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">'default'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="s1">'default'</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'true'</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">section</span>
 
-        <span class="c1"># check if no &quot;default&quot; profile exists in the sections</span>
-        <span class="k">if</span> <span class="s1">&#39;default&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No default profile found. Making the first profile the default.&quot;</span><span class="p">)</span>
+        <span class="c1"># check if no "default" profile exists in the sections</span>
+        <span class="k">if</span> <span class="s1">'default'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"No default profile found. Making the first profile the default."</span><span class="p">)</span>
             <span class="c1"># Set the first profile as default</span>
             <span class="n">first_profile</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">config</span><span class="p">[</span><span class="n">first_profile</span><span class="p">][</span><span class="s1">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;True&#39;</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">conf_file</span><span class="p">:</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">first_profile</span><span class="p">][</span><span class="s1">'default'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'True'</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">conf_file</span><span class="p">:</span>
                 <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">conf_file</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">first_profile</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># make &quot;default&quot; profile as default</span>
-            <span class="n">config</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">][</span><span class="s2">&quot;default&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;True&quot;</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">conf_file</span><span class="p">:</span>
+            <span class="c1"># make "default" profile as default</span>
+            <span class="n">config</span><span class="p">[</span><span class="s2">"default"</span><span class="p">][</span><span class="s2">"default"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"True"</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">conf_file</span><span class="p">:</span>
                 <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">conf_file</span><span class="p">)</span>
-            <span class="k">return</span> <span class="s2">&quot;default&quot;</span></div>
+            <span class="k">return</span> <span class="s2">"default"</span></div>
 
 
 <div class="viewcode-block" id="ConfigurationProfile.get_param_value">
@@ -877,16 +877,16 @@
         <span class="n">source</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">get_parameter_source</span><span class="p">(</span><span class="n">param_name</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">default_value</span> <span class="k">if</span> <span class="n">source</span> <span class="o">!=</span> <span class="n">click</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ParameterSource</span><span class="o">.</span><span class="n">COMMANDLINE</span> <span class="k">else</span> <span class="n">param_value</span>
 
-        <span class="k">if</span> <span class="n">required</span> <span class="ow">and</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">required</span> <span class="ow">and</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">missing_required_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">missing_required_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">+</span> <span class="n">param_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">))</span>
+                <span class="n">missing_required_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'--'</span> <span class="o">+</span> <span class="n">param_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'_'</span><span class="p">,</span> <span class="s1">'-'</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="ConfigurationProfile.load_profile_and_validate_data">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_profile_and_validate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">init_profile</span><span class="p">,</span> <span class="n">cloudos_url_default</span><span class="p">,</span> <span class="n">profile</span><span class="p">,</span> <span class="n">required_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">cli_params</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Load profile data and validate required parameters dynamically.</span>
 
 <span class="sd">        This method now accepts any parameters via **cli_params, making it extensible.</span>
@@ -925,7 +925,7 @@
 <span class="sd">        # 2. Add to load_profile method return dict</span>
 <span class="sd">        # 3. Pass it in cli_params when calling this method</span>
 <span class="sd">        # 4. It will automatically be resolved from profile!</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">resolved_params</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -935,7 +935,7 @@
 
             <span class="c1"># Dynamically process all parameters passed in cli_params</span>
             <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">cli_value</span> <span class="ow">in</span> <span class="n">cli_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">profile_value</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">profile_value</span> <span class="o">=</span> <span class="n">profile_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
                 <span class="n">is_required</span> <span class="o">=</span> <span class="n">required_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
                 <span class="c1"># Resolve the parameter value</span>
@@ -950,7 +950,7 @@
 
                 <span class="c1"># Convert empty strings to None for optional parameters</span>
                 <span class="c1"># This prevents issues with functions that expect None for unset values</span>
-                <span class="k">if</span> <span class="n">resolved_value</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_required</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">resolved_value</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_required</span><span class="p">:</span>
                     <span class="n">resolved_value</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">resolved_params</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_value</span>
         <span class="k">else</span><span class="p">:</span>
@@ -969,32 +969,32 @@
                 <span class="p">)</span>
                 <span class="c1"># Convert empty strings to None for optional parameters</span>
                 <span class="c1"># This prevents issues with functions that expect None for unset values</span>
-                <span class="k">if</span> <span class="n">resolved_value</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_required</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">resolved_value</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_required</span><span class="p">:</span>
                     <span class="n">resolved_value</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">resolved_params</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_value</span>
 
         <span class="c1"># Special handling for cloudos_url with fallback to default</span>
-        <span class="n">resolved_cloudos_url</span> <span class="o">=</span> <span class="n">resolved_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">resolved_cloudos_url</span> <span class="o">=</span> <span class="n">resolved_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'cloudos_url'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">resolved_cloudos_url</span><span class="p">:</span>
             <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;No Lifebit Platform URL provided via CLI or profile. Falling back to default: </span><span class="si">{</span><span class="n">cloudos_url_default</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;yellow&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"No Lifebit Platform URL provided via CLI or profile. Falling back to default: </span><span class="si">{</span><span class="n">cloudos_url_default</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">fg</span><span class="o">=</span><span class="s2">"yellow"</span><span class="p">,</span>
                 <span class="n">bold</span><span class="o">=</span><span class="kc">True</span>
             <span class="p">)</span>
-            <span class="n">resolved_params</span><span class="p">[</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cloudos_url_default</span>
+            <span class="n">resolved_params</span><span class="p">[</span><span class="s1">'cloudos_url'</span><span class="p">]</span> <span class="o">=</span> <span class="n">cloudos_url_default</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">resolved_params</span><span class="p">[</span><span class="s1">&#39;cloudos_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_cloudos_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="n">resolved_params</span><span class="p">[</span><span class="s1">'cloudos_url'</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_cloudos_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">'/'</span><span class="p">)</span>
 
         <span class="c1"># Raise once, after all checks</span>
         <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
-            <span class="n">formatted</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">)</span>
+            <span class="n">formatted</span> <span class="o">=</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">UsageError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Missing required option/s: </span><span class="si">{</span><span class="n">formatted</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;You can configure the following parameters persistently by running cloudos configure:</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;  --apikey, --cloudos-url, --workspace-id, --workflow-name,</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;  --repository-platform, --execution-platform, --project-name,</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;  --session-id, --procurement-id</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;For more information on the usage of the command, please run cloudos configure --help&quot;</span>
+                <span class="sa">f</span><span class="s2">"Missing required option/s: </span><span class="si">{</span><span class="n">formatted</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"You can configure the following parameters persistently by running cloudos configure:</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"  --apikey, --cloudos-url, --workspace-id, --workflow-name,</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"  --repository-platform, --execution-platform, --project-name,</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"  --session-id, --procurement-id</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"For more information on the usage of the command, please run cloudos configure --help"</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">resolved_params</span></div>
@@ -1005,16 +1005,16 @@
 <span class="c1"># Define all standard configuration keys with their default empty values</span>
 <span class="c1"># This is the single source of truth for configuration fields</span>
 <span class="n">STANDARD_CONFIG_KEYS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;apikey&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;cloudos_url&#39;</span><span class="p">:</span> <span class="n">CLOUDOS_URL</span><span class="p">,</span>
-    <span class="s1">&#39;workspace_id&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;procurement_id&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;project_name&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;workflow_name&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;repository_platform&#39;</span><span class="p">:</span> <span class="s1">&#39;github&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;execution_platform&#39;</span><span class="p">:</span> <span class="s1">&#39;aws&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;profile&#39;</span><span class="p">:</span> <span class="n">INIT_PROFILE</span><span class="p">,</span>
-    <span class="s1">&#39;session_id&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">'apikey'</span><span class="p">:</span> <span class="s1">''</span><span class="p">,</span>
+    <span class="s1">'cloudos_url'</span><span class="p">:</span> <span class="n">CLOUDOS_URL</span><span class="p">,</span>
+    <span class="s1">'workspace_id'</span><span class="p">:</span> <span class="s1">''</span><span class="p">,</span>
+    <span class="s1">'procurement_id'</span><span class="p">:</span> <span class="s1">''</span><span class="p">,</span>
+    <span class="s1">'project_name'</span><span class="p">:</span> <span class="s1">''</span><span class="p">,</span>
+    <span class="s1">'workflow_name'</span><span class="p">:</span> <span class="s1">''</span><span class="p">,</span>
+    <span class="s1">'repository_platform'</span><span class="p">:</span> <span class="s1">'github'</span><span class="p">,</span>
+    <span class="s1">'execution_platform'</span><span class="p">:</span> <span class="s1">'aws'</span><span class="p">,</span>
+    <span class="s1">'profile'</span><span class="p">:</span> <span class="n">INIT_PROFILE</span><span class="p">,</span>
+    <span class="s1">'session_id'</span><span class="p">:</span> <span class="s1">''</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -1022,7 +1022,7 @@
 <div class="viewcode-block" id="with_profile_config">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.with_profile_config">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">with_profile_config</span><span class="p">(</span><span class="n">required_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Decorator to automatically handle profile configuration loading for commands.</span>
 
 <span class="sd">    This decorator simplifies command functions by automatically loading configuration</span>
@@ -1033,23 +1033,23 @@
 <span class="sd">    ----------</span>
 <span class="sd">    required_params : list, optional</span>
 <span class="sd">        List of parameter names that can currently be added in a profile. Common values:</span>
-<span class="sd">        - &#39;apikey&#39;: Lifebit Platform API key</span>
-<span class="sd">        - &#39;workspace_id&#39;: Lifebit Platform workspace ID</span>
-<span class="sd">        - &#39;project_name&#39;: Project name</span>
-<span class="sd">        - &#39;workflow_name&#39;: Workflow/pipeline name</span>
-<span class="sd">        - &#39;session_id&#39;: Interactive session ID</span>
-<span class="sd">        - &#39;procurement_id&#39;: Procurement ID</span>
+<span class="sd">        - 'apikey': Lifebit Platform API key</span>
+<span class="sd">        - 'workspace_id': Lifebit Platform workspace ID</span>
+<span class="sd">        - 'project_name': Project name</span>
+<span class="sd">        - 'workflow_name': Workflow/pipeline name</span>
+<span class="sd">        - 'session_id': Interactive session ID</span>
+<span class="sd">        - 'procurement_id': Procurement ID</span>
 <span class="sd">        This list can be updated as new parameters are added to profiles.</span>
 
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
-<span class="sd">    @job.command(&#39;details&#39;)</span>
-<span class="sd">    @click.option(&#39;--apikey&#39;, help=&#39;Your Lifebit Platform API key&#39;, required=True)</span>
-<span class="sd">    @click.option(&#39;--workspace-id&#39;, help=&#39;The specific Lifebit Platform workspace id.&#39;, required=True)</span>
-<span class="sd">    @click.option(&#39;--job-id&#39;, help=&#39;The job id in Lifebit Platform to search for.&#39;, required=True)</span>
-<span class="sd">    @click.option(&#39;--profile&#39;, help=&#39;Profile to use from the config file&#39;, default=None)</span>
+<span class="sd">    @job.command('details')</span>
+<span class="sd">    @click.option('--apikey', help='Your Lifebit Platform API key', required=True)</span>
+<span class="sd">    @click.option('--workspace-id', help='The specific Lifebit Platform workspace id.', required=True)</span>
+<span class="sd">    @click.option('--job-id', help='The job id in Lifebit Platform to search for.', required=True)</span>
+<span class="sd">    @click.option('--profile', help='Profile to use from the config file', default=None)</span>
 <span class="sd">    @click.pass_context</span>
-<span class="sd">    @with_profile_config(required_params=[&#39;apikey&#39;, &#39;workspace_id&#39;])</span>
+<span class="sd">    @with_profile_config(required_params=['apikey', 'workspace_id'])</span>
 <span class="sd">    def job_details(ctx, apikey, workspace_id, job_id, ...):</span>
 <span class="sd">        # apikey, cloudos_url, workspace_id are automatically available</span>
 <span class="sd">        cl = Cloudos(cloudos_url, apikey, None)</span>
@@ -1059,7 +1059,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    function</span>
 <span class="sd">        Decorated function with automatic profile configuration loading.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="n">required_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">required_params</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1068,20 +1068,20 @@
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="c1"># Get context from args or kwargs</span>
-            <span class="n">ctx</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ctx&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">args</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'ctx'</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">args</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">click</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">ctx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Context not found. Make sure @click.pass_context is used before this decorator.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Context not found. Make sure @click.pass_context is used before this decorator."</span><span class="p">)</span>
 
             <span class="c1"># Update logging context</span>
             <span class="n">update_command_context_from_click</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
 
             <span class="c1"># Get profile from kwargs</span>
-            <span class="n">profile</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;profile&#39;</span><span class="p">)</span>
+            <span class="n">profile</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'profile'</span><span class="p">)</span>
 
             <span class="c1"># Check if profile was explicitly provided on command line</span>
             <span class="c1"># If it was provided via CLI, use that; otherwise fall back to default_map</span>
-            <span class="n">profile_source</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">get_parameter_source</span><span class="p">(</span><span class="s1">&#39;profile&#39;</span><span class="p">)</span>
+            <span class="n">profile_source</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">get_parameter_source</span><span class="p">(</span><span class="s1">'profile'</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">profile_source</span> <span class="o">==</span> <span class="n">click</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ParameterSource</span><span class="o">.</span><span class="n">COMMANDLINE</span><span class="p">:</span>
                 <span class="c1"># User explicitly specified --profile on command line, use it</span>
@@ -1093,7 +1093,7 @@
                     <span class="n">profile_map</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">default_map</span>
                     <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">command_path</span><span class="p">:</span>
                         <span class="n">profile_map</span> <span class="o">=</span> <span class="n">profile_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="p">{})</span>
-                    <span class="n">profile</span> <span class="o">=</span> <span class="n">profile_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;profile&#39;</span><span class="p">)</span>
+                    <span class="n">profile</span> <span class="o">=</span> <span class="n">profile_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'profile'</span><span class="p">)</span>
                 <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
                     <span class="k">pass</span>
 
@@ -1106,8 +1106,8 @@
 
             <span class="c1"># Pass all kwargs dynamically to load_profile_and_validate_data</span>
             <span class="c1"># This allows any parameter to be loaded from profile without modifying the decorator</span>
-            <span class="c1"># Remove &#39;profile&#39; from kwargs since we&#39;re passing it explicitly</span>
-            <span class="n">cli_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s1">&#39;profile&#39;</span><span class="p">}</span>
+            <span class="c1"># Remove 'profile' from kwargs since we're passing it explicitly</span>
+            <span class="n">cli_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s1">'profile'</span><span class="p">}</span>
 
             <span class="n">user_options</span> <span class="o">=</span> <span class="n">config_manager</span><span class="o">.</span><span class="n">load_profile_and_validate_data</span><span class="p">(</span>
                 <span class="n">ctx</span><span class="p">,</span>
@@ -1115,7 +1115,7 @@
                 <span class="n">CLOUDOS_URL</span><span class="p">,</span>
                 <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span>
                 <span class="n">required_dict</span><span class="o">=</span><span class="n">required_dict</span><span class="p">,</span>
-                <span class="o">**</span><span class="n">cli_params</span>  <span class="c1"># Pass all parameters dynamically (except &#39;profile&#39;)!</span>
+                <span class="o">**</span><span class="n">cli_params</span>  <span class="c1"># Pass all parameters dynamically (except 'profile')!</span>
             <span class="p">)</span>
 
             <span class="c1"># Store user_options in context for easy access</span>
@@ -1149,7 +1149,7 @@
 <div class="viewcode-block" id="build_default_map_for_group">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.build_default_map_for_group">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">build_default_map_for_group</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">shared_config</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Recursively build a default_map dictionary for a Click group and all its subcommands.</span>
 
 <span class="sd">    This function introspects a Click group to discover all registered commands and subcommands,</span>
@@ -1172,13 +1172,13 @@
 <span class="sd">    -------</span>
 <span class="sd">    # Instead of manually defining:</span>
 <span class="sd">    default_map = {</span>
-<span class="sd">        &#39;job&#39;: {&#39;status&#39;: shared_config, &#39;list&#39;: shared_config, ...},</span>
-<span class="sd">        &#39;workflow&#39;: {&#39;list&#39;: shared_config, ...}</span>
+<span class="sd">        'job': {'status': shared_config, 'list': shared_config, ...},</span>
+<span class="sd">        'workflow': {'list': shared_config, ...}</span>
 <span class="sd">    }</span>
 
 <span class="sd">    # Use:</span>
 <span class="sd">    default_map = build_default_map_for_group(run_cloudos_cli, shared_config)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">default_map</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">click</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
@@ -1187,10 +1187,10 @@
     <span class="c1"># Iterate through all commands in the group</span>
     <span class="k">for</span> <span class="n">cmd_name</span><span class="p">,</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">click</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
-            <span class="c1"># If it&#39;s a subgroup, recursively build its default_map</span>
+            <span class="c1"># If it's a subgroup, recursively build its default_map</span>
             <span class="n">default_map</span><span class="p">[</span><span class="n">cmd_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">build_default_map_for_group</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shared_config</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># If it&#39;s a command, apply the shared config</span>
+            <span class="c1"># If it's a command, apply the shared config</span>
             <span class="n">default_map</span><span class="p">[</span><span class="n">cmd_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">shared_config</span>
 
     <span class="k">return</span> <span class="n">default_map</span></div>
@@ -1200,7 +1200,7 @@
 <div class="viewcode-block" id="get_shared_config">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.configure.configure.html#cloudos_cli.configure.configure.get_shared_config">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_shared_config</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Load shared configuration from the default profile with fallback to empty defaults.</span>
 
 <span class="sd">    This function centralizes the logic for loading the shared configuration that will</span>
@@ -1221,14 +1221,14 @@
 <span class="sd">    -------</span>
 <span class="sd">    &gt;&gt;&gt; shared_config = get_shared_config()</span>
 <span class="sd">    &gt;&gt;&gt; ctx.default_map = build_default_map_for_group(run_cloudos_cli, shared_config)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">config_manager</span> <span class="o">=</span> <span class="n">ConfigurationProfile</span><span class="p">()</span>
     <span class="n">profile_to_use</span> <span class="o">=</span> <span class="n">config_manager</span><span class="o">.</span><span class="n">determine_default_profile</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">profile_to_use</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">()</span>
         <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span>
-            <span class="s2">&quot;[bold yellow]No profile found. Please create one with </span><span class="se">\&quot;</span><span class="s2">cloudos configure</span><span class="se">\&quot;</span><span class="s2">.&quot;</span>
+            <span class="s2">"[bold yellow]No profile found. Please create one with </span><span class="se">\"</span><span class="s2">cloudos configure</span><span class="se">\"</span><span class="s2">."</span>
         <span class="p">)</span>
         <span class="c1"># Return default configuration when no profile exists</span>
         <span class="k">return</span> <span class="n">STANDARD_CONFIG_KEYS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -1236,8 +1236,8 @@
     <span class="c1"># Load default profile - just to provide defaults</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">shared_config</span> <span class="o">=</span> <span class="n">config_manager</span><span class="o">.</span><span class="n">load_profile</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_to_use</span><span class="p">)</span>
-        <span class="c1"># Ensure &#39;profile&#39; key is always set to the profile name</span>
-        <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;profile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_to_use</span>
+        <span class="c1"># Ensure 'profile' key is always set to the profile name</span>
+        <span class="n">shared_config</span><span class="p">[</span><span class="s1">'profile'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_to_use</span>
 
         <span class="c1"># Fill in any missing keys with default values to prevent KeyErrors</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">default_value</span> <span class="ow">in</span> <span class="n">STANDARD_CONFIG_KEYS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1249,7 +1249,7 @@
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="c1"># If loading the default profile fails, use empty defaults</span>
         <span class="n">shared_config</span> <span class="o">=</span> <span class="n">STANDARD_CONFIG_KEYS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">shared_config</span><span class="p">[</span><span class="s1">&#39;profile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_to_use</span>
+        <span class="n">shared_config</span><span class="p">[</span><span class="s1">'profile'</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_to_use</span>
         <span class="k">return</span> <span class="n">shared_config</span></div>
 
 </pre></div>

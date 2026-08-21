@@ -377,14 +377,14 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_parse_iso8601_z</span><span class="p">(</span><span class="n">dt_str</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parse an ISO8601 timestamp string that may end with &#39;Z&#39; (UTC).</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Parse an ISO8601 timestamp string that may end with 'Z' (UTC).</span>
 <span class="sd">    Returns a timezone-aware datetime, or None if parsing fails.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">dt_str</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">dt_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">):</span>
-        <span class="n">dt_str</span> <span class="o">=</span> <span class="n">dt_str</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;+00:00&#39;</span>
+    <span class="k">if</span> <span class="n">dt_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">'Z'</span><span class="p">):</span>
+        <span class="n">dt_str</span> <span class="o">=</span> <span class="n">dt_str</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">'+00:00'</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">dt_str</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
@@ -394,13 +394,13 @@
 <div class="viewcode-block" id="youngest_workflow_id_by_name">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.last_wf.html#cloudos_cli.utils.last_wf.youngest_workflow_id_by_name">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">youngest_workflow_id_by_name</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">target_name</span><span class="p">,</span> <span class="n">ignore_case</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_workflow</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Find the most recently created workflow whose .name matches `target_name`.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    content : dict</span>
-<span class="sd">        API response dict containing top-level &quot;workflows&quot;.</span>
+<span class="sd">        API response dict containing top-level "workflows".</span>
 <span class="sd">    target_name : str</span>
 <span class="sd">        Name to match.</span>
 <span class="sd">    ignore_case : bool, default False</span>
@@ -412,27 +412,27 @@
 <span class="sd">    -------</span>
 <span class="sd">    str | dict | None</span>
 <span class="sd">        _id (default), full workflow dict (if return_workflow=True), or None if no match.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">workflows</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workflows&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+<span class="sd">    """</span>
+    <span class="n">workflows</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'workflows'</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">ignore_case</span><span class="p">:</span>
         <span class="n">target_cmp</span> <span class="o">=</span> <span class="n">target_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">wf</span> <span class="k">for</span> <span class="n">wf</span> <span class="ow">in</span> <span class="n">workflows</span> <span class="k">if</span> <span class="n">wf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">target_cmp</span><span class="p">]</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">wf</span> <span class="k">for</span> <span class="n">wf</span> <span class="ow">in</span> <span class="n">workflows</span> <span class="k">if</span> <span class="n">wf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">target_cmp</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">wf</span> <span class="k">for</span> <span class="n">wf</span> <span class="ow">in</span> <span class="n">workflows</span> <span class="k">if</span> <span class="n">wf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">target_name</span><span class="p">]</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">wf</span> <span class="k">for</span> <span class="n">wf</span> <span class="ow">in</span> <span class="n">workflows</span> <span class="k">if</span> <span class="n">wf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name'</span><span class="p">)</span> <span class="o">==</span> <span class="n">target_name</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">sort_key</span><span class="p">(</span><span class="n">wf</span><span class="p">):</span>
-        <span class="n">created</span> <span class="o">=</span> <span class="n">_parse_iso8601_z</span><span class="p">(</span><span class="n">wf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;createdAt&#39;</span><span class="p">))</span>
-        <span class="n">updated</span> <span class="o">=</span> <span class="n">_parse_iso8601_z</span><span class="p">(</span><span class="n">wf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;updatedAt&#39;</span><span class="p">))</span>
+        <span class="n">created</span> <span class="o">=</span> <span class="n">_parse_iso8601_z</span><span class="p">(</span><span class="n">wf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'createdAt'</span><span class="p">))</span>
+        <span class="n">updated</span> <span class="o">=</span> <span class="n">_parse_iso8601_z</span><span class="p">(</span><span class="n">wf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'updatedAt'</span><span class="p">))</span>
         <span class="c1"># Prefer createdAt; fall back to updatedAt; else epoch 0</span>
         <span class="k">return</span> <span class="n">created</span> <span class="ow">or</span> <span class="n">updated</span> <span class="ow">or</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
 
     <span class="n">youngest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">matches</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">sort_key</span><span class="p">)</span>
     <span class="c1"># keep structure as dictionary, will return inner dictionary just for the selected workflow</span>
-    <span class="n">youngest_d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;workflows&quot;</span><span class="p">:[</span> <span class="n">youngest</span> <span class="p">]}</span>
-    <span class="n">youngest_id</span> <span class="o">=</span> <span class="n">youngest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">)</span>
+    <span class="n">youngest_d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"workflows"</span><span class="p">:[</span> <span class="n">youngest</span> <span class="p">]}</span>
+    <span class="n">youngest_id</span> <span class="o">=</span> <span class="n">youngest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'_id'</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">youngest_d</span> <span class="k">if</span> <span class="n">return_workflow</span> <span class="k">else</span> <span class="n">youngest_id</span></div>
 

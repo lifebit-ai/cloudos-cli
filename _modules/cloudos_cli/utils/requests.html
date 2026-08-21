@@ -373,9 +373,9 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for cloudos_cli.utils.requests</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Specific functions to wrapp error strategy for requests</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">requests.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPAdapter</span>
@@ -385,7 +385,7 @@
 <div class="viewcode-block" id="retry_requests_get">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.requests.html#cloudos_cli.utils.requests.retry_requests_get">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">retry_requests_get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">429</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrap normal requests get with an error strategy.</span>
+<span class="w">    </span><span class="sd">"""Wrap normal requests get with an error strategy.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -400,7 +400,7 @@
 <span class="sd">    ------</span>
 <span class="sd">    response : requests.Response</span>
 <span class="sd">        The Response object returned by the API server</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">retry_strategy</span> <span class="o">=</span> <span class="n">Retry</span><span class="p">(</span>
         <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
         <span class="n">status_forcelist</span><span class="o">=</span><span class="n">status_forcelist</span>
@@ -410,8 +410,8 @@
 
     <span class="c1"># Create a new session object</span>
     <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
-    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
-    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">'http://'</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">'https://'</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
 
     <span class="c1"># Make a request using the session object</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -422,7 +422,7 @@
 <div class="viewcode-block" id="retry_requests_post">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.requests.html#cloudos_cli.utils.requests.retry_requests_post">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">retry_requests_post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">429</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrap normal requests post with an error strategy.</span>
+<span class="w">    </span><span class="sd">"""Wrap normal requests post with an error strategy.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -437,7 +437,7 @@
 <span class="sd">    ------</span>
 <span class="sd">    response : requests.Response</span>
 <span class="sd">        The Response object returned by the API server</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">retry_strategy</span> <span class="o">=</span> <span class="n">Retry</span><span class="p">(</span>
         <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
         <span class="n">status_forcelist</span><span class="o">=</span><span class="n">status_forcelist</span>
@@ -447,8 +447,8 @@
 
     <span class="c1"># Create a new session object</span>
     <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
-    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
-    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">'http://'</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">'https://'</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
 
     <span class="c1"># Make a request using the session object</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -459,7 +459,7 @@
 <div class="viewcode-block" id="retry_requests_put">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.requests.html#cloudos_cli.utils.requests.retry_requests_put">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">retry_requests_put</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">429</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrap normal requests put with an error strategy.</span>
+<span class="w">    </span><span class="sd">"""Wrap normal requests put with an error strategy.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -474,7 +474,7 @@
 <span class="sd">    ------</span>
 <span class="sd">    response : requests.Response</span>
 <span class="sd">        The Response object returned by the API server</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">retry_strategy</span> <span class="o">=</span> <span class="n">Retry</span><span class="p">(</span>
         <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
         <span class="n">status_forcelist</span><span class="o">=</span><span class="n">status_forcelist</span>
@@ -484,8 +484,8 @@
 
     <span class="c1"># Create a new session object</span>
     <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
-    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
-    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">'http://'</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s1">'https://'</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
 
     <span class="c1"># Make a request using the session object</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -496,7 +496,7 @@
 <div class="viewcode-block" id="retry_requests_delete">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.requests.html#cloudos_cli.utils.requests.retry_requests_delete">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">retry_requests_delete</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">429</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Wrap normal requests DELETE with an error retry strategy.</span>
 
 <span class="sd">    Parameters</span>
@@ -514,17 +514,17 @@
 <span class="sd">    -------</span>
 <span class="sd">    requests.Response</span>
 <span class="sd">        The Response object returned by the API server.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">retry_strategy</span> <span class="o">=</span> <span class="n">Retry</span><span class="p">(</span>
         <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
         <span class="n">status_forcelist</span><span class="o">=</span><span class="n">status_forcelist</span><span class="p">,</span>
-        <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;DELETE&quot;</span><span class="p">]</span>
+        <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s2">"DELETE"</span><span class="p">]</span>
     <span class="p">)</span>
     <span class="n">adapter</span> <span class="o">=</span> <span class="n">HTTPAdapter</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="n">retry_strategy</span><span class="p">)</span>
 
     <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
-    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;http://&quot;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
-    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;https://&quot;</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">"http://"</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">"https://"</span><span class="p">,</span> <span class="n">adapter</span><span class="p">)</span>
 
     <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">response</span></div>

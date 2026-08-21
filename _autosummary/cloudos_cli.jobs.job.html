@@ -587,11 +587,11 @@ the SSL certificate file.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.convert_nextflow_to_json">
 <span class="sig-name descname"><span class="pre">convert_nextflow_to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_parameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_file_header</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">example_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">git_commit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">git_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">git_branch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resumable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_logs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_queue_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nextflow_profile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nextflow_version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_disk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_platform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hpc_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cromwell_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azure_worker_instance_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azure_worker_instance_disk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azure_worker_instance_spot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_mountpoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accelerate_saving_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">docker_login</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job.convert_nextflow_to_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job.convert_nextflow_to_json" title="Link to this definition">¶</a></dt>
-<dd><p>Converts a nextflow.config file into a json formatted dict.</p>
+<dd><p>Converts a job config file into a json formatted dict.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_config</strong> (<em>string</em>) – Path to a nextflow.config file with parameters scope.</p></li>
+<li><p><strong>job_config</strong> (<em>string</em>) – Path to a file with parameters scope.</p></li>
 <li><p><strong>params_file</strong> (<em>string</em>) – S3 or File Explorer path to a JSON/YAML file with Nextflow parameters.</p></li>
 <li><p><strong>parameter</strong> (<em>tuple</em>) – Tuple of strings indicating the parameters to pass to the pipeline call.
 They are in the following form: (‘param1=param1val’, ‘param2=param2val’, …)</p></li>
@@ -1500,6 +1500,30 @@ the SSL certificate file.</p></li>
 <span class="sig-name descname"><span class="pre">last</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.last" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.list_literal_warning">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">list_literal_warning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job.list_literal_warning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job.list_literal_warning" title="Link to this definition">¶</a></dt>
+<dd><p>Build a warning for a value that looks like a list but is sent as text.</p>
+<p>A ‘[a, b]’ literal in a job config file is not expanded into a Nextflow
+list: every job config value is sent as text. Users coming from real
+nextflow.config files expect the expansion, so warn and show the value
+the pipeline actually receives.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p_name</strong> (<em>string</em>) – The parameter name.</p></li>
+<li><p><strong>p_value</strong> (<em>string</em>) – The parameter value, as it will be sent.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The warning message, or None if the value is not a list literal.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string or None</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.mainfile">
 <span class="sig-name descname"><span class="pre">mainfile</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#cloudos_cli.jobs.job.Job.mainfile" title="Link to this definition">¶</a></dt>
@@ -1529,6 +1553,42 @@ the SSL certificate file.</p></li>
 <dd class="field-odd"><p>int</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.parse_job_config_params">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">parse_job_config_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nextflow'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job.parse_job_config_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job.parse_job_config_params" title="Link to this definition">¶</a></dt>
+<dd><p>Parse a job config file into a list of (name, value) parameter pairs.</p>
+<p>The job config file is a list of parameters, equivalent to repeating
+‘–parameter name=value’ on the command line. Every value is sent as
+text, exactly as when launching Nextflow from the command line, so a
+literal such as “[‘a’, ‘b’]” is passed through as a string. Values
+spanning several lines and nested blocks cannot be represented.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_config</strong> (<em>string</em>) – Path to the job config file.</p></li>
+<li><p><strong>workflow_type</strong> (<em>string</em>) – The type of workflow to run. Quotes are kept for ‘wdl’ workflows.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of (name, value) tuples, in file order.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the file has no ‘params’ block, if the block is opened and closed
+    on the same line, or if a line inside the block is not a
+    ‘name = value’ pair, has a value spanning several lines, or has no
+    value at all. Every message reports the offending line, and all but
+    the missing block report its line number.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>A value that looks like a list is parsed and returned, but prints a
+warning first, since it is sent as text rather than as a Nextflow list.
+The warning is skipped for ‘wdl’ workflows.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1721,7 +1781,7 @@ and making an API call to retrieve the file’s metadata.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>job_config</strong> (<em>string</em>) – Path to a nextflow.config file with parameters scope.</p></li>
+<li><p><strong>job_config</strong> (<em>string</em>) – Path to a file with parameters scope.</p></li>
 <li><p><strong>params_file</strong> (<em>string</em>) – S3 or File Explorer path to a JSON/YAML file with Nextflow parameters.</p></li>
 <li><p><strong>parameter</strong> (<em>tuple</em>) – Tuple of strings indicating the parameters to pass to the pipeline call.
 They are in the following form: (‘param1=param1val’, ‘param2=param2val’, …)</p></li>
@@ -1838,6 +1898,25 @@ Each dictionary should contain “name” and “index” keys.</p></li>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>ValueError</strong> – If an array parameter does not contain a ‘=’ character or is improperly formatted.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.strip_inline_comment">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">strip_inline_comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job.strip_inline_comment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job.strip_inline_comment" title="Link to this definition">¶</a></dt>
+<dd><p>Remove a trailing ‘//’ or ‘#’ comment from a job config line.</p>
+<p>Only comments preceded by whitespace are removed, so that values
+containing these characters, such as ‘s3://bucket/key’, are preserved.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>line</strong> (<em>string</em>) – A single raw line from a job config file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The line with any trailing comment removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2169,8 +2248,10 @@ want to paginate through the cached results.</p>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.importsfile"><code class="docutils literal notranslate"><span class="pre">Job.importsfile</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.is_module"><code class="docutils literal notranslate"><span class="pre">Job.is_module()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.last"><code class="docutils literal notranslate"><span class="pre">Job.last</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.list_literal_warning"><code class="docutils literal notranslate"><span class="pre">Job.list_literal_warning()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.mainfile"><code class="docutils literal notranslate"><span class="pre">Job.mainfile</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.mount_fuse_filesystem_v2"><code class="docutils literal notranslate"><span class="pre">Job.mount_fuse_filesystem_v2()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.parse_job_config_params"><code class="docutils literal notranslate"><span class="pre">Job.parse_job_config_params()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.process_job_list"><code class="docutils literal notranslate"><span class="pre">Job.process_job_list()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.process_project_list"><code class="docutils literal notranslate"><span class="pre">Job.process_project_list()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.process_workflow_list"><code class="docutils literal notranslate"><span class="pre">Job.process_workflow_list()</span></code></a></li>
@@ -2185,6 +2266,7 @@ want to paginate through the cached results.</p>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.send_job"><code class="docutils literal notranslate"><span class="pre">Job.send_job()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.setup_params_array_file"><code class="docutils literal notranslate"><span class="pre">Job.setup_params_array_file()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.split_array_file_params"><code class="docutils literal notranslate"><span class="pre">Job.split_array_file_params()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.strip_inline_comment"><code class="docutils literal notranslate"><span class="pre">Job.strip_inline_comment()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.unarchive_jobs"><code class="docutils literal notranslate"><span class="pre">Job.unarchive_jobs()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.update_parameter_value"><code class="docutils literal notranslate"><span class="pre">Job.update_parameter_value()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.verify"><code class="docutils literal notranslate"><span class="pre">Job.verify</span></code></a></li>

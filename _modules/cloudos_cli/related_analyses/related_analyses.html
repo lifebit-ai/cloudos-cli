@@ -386,12 +386,12 @@
 <div class="viewcode-block" id="related_analyses">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.related_analyses.related_analyses.html#cloudos_cli.related_analyses.related_analyses">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">related_analyses</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">j_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">output_format</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Retrieve and display related analyses for a given job in a Cloudos workspace.</span>
 
 <span class="sd">    This function fetches the working directory and related analyses information for a specified job.</span>
 <span class="sd">    If the job is a Bash job (which does not have related analyses), a warning is displayed.</span>
-<span class="sd">    If the job&#39;s intermediate results have been deleted, a message is shown indicating who deleted them and when.</span>
+<span class="sd">    If the job's intermediate results have been deleted, a message is shown indicating who deleted them and when.</span>
 <span class="sd">    The related analyses can be output in JSON format or displayed as a formatted table.</span>
 
 <span class="sd">    Parameters</span>
@@ -405,60 +405,60 @@
 <span class="sd">    workspace_id: str</span>
 <span class="sd">        The ID of the workspace containing the job.</span>
 <span class="sd">    output_format: str</span>
-<span class="sd">        Output format, either &#39;json&#39; or another format for table display.</span>
+<span class="sd">        Output format, either 'json' or another format for table display.</span>
 <span class="sd">    verify: bool, optional</span>
 <span class="sd">        Whether to verify SSL certificates. Defaults to True.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError: If the job does not have a working directory associated.</span>
-<span class="sd">    Exception: Propagates exceptions not related to missing &#39;workDirectory&#39; field.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    Exception: Propagates exceptions not related to missing 'workDirectory' field.</span>
+<span class="sd">    """</span>
 
-    <span class="n">job</span> <span class="o">=</span> <span class="n">jb</span><span class="o">.</span><span class="n">Job</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">workflow_id</span><span class="o">=</span><span class="mi">1234</span><span class="p">,</span> <span class="n">project_id</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span>
+    <span class="n">job</span> <span class="o">=</span> <span class="n">jb</span><span class="o">.</span><span class="n">Job</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">workflow_id</span><span class="o">=</span><span class="mi">1234</span><span class="p">,</span> <span class="n">project_id</span><span class="o">=</span><span class="s2">"None"</span><span class="p">,</span>
                  <span class="n">mainfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">importsfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
 
     <span class="c1"># Get job working directory</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">j_workdir</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get_field_from_jobs_endpoint</span><span class="p">(</span><span class="n">j_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s1">&#39;workDirectory&#39;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+        <span class="n">j_workdir</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get_field_from_jobs_endpoint</span><span class="p">(</span><span class="n">j_id</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s1">'workDirectory'</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s2">&quot;Field &#39;workDirectory&#39; not found in endpoint &#39;jobs&#39;&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
-            <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">&quot;Bash jobs do not have &#39;Related Analyses&#39; information.&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;yellow&quot;</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">"Field 'workDirectory' not found in endpoint 'jobs'"</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">"Bash jobs do not have 'Related Analyses' information."</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">"yellow"</span><span class="p">,</span> <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">e</span>
 
     <span class="c1"># Get folder ID</span>
-    <span class="n">folder_id</span> <span class="o">=</span> <span class="n">j_workdir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;folderId&#39;</span><span class="p">)</span>
+    <span class="n">folder_id</span> <span class="o">=</span> <span class="n">j_workdir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'folderId'</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">folder_id</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The job does not have a working directory associated.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The job does not have a working directory associated."</span><span class="p">)</span>
 
     <span class="c1"># Get related analyses</span>
-    <span class="n">j_related</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get_job_relatedness</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">j_workdir</span><span class="p">[</span><span class="s1">&#39;folderId&#39;</span><span class="p">],</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
-    <span class="n">deleted_by_id</span> <span class="o">=</span> <span class="n">j_workdir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;deletedBy&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
-    <span class="n">deleted_by_name</span> <span class="o">=</span> <span class="n">j_workdir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;deletedBy&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
-    <span class="n">deletion_date_iso</span> <span class="o">=</span> <span class="n">j_workdir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;deletionDate&#39;</span><span class="p">)</span>
+    <span class="n">j_related</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get_job_relatedness</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">j_workdir</span><span class="p">[</span><span class="s1">'folderId'</span><span class="p">],</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+    <span class="n">deleted_by_id</span> <span class="o">=</span> <span class="n">j_workdir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'deletedBy'</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'id'</span><span class="p">)</span>
+    <span class="n">deleted_by_name</span> <span class="o">=</span> <span class="n">j_workdir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'deletedBy'</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name'</span><span class="p">)</span>
+    <span class="n">deletion_date_iso</span> <span class="o">=</span> <span class="n">j_workdir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'deletionDate'</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">deletion_date_iso</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">deletion_date_iso</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
-            <span class="n">deletion_date_str</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m/%Y&#39;</span><span class="p">)</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">deletion_date_iso</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'Z'</span><span class="p">,</span> <span class="s1">'+00:00'</span><span class="p">))</span>
+            <span class="n">deletion_date_str</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'</span><span class="si">%d</span><span class="s1">/%m/%Y'</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="n">deletion_date_str</span> <span class="o">=</span> <span class="n">deletion_date_iso</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">deletion_date_str</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+        <span class="n">deletion_date_str</span> <span class="o">=</span> <span class="s2">"N/A"</span>
 
     <span class="k">if</span> <span class="n">deleted_by_id</span> <span class="ow">and</span> <span class="n">deleted_by_name</span><span class="p">:</span>
         <span class="n">j_workdir_parent</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Intermediate results of this job were deleted by [bold]</span><span class="si">{</span><span class="n">deleted_by_name</span><span class="si">}</span><span class="s2">[/bold] on [bold]</span><span class="si">{</span><span class="n">deletion_date_str</span><span class="si">}</span><span class="s2">[/bold]. Current job and all other jobs sharing the same working directory are not resumable anymore. You can restore intermediate data by cloning the job.&quot;</span><span class="p">,</span>
-            <span class="n">style</span><span class="o">=</span><span class="s2">&quot;yellow&quot;</span>
+            <span class="sa">f</span><span class="s2">"Intermediate results of this job were deleted by [bold]</span><span class="si">{</span><span class="n">deleted_by_name</span><span class="si">}</span><span class="s2">[/bold] on [bold]</span><span class="si">{</span><span class="n">deletion_date_str</span><span class="si">}</span><span class="s2">[/bold]. Current job and all other jobs sharing the same working directory are not resumable anymore. You can restore intermediate data by cloning the job."</span><span class="p">,</span>
+            <span class="n">style</span><span class="o">=</span><span class="s2">"yellow"</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">j_workdir_parent</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get_parent_job</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">j_workdir</span><span class="p">[</span><span class="s1">&#39;folderId&#39;</span><span class="p">],</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
+        <span class="n">j_workdir_parent</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">get_parent_job</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="n">j_workdir</span><span class="p">[</span><span class="s1">'folderId'</span><span class="p">],</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">output_format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">output_format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'json'</span><span class="p">:</span>
         <span class="c1"># Save as JSON file</span>
-        <span class="n">save_as_json</span><span class="p">(</span><span class="n">j_related</span><span class="p">,</span> <span class="s1">&#39;related_analyses.json&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Results saved to: related_analyses.json&quot;</span><span class="p">)</span>
+        <span class="n">save_as_json</span><span class="p">(</span><span class="n">j_related</span><span class="p">,</span> <span class="s1">'related_analyses.json'</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Results saved to: related_analyses.json"</span><span class="p">)</span>
         <span class="k">return</span>
     <span class="c1"># Display results as a formatted table</span>
     <span class="n">save_as_stdout</span><span class="p">(</span><span class="n">j_related</span><span class="p">,</span> <span class="n">j_workdir_parent</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="o">=</span><span class="n">cloudos_url</span><span class="p">)</span></div>
@@ -466,12 +466,12 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">save_as_json</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">save_as_stdout</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">j_workdir_parent</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="o">=</span><span class="s2">&quot;https://cloudos.lifebit.ai&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Display related analyses in a formatted table with pagination.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_as_stdout</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">j_workdir_parent</span><span class="p">,</span> <span class="n">cloudos_url</span><span class="o">=</span><span class="s2">"https://cloudos.lifebit.ai"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Display related analyses in a formatted table with pagination.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -479,65 +479,65 @@
 <span class="sd">        Dictionary where keys are job IDs and values are dictionaries</span>
 <span class="sd">        containing job details (status, name, user_name, user_surname,</span>
 <span class="sd">        _id, createdAt, runTime, computeCostSpent).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">(</span><span class="n">markup</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Helper function to format timestamp</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">format_timestamp</span><span class="p">(</span><span class="n">timestamp_str</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">timestamp_str</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;N/A&quot;</span>
+            <span class="k">return</span> <span class="s2">"N/A"</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">timestamp_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;+00:00&#39;</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">timestamp_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'Z'</span><span class="p">,</span> <span class="s1">'+00:00'</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S'</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">timestamp_str</span>
 
     <span class="c1"># Helper function to format runtime</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">format_runtime</span><span class="p">(</span><span class="n">runtime_seconds</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">runtime_seconds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;N/A&quot;</span>
+            <span class="k">return</span> <span class="s2">"N/A"</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">total_seconds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">runtime_seconds</span><span class="p">)</span>
             <span class="n">hours</span> <span class="o">=</span> <span class="n">total_seconds</span> <span class="o">//</span> <span class="mi">3600</span>
             <span class="n">minutes</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_seconds</span> <span class="o">%</span> <span class="mi">3600</span><span class="p">)</span> <span class="o">//</span> <span class="mi">60</span>
             <span class="n">seconds</span> <span class="o">=</span> <span class="n">total_seconds</span> <span class="o">%</span> <span class="mi">60</span>
             <span class="k">if</span> <span class="n">hours</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">hours</span><span class="si">}</span><span class="s2">h </span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">hours</span><span class="si">}</span><span class="s2">h </span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s"</span>
             <span class="k">elif</span> <span class="n">minutes</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s2">m </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s"</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s"</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
-            <span class="k">return</span> <span class="s2">&quot;N/A&quot;</span>
+            <span class="k">return</span> <span class="s2">"N/A"</span>
 
     <span class="c1"># Helper function to format cost</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">format_cost</span><span class="p">(</span><span class="n">cost</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">cost</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">cost</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;N/A&quot;</span>
+        <span class="k">if</span> <span class="n">cost</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">cost</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"N/A"</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># Cost is stored in cents, divide by 100 to get dollars</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">100</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"$</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">100</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
-            <span class="k">return</span> <span class="s2">&quot;N/A&quot;</span>
+            <span class="k">return</span> <span class="s2">"N/A"</span>
 
     <span class="c1"># Prepare all rows data</span>
     <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">job_id</span><span class="p">,</span> <span class="n">job_info</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
-        <span class="n">user_name</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user_name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">user_surname</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user_surname&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">owner</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">user_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">user_surname</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">user_name</span> <span class="ow">or</span> <span class="n">user_surname</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span>
-        <span class="n">job_id_display</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
-        <span class="n">submit_time</span> <span class="o">=</span> <span class="n">format_timestamp</span><span class="p">(</span><span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;createdAt&#39;</span><span class="p">))</span>
-        <span class="n">run_time</span> <span class="o">=</span> <span class="n">format_runtime</span><span class="p">(</span><span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runTime&#39;</span><span class="p">))</span>
-        <span class="n">cost</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;computeCostSpent&#39;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'status'</span><span class="p">,</span> <span class="s1">'N/A'</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'N/A'</span><span class="p">)</span>
+        <span class="n">user_name</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'user_name'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="n">user_surname</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'user_surname'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="n">owner</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">user_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">user_surname</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">user_name</span> <span class="ow">or</span> <span class="n">user_surname</span> <span class="k">else</span> <span class="s2">"N/A"</span>
+        <span class="n">job_id_display</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'_id'</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span>
+        <span class="n">submit_time</span> <span class="o">=</span> <span class="n">format_timestamp</span><span class="p">(</span><span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'createdAt'</span><span class="p">))</span>
+        <span class="n">run_time</span> <span class="o">=</span> <span class="n">format_runtime</span><span class="p">(</span><span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'runTime'</span><span class="p">))</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="n">job_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'computeCostSpent'</span><span class="p">)</span>
         <span class="n">total_cost_formatted</span> <span class="o">=</span> <span class="n">format_cost</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
 
         <span class="c1"># Add hyperlink to job_id_display</span>
-        <span class="n">job_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/app/advanced-analytics/analyses/</span><span class="si">{</span><span class="n">job_id_display</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">job_id_with_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[link=</span><span class="si">{</span><span class="n">job_url</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">job_id_display</span><span class="si">}</span><span class="s2">[/link]&quot;</span>
+        <span class="n">job_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/app/advanced-analytics/analyses/</span><span class="si">{</span><span class="n">job_id_display</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">job_id_with_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"[link=</span><span class="si">{</span><span class="n">job_url</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">job_id_display</span><span class="si">}</span><span class="s2">[/link]"</span>
 
         <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
             <span class="n">status</span><span class="p">,</span>
@@ -565,27 +565,27 @@
         <span class="n">console</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
         <span class="c1"># Display parent job information (reprinted each iteration after clear)</span>
-        <span class="k">if</span> <span class="s2">&quot;Intermediate results of this job were deleted by&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_workdir_parent</span><span class="p">):</span>
-            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[white on #fff08a]🗑️ </span><span class="si">{</span><span class="n">j_workdir_parent</span><span class="si">}</span><span class="s2">[/white on #fff08a]&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">"Intermediate results of this job were deleted by"</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">j_workdir_parent</span><span class="p">):</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[white on #fff08a]🗑️ </span><span class="si">{</span><span class="n">j_workdir_parent</span><span class="si">}</span><span class="s2">[/white on #fff08a]"</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">j_workdir_parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/app/advanced-analytics/analyses/</span><span class="si">{</span><span class="n">j_workdir_parent</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parent job link: [link=</span><span class="si">{</span><span class="n">link</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">j_workdir_parent</span><span class="si">}</span><span class="s2">[/link]&quot;</span><span class="p">)</span>
+            <span class="n">link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/app/advanced-analytics/analyses/</span><span class="si">{</span><span class="n">j_workdir_parent</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Parent job link: [link=</span><span class="si">{</span><span class="n">link</span><span class="si">}</span><span class="s2">]</span><span class="si">{</span><span class="n">j_workdir_parent</span><span class="si">}</span><span class="s2">[/link]"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[dim]No parent job found[/dim]&quot;</span><span class="p">)</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">"[dim]No parent job found[/dim]"</span><span class="p">)</span>
 
-        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Total related analyses found: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Total related analyses found: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="c1"># Create and display table</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Related Analyses&quot;</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Related Analyses"</span><span class="p">)</span>
 
         <span class="c1"># Add columns</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Status&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">)</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Owner&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">)</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;magenta&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Submit time&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;yellow&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">)</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Run time&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">&quot;fold&quot;</span><span class="p">)</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;Total Cost&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">"Status"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"cyan"</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">"Name"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"green"</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">"fold"</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">"Owner"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"blue"</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">"fold"</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">"ID"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"magenta"</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">"fold"</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">"Submit time"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"yellow"</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">"fold"</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">"Run time"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"white"</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">"fold"</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">"Total Cost"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span> <span class="n">no_wrap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Get rows for current page</span>
         <span class="n">page_rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
@@ -604,25 +604,25 @@
 
         <span class="c1"># Show pagination info and controls</span>
         <span class="k">if</span> <span class="n">total_pages</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">On page </span><span class="si">{</span><span class="n">current_page</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_pages</span><span class="si">}</span><span class="s2">: [bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit&quot;</span><span class="p">)</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">On page </span><span class="si">{</span><span class="n">current_page</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_pages</span><span class="si">}</span><span class="s2">: [bold cyan]n[/] = next, [bold cyan]p[/] = prev, [bold cyan]q[/] = quit"</span><span class="p">)</span>
 
             <span class="c1"># Get user input for navigation</span>
-            <span class="n">choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">"&gt;&gt;&gt; "</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="s2">&quot;quit&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"q"</span><span class="p">,</span> <span class="s2">"quit"</span><span class="p">):</span>
                 <span class="k">break</span>
-            <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;next&quot;</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"n"</span><span class="p">,</span> <span class="s2">"next"</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">current_page</span> <span class="o">&lt;</span> <span class="n">total_pages</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">current_page</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[red]Invalid choice. Already on the last page.[/red]&quot;</span>
-            <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;prev&quot;</span><span class="p">):</span>
+                    <span class="n">show_error</span> <span class="o">=</span> <span class="s2">"[red]Invalid choice. Already on the last page.[/red]"</span>
+            <span class="k">elif</span> <span class="n">choice</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"p"</span><span class="p">,</span> <span class="s2">"prev"</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">current_page</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">current_page</span> <span class="o">-=</span> <span class="mi">1</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[red]Invalid choice. Already on the first page.[/red]&quot;</span>
+                    <span class="n">show_error</span> <span class="o">=</span> <span class="s2">"[red]Invalid choice. Already on the first page.[/red]"</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">show_error</span> <span class="o">=</span> <span class="s2">&quot;[red]Invalid choice. Please enter &#39;n&#39; (next), &#39;p&#39; (prev), or &#39;q&#39; (quit).[/red]&quot;</span>
+                <span class="n">show_error</span> <span class="o">=</span> <span class="s2">"[red]Invalid choice. Please enter 'n' (next), 'p' (prev), or 'q' (quit).[/red]"</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Only one page, no need for input, just exit</span>
             <span class="k">break</span>

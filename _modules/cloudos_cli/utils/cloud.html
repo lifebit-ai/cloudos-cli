@@ -381,33 +381,33 @@
 <div class="viewcode-block" id="find_cloud">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.utils.cloud.html#cloudos_cli.utils.cloud.find_cloud">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">find_cloud</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">logs</span><span class="p">):</span>
-    <span class="k">if</span> <span class="s2">&quot;s3BucketName&quot;</span> <span class="ow">in</span> <span class="n">logs</span><span class="p">:</span>
-        <span class="n">cloud_name</span> <span class="o">=</span> <span class="s2">&quot;aws&quot;</span>
+    <span class="k">if</span> <span class="s2">"s3BucketName"</span> <span class="ow">in</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">cloud_name</span> <span class="o">=</span> <span class="s2">"aws"</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">storage</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;container&quot;</span><span class="p">:</span> <span class="s2">&quot;s3BucketName&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;s3Prefix&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;scheme&quot;</span><span class="p">:</span> <span class="s2">&quot;s3&quot;</span>
+                <span class="s2">"container"</span><span class="p">:</span> <span class="s2">"s3BucketName"</span><span class="p">,</span>
+                <span class="s2">"prefix"</span><span class="p">:</span> <span class="s2">"s3Prefix"</span><span class="p">,</span>
+                <span class="s2">"scheme"</span><span class="p">:</span> <span class="s2">"s3"</span>
             <span class="p">}</span>
         <span class="k">return</span> <span class="n">cloud_name</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span> <span class="n">storage</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;apikey&quot;</span><span class="p">:</span> <span class="n">apikey</span>
+            <span class="s2">"Content-Type"</span><span class="p">:</span> <span class="s2">"application/json"</span><span class="p">,</span>
+            <span class="s2">"Accept"</span><span class="p">:</span> <span class="s2">"application/json"</span><span class="p">,</span>
+            <span class="s2">"apikey"</span><span class="p">:</span> <span class="n">apikey</span>
         <span class="p">}</span>
         <span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">teamId</span><span class="o">=</span><span class="n">workspace_id</span><span class="p">)</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/cloud/azure&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloudos_url</span><span class="si">}</span><span class="s2">/api/v1/cloud/azure"</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">BadRequestException</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span> <span class="o">!=</span> <span class="s2">&quot;null&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span> <span class="o">!=</span> <span class="s2">"null"</span><span class="p">:</span>
             <span class="n">cloud_data</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-            <span class="n">cloud_name</span> <span class="o">=</span> <span class="s2">&quot;azure&quot;</span>
+            <span class="n">cloud_name</span> <span class="o">=</span> <span class="s2">"azure"</span>
             <span class="n">storage</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;container&quot;</span><span class="p">:</span> <span class="s2">&quot;blobContainerName&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;blobPrefix&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;scheme&quot;</span><span class="p">:</span> <span class="s2">&quot;az&quot;</span>
+                <span class="s2">"container"</span><span class="p">:</span> <span class="s2">"blobContainerName"</span><span class="p">,</span>
+                <span class="s2">"prefix"</span><span class="p">:</span> <span class="s2">"blobPrefix"</span><span class="p">,</span>
+                <span class="s2">"scheme"</span><span class="p">:</span> <span class="s2">"az"</span>
             <span class="p">}</span>
             <span class="k">return</span> <span class="n">cloud_name</span><span class="p">,</span> <span class="n">cloud_data</span><span class="p">,</span> <span class="n">storage</span>
 

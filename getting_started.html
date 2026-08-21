@@ -633,7 +633,7 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 <span class="go">│                                                --output-format=csv. Automatically enabled for json       │</span>
 <span class="go">│                                                output.                                                   │</span>
 <span class="go">│    --last-n-jobs                   TEXT        The number of last workspace jobs to retrieve. You can    │</span>
-<span class="go">│                                                use &#39;all&#39; to retrieve all workspace jobs. Default=30.     │</span>
+<span class="go">│                                                use 'all' to retrieve all workspace jobs. Default=30.     │</span>
 <span class="go">│    --page                          INTEGER     Response page to retrieve. If --last-n-jobs is set, then  │</span>
 <span class="go">│                                                --page value corresponds to the first page to retrieve.   │</span>
 <span class="go">│                                                Default=1.                                                │</span>
@@ -776,11 +776,11 @@ cloudos<span class="w"> </span>project<span class="w"> </span>list<span class="w
 <section id="create-projects">
 <h4>Create Projects<a class="headerlink" href="#create-projects" title="Link to this heading">¶</a></h4>
 <p>You can create a new project in your Lifebit Platform workspace using the <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> command. This command requires the name of the new project and will return the project ID upon successful creation.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>create<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--new-project<span class="w"> </span><span class="s2">&quot;My New Project&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>project<span class="w"> </span>create<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--new-project<span class="w"> </span><span class="s2">"My New Project"</span>
 </pre></div>
 </div>
 <p>The expected output is something similar to:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">	Project &quot;My New Project&quot; created successfully with ID: 64f1a23b8e4c9d001234abcd</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">	Project "My New Project" created successfully with ID: 64f1a23b8e4c9d001234abcd</span>
 </pre></div>
 </div>
 </section>
@@ -811,7 +811,7 @@ cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w">
 </pre></div>
 </div>
 <p>To save all available job queues in JSON format:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>json<span class="w"> </span>--output-basename<span class="w"> </span><span class="s2">&quot;available_queues&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--output-format<span class="w"> </span>json<span class="w"> </span>--output-basename<span class="w"> </span><span class="s2">"available_queues"</span>
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing list...</span>
@@ -837,13 +837,13 @@ cloudos<span class="w"> </span>queue<span class="w"> </span>list<span class="w">
 <li><p><strong>standard-gpu</strong>: On-demand standard instances plus GPU instances</p></li>
 </ul>
 <p>To create a queue from a preset:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>create<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--label<span class="w"> </span><span class="s2">&quot;my-new-queue&quot;</span><span class="w"> </span>--description<span class="w"> </span><span class="s2">&quot;Queue for RNA-seq jobs&quot;</span><span class="w"> </span>--preset<span class="w"> </span>standard-stable
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>queue<span class="w"> </span>create<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--label<span class="w"> </span><span class="s2">"my-new-queue"</span><span class="w"> </span>--description<span class="w"> </span><span class="s2">"Queue for RNA-seq jobs"</span><span class="w"> </span>--preset<span class="w"> </span>standard-stable
 </pre></div>
 </div>
 <p>Before creating the queue, a summary is shown and confirmation is requested. To skip the confirmation prompt, add the <code class="docutils literal notranslate"><span class="pre">-y</span></code>/<code class="docutils literal notranslate"><span class="pre">--yes</span></code> flag. You can also set the new queue as the workspace default with <code class="docutils literal notranslate"><span class="pre">--set-default</span></code>.</p>
 <p>The expected output is something similar to:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing queue create...</span>
-<span class="go">	Queue &quot;my-new-queue&quot; created successfully.</span>
+<span class="go">	Queue "my-new-queue" created successfully.</span>
 <span class="go">	Queue ID : 64f1a23b8e4c9d001234abcd</span>
 <span class="go">	View at  : https://cloudos.lifebit.ai/app/job-queues/64f1a23b8e4c9d001234abcd</span>
 </pre></div>
@@ -904,7 +904,7 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>list<span class="
 <p><strong>Usage of the workflow import command</strong></p>
 <p>To import GitHub workflows to Lifebit Platform:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example workflow to import: https://github.com/lifebit-ai/DeepVariant</span>
-cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-url<span class="w"> </span><span class="s2">&quot;https://github.com/lifebit-ai/DeepVariant&quot;</span><span class="w"> </span>--workflow-name<span class="w"> </span><span class="s2">&quot;new_name_for_the_github_workflow&quot;</span><span class="w"> </span>--repository-platform<span class="w"> </span>github
+cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-url<span class="w"> </span><span class="s2">"https://github.com/lifebit-ai/DeepVariant"</span><span class="w"> </span>--workflow-name<span class="w"> </span><span class="s2">"new_name_for_the_github_workflow"</span><span class="w"> </span>--repository-platform<span class="w"> </span>github
 </pre></div>
 </div>
 <p>The expected output will be:</p>
@@ -918,7 +918,7 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 </pre></div>
 </div>
 <p>Optionally, you can add a link to your workflow documentation by providing the URL using the <code class="docutils literal notranslate"><span class="pre">--workflow-docs-link</span></code> parameter:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-url<span class="w"> </span><span class="s2">&quot;https://github.com/lifebit-ai/DeepVariant&quot;</span><span class="w"> </span>--workflow-name<span class="w"> </span><span class="s2">&quot;new_name_for_the_github_workflow&quot;</span><span class="w"> </span>--workflow-docs-link<span class="w"> </span><span class="s2">&quot;https://github.com/lifebit-ai/DeepVariant/blob/master/README.md&quot;</span><span class="w"> </span>--repository-platform<span class="w"> </span>github
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-url<span class="w"> </span><span class="s2">"https://github.com/lifebit-ai/DeepVariant"</span><span class="w"> </span>--workflow-name<span class="w"> </span><span class="s2">"new_name_for_the_github_workflow"</span><span class="w"> </span>--workflow-docs-link<span class="w"> </span><span class="s2">"https://github.com/lifebit-ai/DeepVariant/blob/master/README.md"</span><span class="w"> </span>--repository-platform<span class="w"> </span>github
 </pre></div>
 </div>
 <blockquote>
@@ -936,13 +936,27 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-name<span class="w"> </span>rnatoy<span class="w"> </span>--job-config<span class="w"> </span>cloudos_cli/examples/rnatoy.config<span class="w"> </span>--resumable
 </pre></div>
 </div>
-<p>As you can see, a file with the job parameters is used to configure the job. This file could be a regular <code class="docutils literal notranslate"><span class="pre">nextflow.config</span></code> file or any file with the following structure:</p>
+<p>As you can see, a file with the job parameters is used to configure the job. This file is a list of the parameters to pass to your job, and nothing else. It has the following structure:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">params</span> <span class="p">{</span>
         <span class="n">reads</span>   <span class="o">=</span> <span class="n">s3</span><span class="p">:</span><span class="o">//</span><span class="n">lifebit</span><span class="o">-</span><span class="n">featured</span><span class="o">-</span><span class="n">datasets</span><span class="o">/</span><span class="n">pipelines</span><span class="o">/</span><span class="n">rnatoy</span><span class="o">-</span><span class="n">data</span>
         <span class="n">annot</span>   <span class="o">=</span> <span class="n">s3</span><span class="p">:</span><span class="o">//</span><span class="n">lifebit</span><span class="o">-</span><span class="n">featured</span><span class="o">-</span><span class="n">datasets</span><span class="o">/</span><span class="n">pipelines</span><span class="o">/</span><span class="n">rnatoy</span><span class="o">-</span><span class="n">data</span><span class="o">/</span><span class="n">ggal_1_48850000_49020000</span><span class="o">.</span><span class="n">bed</span><span class="o">.</span><span class="n">gff</span>
 <span class="p">}</span>
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">--job-config</span></code> is shorthand for repeating <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> on the command line: the CLI reads the file line by line, splits each line on the first <code class="docutils literal notranslate"><span class="pre">=</span></code>, and sends each result as one named parameter.</p>
+<p>Every value is passed through as text, exactly as it would be when launching Nextflow from the command line.</p>
+<blockquote>
+<div><p><strong>IMPORTANT: <code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">]</span></code> is not expanded into a Nextflow list.</strong> In a real <code class="docutils literal notranslate"><span class="pre">nextflow.config</span></code>, <code class="docutils literal notranslate"><span class="pre">my_param</span> <span class="pre">=</span> <span class="pre">['a',</span> <span class="pre">'b']</span></code> gives the pipeline a list of two items. Through <code class="docutils literal notranslate"><span class="pre">--job-config</span></code> it gives the pipeline the <em>string</em> <code class="docutils literal notranslate"><span class="pre">[a,b]</span></code>. The line is accepted and the job is submitted, so this fails silently at the point where your pipeline tries to iterate over the value. The CLI prints a warning when it sees a value that looks like a list, showing exactly what the pipeline will receive.</p>
+</div></blockquote>
+<p>To pass a genuine list, define it in the pipeline’s own <code class="docutils literal notranslate"><span class="pre">nextflow.config</span></code> in the git repository, or use <code class="docutils literal notranslate"><span class="pre">--params-file</span></code> with a JSON or YAML file (see below), which preserves types.</p>
+<p>What a <code class="docutils literal notranslate"><span class="pre">--job-config</span></code> file cannot contain, because it is <strong>not</strong> a <code class="docutils literal notranslate"><span class="pre">nextflow.config</span></code> file:</p>
+<ul class="simple">
+<li><p>values spanning several lines</p></li>
+<li><p>nested blocks (e.g. <code class="docutils literal notranslate"><span class="pre">genomes</span> <span class="pre">{</span> <span class="pre">...</span> <span class="pre">}</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">process</span></code>, <code class="docutils literal notranslate"><span class="pre">profiles</span></code>, <code class="docutils literal notranslate"><span class="pre">docker</span></code> or other config sections</p></li>
+</ul>
+<p>Comments are supported, both on their own line and after a value, using <code class="docutils literal notranslate"><span class="pre">//</span></code> or <code class="docutils literal notranslate"><span class="pre">#</span></code>.</p>
+<p>If a parameter needs a genuinely structured value rather than a string, either define it in the pipeline’s own <code class="docutils literal notranslate"><span class="pre">nextflow.config</span></code> in the git repository and expose the parts you want to change as individual parameters, or pass it with <code class="docutils literal notranslate"><span class="pre">--params-file</span></code> (see below), which supports JSON and YAML with full type fidelity.</p>
 <p>In addition, parameters can also be specified using the command-line <code class="docutils literal notranslate"><span class="pre">-p</span></code> or <code class="docutils literal notranslate"><span class="pre">--parameter</span></code>. For instance:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
@@ -972,9 +986,9 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 </div>
 <p>Example JSON params file:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;reads&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;s3://lifebit-featured-datasets/pipelines/rnatoy-data&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;genome&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;annot&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff&quot;</span>
+<span class="w">  </span><span class="nt">"reads"</span><span class="p">:</span><span class="w"> </span><span class="s2">"s3://lifebit-featured-datasets/pipelines/rnatoy-data"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"genome"</span><span class="p">:</span><span class="w"> </span><span class="s2">"s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"annot"</span><span class="p">:</span><span class="w"> </span><span class="s2">"s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1232,10 +1246,10 @@ cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> <
 </div>
 <p>Find jobs with “analysis” in the name from a specific project:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using pagination (gets first 10 matching jobs)</span>
-cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-job-name<span class="w"> </span>analysis<span class="w"> </span>--filter-project<span class="w"> </span><span class="s2">&quot;My Research Project&quot;</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--filter-job-name<span class="w"> </span>analysis<span class="w"> </span>--filter-project<span class="w"> </span><span class="s2">"My Research Project"</span>
 
 <span class="c1"># Using last-n-jobs</span>
-cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span><span class="m">100</span><span class="w"> </span>--filter-job-name<span class="w"> </span>analysis<span class="w"> </span>--filter-project<span class="w"> </span><span class="s2">&quot;My Research Project&quot;</span>
+cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--last-n-jobs<span class="w"> </span><span class="m">100</span><span class="w"> </span>--filter-job-name<span class="w"> </span>analysis<span class="w"> </span>--filter-project<span class="w"> </span><span class="s2">"My Research Project"</span>
 </pre></div>
 </div>
 <p>Get all jobs using a specific workflow and queue:</p>
@@ -1260,7 +1274,7 @@ cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> <
 <h4>Get Job Results<a class="headerlink" href="#get-job-results" title="Link to this heading">¶</a></h4>
 <p>The following command allows you to get the path where Lifebit Platform stores the output files for a job. This can be used only on your user’s jobs and for jobs with “completed” status.</p>
 <p>Example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">"12345678910"</span>
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing results...</span>
@@ -1268,12 +1282,12 @@ cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> <
 </pre></div>
 </div>
 <p>You can also link all result directories to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This will mount all result directories from the job, providing direct access to output files in your interactive session:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">"12345678910"</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
 </pre></div>
 </div>
 <p><strong>Check Results Deletion Status</strong></p>
 <p>You can check the deletion status of a job’s results folder using the <code class="docutils literal notranslate"><span class="pre">--status</span></code> flag. This is useful for monitoring the deletion lifecycle of analysis results.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">"12345678910"</span>
 </pre></div>
 </div>
 <p>The command will display the current status of the results folder. Possible statuses include:</p>
@@ -1295,7 +1309,7 @@ cloudos<span class="w"> </span>job<span class="w"> </span>list<span class="w"> <
 </pre></div>
 </div>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> flag to see detailed information including the results folder name, folder ID, creation and update timestamps:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--verbose
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>results<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">"12345678910"</span><span class="w"> </span>--verbose
 </pre></div>
 </div>
 <blockquote>
@@ -1316,47 +1330,47 @@ Only jobs initially run with <code class="docutils literal notranslate"><span cl
 <p>Clone a job:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>clone<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">&quot;60a7b8c9d0e1f2g3h4i5j6k7&quot;</span>
+<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">"60a7b8c9d0e1f2g3h4i5j6k7"</span>
 </pre></div>
 </div>
 <p>Resume a job:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>resume<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">&quot;60a7b8c9d0e1f2g3h4i5j6k7&quot;</span>
+<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">"60a7b8c9d0e1f2g3h4i5j6k7"</span>
 </pre></div>
 </div>
 <p><strong>With Parameter Overrides:</strong></p>
 <p>Clone with parameter overrides:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>clone<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">&quot;60a7b8c9d0e1f2g3h4i5j6k7&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-queue<span class="w"> </span><span class="s2">&quot;high-priority-queue&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">"60a7b8c9d0e1f2g3h4i5j6k7"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-queue<span class="w"> </span><span class="s2">"high-priority-queue"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--cost-limit<span class="w"> </span><span class="m">50</span>.0<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--instance-type<span class="w"> </span><span class="s2">&quot;c5.2xlarge&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-name<span class="w"> </span><span class="s2">&quot;cloned_analysis_v2&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--nextflow-version<span class="w"> </span><span class="s2">&quot;24.04.4&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--git-branch<span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--nextflow-profile<span class="w"> </span><span class="s2">&quot;production&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--instance-type<span class="w"> </span><span class="s2">"c5.2xlarge"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-name<span class="w"> </span><span class="s2">"cloned_analysis_v2"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--nextflow-version<span class="w"> </span><span class="s2">"24.04.4"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--git-branch<span class="w"> </span><span class="s2">"dev"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--nextflow-profile<span class="w"> </span><span class="s2">"production"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--do-not-save-logs<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--accelerate-file-staging<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--workflow-name<span class="w"> </span><span class="s2">&quot;updated-workflow&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-p<span class="w"> </span><span class="s2">&quot;input=s3://new-bucket/input.csv&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-p<span class="w"> </span><span class="s2">&quot;output_dir=s3://new-bucket/results&quot;</span>
+<span class="w">    </span>--workflow-name<span class="w"> </span><span class="s2">"updated-workflow"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="s2">"input=s3://new-bucket/input.csv"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="s2">"output_dir=s3://new-bucket/results"</span>
 </pre></div>
 </div>
 <p>Resume with parameter overrides:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>resume<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">&quot;60a7b8c9d0e1f2g3h4i5j6k7&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-queue<span class="w"> </span><span class="s2">&quot;high-priority-queue&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-id<span class="w"> </span><span class="s2">"60a7b8c9d0e1f2g3h4i5j6k7"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-queue<span class="w"> </span><span class="s2">"high-priority-queue"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--cost-limit<span class="w"> </span><span class="m">50</span>.0<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--instance-type<span class="w"> </span><span class="s2">&quot;c5.2xlarge&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--job-name<span class="w"> </span><span class="s2">&quot;resumed_analysis_v2&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--nextflow-version<span class="w"> </span><span class="s2">&quot;24.04.4&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--git-branch<span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--nextflow-profile<span class="w"> </span><span class="s2">&quot;production&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-p<span class="w"> </span><span class="s2">&quot;input=s3://new-bucket/input.csv&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-p<span class="w"> </span><span class="s2">&quot;output_dir=s3://new-bucket/results&quot;</span>
+<span class="w">    </span>--instance-type<span class="w"> </span><span class="s2">"c5.2xlarge"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-name<span class="w"> </span><span class="s2">"resumed_analysis_v2"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--nextflow-version<span class="w"> </span><span class="s2">"24.04.4"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--git-branch<span class="w"> </span><span class="s2">"dev"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--nextflow-profile<span class="w"> </span><span class="s2">"production"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="s2">"input=s3://new-bucket/input.csv"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="s2">"output_dir=s3://new-bucket/results"</span>
 </pre></div>
 </div>
 <p><strong>Available Override Options:</strong></p>
@@ -1383,7 +1397,7 @@ Parameters can be overridden or new ones can be added using <code class="docutil
 <p>Aborts jobs in the Lifebit Platform workspace that are either running or initializing. It can be used with one or more job IDs provided as a comma-separated string using the <code class="docutils literal notranslate"><span class="pre">--job-ids</span></code> parameter.</p>
 <section id="basic-usage">
 <h5>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h5>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;680a3cf80e56949775c02f16&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">"680a3cf80e56949775c02f16"</span>
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Aborting jobs...</span>
@@ -1394,7 +1408,7 @@ Parameters can be overridden or new ones can be added using <code class="docutil
 <section id="force-abort">
 <h5>Force Abort<a class="headerlink" href="#force-abort" title="Link to this heading">¶</a></h5>
 <p>The <code class="docutils literal notranslate"><span class="pre">--force</span></code> flag allows you to abort jobs faster as it removes the running infrastructure. When using this flag, be aware that some data might be lost (it could be results or logs, based on what the job is performing at the moment of the forced abort).</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;680a3cf80e56949775c02f16&quot;</span><span class="w"> </span>--force
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>abort<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">"680a3cf80e56949775c02f16"</span><span class="w"> </span>--force
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Aborting jobs...</span>
@@ -1442,7 +1456,7 @@ Parameters can be overridden or new ones can be added using <code class="docutil
 <span class="go">│ Storage                  │ 500 GB                                                                                │</span>
 <span class="go">│ Job Queue ID             │ nextflow-job-queue-5c6d3e9bd954e800b23f8c62-f7386cc5-cbdf-40e7-b379                   │</span>
 <span class="go">│ Job Queue Name           │ v41                                                                                   │</span>
-<span class="go">│ Task Resources           │ 1 CPUs, 4 GB RAM&#39;                                                                 │</span>
+<span class="go">│ Task Resources           │ 1 CPUs, 4 GB RAM'                                                                 │</span>
 <span class="go">│ Pipeline url             │ https://github.com/lifebit-ai/mutational-signature-nf                                 │</span>
 <span class="go">│ Nextflow Version         │ 22.10.8                                                                               │</span>
 <span class="go">│ Execution Platform       │ Batch AWS                                                                             │</span>
@@ -1504,7 +1518,7 @@ Job details can only be retrieved for a single user, cannot see other user’s j
 </div>
 <p><strong>Check Working Directory Deletion Status</strong></p>
 <p>You can check the deletion status of a job’s working directory using the <code class="docutils literal notranslate"><span class="pre">--status</span></code> flag. This is useful for monitoring the deletion lifecycle of intermediate job files.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">"12345678910"</span>
 </pre></div>
 </div>
 <p>The command will display the current status of the working directory folder. Possible statuses include:</p>
@@ -1526,7 +1540,7 @@ Job details can only be retrieved for a single user, cannot see other user’s j
 </pre></div>
 </div>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">--verbose</span></code> flag to see detailed information including the working directory folder name, folder ID, creation and update timestamps:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--verbose
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>workdir<span class="w"> </span>--status<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">"12345678910"</span><span class="w"> </span>--verbose
 </pre></div>
 </div>
 <blockquote>
@@ -1539,7 +1553,7 @@ If the working directory has been completely deleted, the command will report th
 <h4>Get Job Logs<a class="headerlink" href="#get-job-logs" title="Link to this heading">¶</a></h4>
 <p>The following command allows you to get the path to “Nextflow logs”, “Nextflow standard output”, and “trace” files. It can be used only on your user’s jobs, with any status.</p>
 <p>Example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>logs<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>logs<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">"12345678910"</span>
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing logs...</span>
@@ -1553,7 +1567,7 @@ If the working directory has been completely deleted, the command will report th
 </pre></div>
 </div>
 <p>You can also link the logs directory to an interactive session using the <code class="docutils literal notranslate"><span class="pre">--link</span></code> flag. This will mount the entire logs directory, providing access to all log files in your interactive session:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>logs<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">&quot;12345678910&quot;</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>logs<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-id<span class="w"> </span><span class="s2">"12345678910"</span><span class="w"> </span>--link<span class="w"> </span>--session-id<span class="w"> </span>your_session_id
 </pre></div>
 </div>
 </section>
@@ -1598,7 +1612,7 @@ If the working directory has been completely deleted, the command will report th
 <span class="go">└────────┴────────────┴────────────┴────────────┴──────────┴─────────────┴────────────┴─────────────┴─────────┘</span>
 <span class="go">On page 1/2: n = next, p = prev, q = quit</span>
 
-<span class="go">By pressing &#39;n&#39;, it will show the next page or the last if it is the case.</span>
+<span class="go">By pressing 'n', it will show the next page or the last if it is the case.</span>
 
 <span class="go">                              Job Cost Details - Job ID: 62c83a1191fe06013b7ef355</span>
 <span class="go">┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┓</span>
@@ -1650,46 +1664,46 @@ Worker,pgti_large_pool/tvmps_dad8c86e744056f581e9298273ff7df99d2f9f2b5dc8f706037
 
 cat<span class="w"> </span>62c83a1191fe06013b7ef355_costs.json
 <span class="o">{</span>
-<span class="w">  </span><span class="s2">&quot;job_id&quot;</span>:<span class="w"> </span><span class="s2">&quot;688ade923643c2454f5ac77d&quot;</span>,
-<span class="w">  </span><span class="s2">&quot;cost_table&quot;</span>:<span class="w"> </span><span class="o">[</span>
+<span class="w">  </span><span class="s2">"job_id"</span>:<span class="w"> </span><span class="s2">"688ade923643c2454f5ac77d"</span>,
+<span class="w">  </span><span class="s2">"cost_table"</span>:<span class="w"> </span><span class="o">[</span>
 <span class="w">    </span><span class="o">{</span>
-<span class="w">      </span><span class="s2">&quot;Type&quot;</span>:<span class="w"> </span><span class="s2">&quot;Master&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Instance id&quot;</span>:<span class="w"> </span><span class="s2">&quot;186b12c2-a518-40de-8bef-7c43f9adcfce&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Instance&quot;</span>:<span class="w"> </span><span class="s2">&quot;Standard_D4as_v4&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Life-cycle type&quot;</span>:<span class="w"> </span><span class="s2">&quot;on demand&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Run time&quot;</span>:<span class="w"> </span><span class="s2">&quot;39m 43s&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Compute storage&quot;</span>:<span class="w"> </span><span class="s2">&quot;1000 Gb&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Instance price&quot;</span>:<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">.2220/hr&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Compute storage price&quot;</span>:<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">.0561/hr&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Total&quot;</span>:<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">.1841&quot;</span>
+<span class="w">      </span><span class="s2">"Type"</span>:<span class="w"> </span><span class="s2">"Master"</span>,
+<span class="w">      </span><span class="s2">"Instance id"</span>:<span class="w"> </span><span class="s2">"186b12c2-a518-40de-8bef-7c43f9adcfce"</span>,
+<span class="w">      </span><span class="s2">"Instance"</span>:<span class="w"> </span><span class="s2">"Standard_D4as_v4"</span>,
+<span class="w">      </span><span class="s2">"Life-cycle type"</span>:<span class="w"> </span><span class="s2">"on demand"</span>,
+<span class="w">      </span><span class="s2">"Run time"</span>:<span class="w"> </span><span class="s2">"39m 43s"</span>,
+<span class="w">      </span><span class="s2">"Compute storage"</span>:<span class="w"> </span><span class="s2">"1000 Gb"</span>,
+<span class="w">      </span><span class="s2">"Instance price"</span>:<span class="w"> </span><span class="s2">"</span><span class="nv">$0</span><span class="s2">.2220/hr"</span>,
+<span class="w">      </span><span class="s2">"Compute storage price"</span>:<span class="w"> </span><span class="s2">"</span><span class="nv">$0</span><span class="s2">.0561/hr"</span>,
+<span class="w">      </span><span class="s2">"Total"</span>:<span class="w"> </span><span class="s2">"</span><span class="nv">$0</span><span class="s2">.1841"</span>
 <span class="w">    </span><span class="o">}</span>,
 <span class="w">    </span><span class="o">{</span>
-<span class="w">      </span><span class="s2">&quot;Type&quot;</span>:<span class="w"> </span><span class="s2">&quot;Worker&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Instance id&quot;</span>:<span class="w"> </span><span class="s2">&quot;pgti_medium_pool/tvmps_ba00d365ca2b35cce93b2853480be9afc0202bf2f5633648f2dd576414dd8987_p</span>
-<span class="s2">&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Instance&quot;</span>:<span class="w"> </span><span class="s2">&quot;standard_d8a_v4&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Life-cycle type&quot;</span>:<span class="w"> </span><span class="s2">&quot;spot&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Run time&quot;</span>:<span class="w"> </span><span class="s2">&quot;19m 55s&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Compute storage&quot;</span>:<span class="w"> </span><span class="s2">&quot;500 Gb&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Instance price&quot;</span>:<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">.0888/hr&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Compute storage price&quot;</span>:<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">.0298/hr&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Total&quot;</span>:<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">.0394&quot;</span>
+<span class="w">      </span><span class="s2">"Type"</span>:<span class="w"> </span><span class="s2">"Worker"</span>,
+<span class="w">      </span><span class="s2">"Instance id"</span>:<span class="w"> </span><span class="s2">"pgti_medium_pool/tvmps_ba00d365ca2b35cce93b2853480be9afc0202bf2f5633648f2dd576414dd8987_p</span>
+<span class="s2">"</span>,
+<span class="w">      </span><span class="s2">"Instance"</span>:<span class="w"> </span><span class="s2">"standard_d8a_v4"</span>,
+<span class="w">      </span><span class="s2">"Life-cycle type"</span>:<span class="w"> </span><span class="s2">"spot"</span>,
+<span class="w">      </span><span class="s2">"Run time"</span>:<span class="w"> </span><span class="s2">"19m 55s"</span>,
+<span class="w">      </span><span class="s2">"Compute storage"</span>:<span class="w"> </span><span class="s2">"500 Gb"</span>,
+<span class="w">      </span><span class="s2">"Instance price"</span>:<span class="w"> </span><span class="s2">"</span><span class="nv">$0</span><span class="s2">.0888/hr"</span>,
+<span class="w">      </span><span class="s2">"Compute storage price"</span>:<span class="w"> </span><span class="s2">"</span><span class="nv">$0</span><span class="s2">.0298/hr"</span>,
+<span class="w">      </span><span class="s2">"Total"</span>:<span class="w"> </span><span class="s2">"</span><span class="nv">$0</span><span class="s2">.0394"</span>
 <span class="w">    </span><span class="o">}</span>,
 <span class="w">    </span>...
 <span class="w">    </span><span class="o">{</span>
-<span class="w">      </span><span class="s2">&quot;Type&quot;</span>:<span class="w"> </span><span class="s2">&quot;Worker&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Instance id&quot;</span>:<span class="w"> </span><span class="s2">&quot;pgti_large_pool/tvmps_abe5f8f5afe98535d3a74a73a9e5e2e2d1c181a6b1056a176ecaacdb650737b7_p&quot;</span>
+<span class="w">      </span><span class="s2">"Type"</span>:<span class="w"> </span><span class="s2">"Worker"</span>,
+<span class="w">      </span><span class="s2">"Instance id"</span>:<span class="w"> </span><span class="s2">"pgti_large_pool/tvmps_abe5f8f5afe98535d3a74a73a9e5e2e2d1c181a6b1056a176ecaacdb650737b7_p"</span>
 ,
-<span class="w">      </span><span class="s2">&quot;Instance&quot;</span>:<span class="w"> </span><span class="s2">&quot;standard_d16a_v4&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Life-cycle type&quot;</span>:<span class="w"> </span><span class="s2">&quot;spot&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Run time&quot;</span>:<span class="w"> </span><span class="s2">&quot;1m 20s&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Compute storage&quot;</span>:<span class="w"> </span><span class="s2">&quot;500 Gb&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Instance price&quot;</span>:<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">.1780/hr&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Compute storage price&quot;</span>:<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">.0298/hr&quot;</span>,
-<span class="w">      </span><span class="s2">&quot;Total&quot;</span>:<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">.0046&quot;</span>
+<span class="w">      </span><span class="s2">"Instance"</span>:<span class="w"> </span><span class="s2">"standard_d16a_v4"</span>,
+<span class="w">      </span><span class="s2">"Life-cycle type"</span>:<span class="w"> </span><span class="s2">"spot"</span>,
+<span class="w">      </span><span class="s2">"Run time"</span>:<span class="w"> </span><span class="s2">"1m 20s"</span>,
+<span class="w">      </span><span class="s2">"Compute storage"</span>:<span class="w"> </span><span class="s2">"500 Gb"</span>,
+<span class="w">      </span><span class="s2">"Instance price"</span>:<span class="w"> </span><span class="s2">"</span><span class="nv">$0</span><span class="s2">.1780/hr"</span>,
+<span class="w">      </span><span class="s2">"Compute storage price"</span>:<span class="w"> </span><span class="s2">"</span><span class="nv">$0</span><span class="s2">.0298/hr"</span>,
+<span class="w">      </span><span class="s2">"Total"</span>:<span class="w"> </span><span class="s2">"</span><span class="nv">$0</span><span class="s2">.0046"</span>
 <span class="w">    </span><span class="o">}</span>
 <span class="w">  </span><span class="o">]</span>,
-<span class="w">  </span><span class="s2">&quot;final_cost&quot;</span>:<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">.5563&quot;</span>
+<span class="w">  </span><span class="s2">"final_cost"</span>:<span class="w"> </span><span class="s2">"</span><span class="nv">$0</span><span class="s2">.5563"</span>
 <span class="o">}</span>
 </pre></div>
 </div>
@@ -1750,25 +1764,25 @@ cat<span class="w"> </span>62c83a1191fe06013b7ef355_costs.json
 
 cat<span class="w"> </span>related_analyses.json
 <span class="o">{</span>
-<span class="w">  </span><span class="s2">&quot;66b5e5ded52f33061e2468d5&quot;</span>:<span class="w"> </span><span class="o">{</span>
-<span class="w">    </span><span class="s2">&quot;status&quot;</span>:<span class="w"> </span><span class="s2">&quot;completed&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;name&quot;</span>:<span class="w"> </span><span class="s2">&quot;workflow_analysis_v1&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;user_name&quot;</span>:<span class="w"> </span><span class="s2">&quot;John&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;user_surname&quot;</span>:<span class="w"> </span><span class="s2">&quot;Smith&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;_id&quot;</span>:<span class="w"> </span><span class="s2">&quot;66b5e5ded52f33061e2468d5&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;createdAt&quot;</span>:<span class="w"> </span><span class="s2">&quot;2024-08-09T14:23:10.000Z&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;runTime&quot;</span>:<span class="w"> </span><span class="m">2712</span>,
-<span class="w">    </span><span class="s2">&quot;computeCostSpent&quot;</span>:<span class="w"> </span><span class="m">123400</span>
+<span class="w">  </span><span class="s2">"66b5e5ded52f33061e2468d5"</span>:<span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="s2">"status"</span>:<span class="w"> </span><span class="s2">"completed"</span>,
+<span class="w">    </span><span class="s2">"name"</span>:<span class="w"> </span><span class="s2">"workflow_analysis_v1"</span>,
+<span class="w">    </span><span class="s2">"user_name"</span>:<span class="w"> </span><span class="s2">"John"</span>,
+<span class="w">    </span><span class="s2">"user_surname"</span>:<span class="w"> </span><span class="s2">"Smith"</span>,
+<span class="w">    </span><span class="s2">"_id"</span>:<span class="w"> </span><span class="s2">"66b5e5ded52f33061e2468d5"</span>,
+<span class="w">    </span><span class="s2">"createdAt"</span>:<span class="w"> </span><span class="s2">"2024-08-09T14:23:10.000Z"</span>,
+<span class="w">    </span><span class="s2">"runTime"</span>:<span class="w"> </span><span class="m">2712</span>,
+<span class="w">    </span><span class="s2">"computeCostSpent"</span>:<span class="w"> </span><span class="m">123400</span>
 <span class="w">  </span><span class="o">}</span>,
-<span class="w">  </span><span class="s2">&quot;66b6f2a1e52f33061e246abc&quot;</span>:<span class="w"> </span><span class="o">{</span>
-<span class="w">    </span><span class="s2">&quot;status&quot;</span>:<span class="w"> </span><span class="s2">&quot;completed&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;name&quot;</span>:<span class="w"> </span><span class="s2">&quot;workflow_analysis_v1_resumed&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;user_name&quot;</span>:<span class="w"> </span><span class="s2">&quot;John&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;user_surname&quot;</span>:<span class="w"> </span><span class="s2">&quot;Smith&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;_id&quot;</span>:<span class="w"> </span><span class="s2">&quot;66b6f2a1e52f33061e246abc&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;createdAt&quot;</span>:<span class="w"> </span><span class="s2">&quot;2024-08-10T09:15:22.000Z&quot;</span>,
-<span class="w">    </span><span class="s2">&quot;runTime&quot;</span>:<span class="w"> </span><span class="m">725</span>,
-<span class="w">    </span><span class="s2">&quot;computeCostSpent&quot;</span>:<span class="w"> </span><span class="m">32100</span>
+<span class="w">  </span><span class="s2">"66b6f2a1e52f33061e246abc"</span>:<span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="s2">"status"</span>:<span class="w"> </span><span class="s2">"completed"</span>,
+<span class="w">    </span><span class="s2">"name"</span>:<span class="w"> </span><span class="s2">"workflow_analysis_v1_resumed"</span>,
+<span class="w">    </span><span class="s2">"user_name"</span>:<span class="w"> </span><span class="s2">"John"</span>,
+<span class="w">    </span><span class="s2">"user_surname"</span>:<span class="w"> </span><span class="s2">"Smith"</span>,
+<span class="w">    </span><span class="s2">"_id"</span>:<span class="w"> </span><span class="s2">"66b6f2a1e52f33061e246abc"</span>,
+<span class="w">    </span><span class="s2">"createdAt"</span>:<span class="w"> </span><span class="s2">"2024-08-10T09:15:22.000Z"</span>,
+<span class="w">    </span><span class="s2">"runTime"</span>:<span class="w"> </span><span class="m">725</span>,
+<span class="w">    </span><span class="s2">"computeCostSpent"</span>:<span class="w"> </span><span class="m">32100</span>
 <span class="w">  </span><span class="o">}</span>,
 <span class="w">  </span>...
 <span class="o">}</span>
@@ -1814,7 +1828,7 @@ Deleting job results is <strong>irreversible</strong>. All data and backups will
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing results...</span>
 <span class="go">Results: s3://lifebit-featured-datasets/results/62c83a1191fe06013b7ef355</span>
 
-<span class="go">⚠️ Deleting final analysis results is irreversible. All data and backups will be permanently removed and cannot be recovered. You can skip this confirmation step by providing &#39;-y&#39; or &#39;--yes&#39; flag to &#39;cloudos job results --delete&#39;. Please confirm that you want to delete final results of this analysis? [y/n]</span>
+<span class="go">⚠️ Deleting final analysis results is irreversible. All data and backups will be permanently removed and cannot be recovered. You can skip this confirmation step by providing '-y' or '--yes' flag to 'cloudos job results --delete'. Please confirm that you want to delete final results of this analysis? [y/n]</span>
 </pre></div>
 </div>
 <p>Type <code class="docutils literal notranslate"><span class="pre">y</span></code> to proceed with deletion or <code class="docutils literal notranslate"><span class="pre">n</span></code> to cancel:</p>
@@ -1848,7 +1862,7 @@ Deleting job results is <strong>irreversible</strong>. All data and backups will
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing results...</span>
-<span class="go">Selected job does not have &#39;Results&#39; information.</span>
+<span class="go">Selected job does not have 'Results' information.</span>
 </pre></div>
 </div>
 <blockquote>
@@ -1876,12 +1890,12 @@ Archiving jobs does not delete any data or results. It simply adds metadata to m
 </div>
 <p>The expected output will confirm successful archiving:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Archiving jobs...</span>
-<span class="go">Job &#39;69413101b07d5f5bb46891b4&#39; archived successfully.</span>
+<span class="go">Job '69413101b07d5f5bb46891b4' archived successfully.</span>
 </pre></div>
 </div>
 <p><strong>Archive Multiple Jobs</strong></p>
 <p>You can archive multiple jobs simultaneously by providing a comma-separated list of job IDs:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;job1,job2,job3&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">"job1,job2,job3"</span>
 </pre></div>
 </div>
 <p>This will archive all valid job IDs in a single operation:</p>
@@ -1898,11 +1912,11 @@ Archiving jobs does not delete any data or results. It simply adds metadata to m
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Archiving jobs...</span>
 <span class="go">	...Preparing objects</span>
 <span class="go">	The following Cloudos object was created:</span>
-<span class="go">	Cloudos(cloudos_url=&#39;https://cloudos.lifebit.ai&#39;, apikey=&#39;***&#39;, cromwell_token=None)</span>
+<span class="go">	Cloudos(cloudos_url='https://cloudos.lifebit.ai', apikey='***', cromwell_token=None)</span>
 
 <span class="go">	Archiving jobs in the following workspace: workspace_123</span>
 <span class="go">	Job 69413101b07d5f5bb46891b4 found with status: completed</span>
-<span class="go">Job &#39;69413101b07d5f5bb46891b4&#39; archived successfully.</span>
+<span class="go">Job '69413101b07d5f5bb46891b4' archived successfully.</span>
 </pre></div>
 </div>
 <p><strong>Error Handling</strong></p>
@@ -1913,12 +1927,12 @@ Archiving jobs does not delete any data or results. It simply adds metadata to m
 <li><p><strong>Empty Job List</strong>: Providing empty job IDs results in a clear error message</p></li>
 </ul>
 <p>Example with mixed valid and invalid job IDs:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;valid_job,invalid_job&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>archive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">"valid_job,invalid_job"</span>
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Archiving jobs...</span>
 <span class="go">Failed to get status for job invalid_job, please make sure it exists in the workspace: Job not found</span>
-<span class="go">Job &#39;valid_job&#39; archived successfully.</span>
+<span class="go">Job 'valid_job' archived successfully.</span>
 </pre></div>
 </div>
 <p><strong>Command Options</strong></p>
@@ -1952,12 +1966,12 @@ Unarchiving jobs does not modify any data or results. It simply removes the arch
 </div>
 <p>The expected output will confirm successful unarchiving:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Unarchiving jobs...</span>
-<span class="go">Job &#39;6929d62fe63b3cba2b32261a&#39; unarchived successfully.</span>
+<span class="go">Job '6929d62fe63b3cba2b32261a' unarchived successfully.</span>
 </pre></div>
 </div>
 <p><strong>Unarchive Multiple Jobs</strong></p>
 <p>You can unarchive multiple jobs simultaneously by providing a comma-separated list of job IDs:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>unarchive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;job1,job2,job3&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>unarchive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">"job1,job2,job3"</span>
 </pre></div>
 </div>
 <p>This will unarchive all valid job IDs in a single operation:</p>
@@ -1974,11 +1988,11 @@ Unarchiving jobs does not modify any data or results. It simply removes the arch
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Unarchiving jobs...</span>
 <span class="go">	...Preparing objects</span>
 <span class="go">	The following Cloudos object was created:</span>
-<span class="go">	Cloudos(cloudos_url=&#39;https://cloudos.lifebit.ai&#39;, apikey=&#39;***&#39;, cromwell_token=None)</span>
+<span class="go">	Cloudos(cloudos_url='https://cloudos.lifebit.ai', apikey='***', cromwell_token=None)</span>
 
 <span class="go">	Unarchiving jobs in the following workspace: workspace_123</span>
 <span class="go">	Job 6929d62fe63b3cba2b32261a found with status: completed</span>
-<span class="go">Job &#39;6929d62fe63b3cba2b32261a&#39; unarchived successfully.</span>
+<span class="go">Job '6929d62fe63b3cba2b32261a' unarchived successfully.</span>
 </pre></div>
 </div>
 <p><strong>Error Handling</strong></p>
@@ -1989,12 +2003,12 @@ Unarchiving jobs does not modify any data or results. It simply removes the arch
 <li><p><strong>Empty Job List</strong>: Providing empty job IDs results in a clear error message</p></li>
 </ul>
 <p>Example with mixed valid and invalid job IDs:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>unarchive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">&quot;valid_job,invalid_job&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>unarchive<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--job-ids<span class="w"> </span><span class="s2">"valid_job,invalid_job"</span>
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Unarchiving jobs...</span>
 <span class="go">Failed to get status for job invalid_job, please make sure it exists in the workspace: Job not found</span>
-<span class="go">Job &#39;valid_job&#39; unarchived successfully.</span>
+<span class="go">Job 'valid_job' unarchived successfully.</span>
 </pre></div>
 </div>
 <p><strong>Command Options</strong></p>
@@ -2029,9 +2043,9 @@ Archived jobs remain fully accessible - archiving is purely for organizational p
 <span class="w">    </span>--workflow-name<span class="w"> </span>ubuntu<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--parameter<span class="w"> </span>-test_variable<span class="o">=</span>value<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--parameter<span class="w"> </span>--flag<span class="o">=</span>activate<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--parameter<span class="w"> </span><span class="nv">send</span><span class="o">=</span><span class="s2">&quot;yes&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--parameter<span class="w"> </span><span class="nv">send</span><span class="o">=</span><span class="s2">"yes"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--job-name<span class="w"> </span><span class="nv">$JOB_NAME</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--command<span class="w"> </span><span class="s2">&quot;echo &#39;send&#39; &gt; new_file.txt&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--command<span class="w"> </span><span class="s2">"echo 'send' &gt; new_file.txt"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--resumable
 </pre></div>
 </div>
@@ -2063,7 +2077,7 @@ Check <code class="docutils literal notranslate"><span class="pre">cloudos</span
 <h4>Submit a Bash Array Job<a class="headerlink" href="#submit-a-bash-array-job" title="Link to this heading">¶</a></h4>
 <p>Run parallel bash jobs across multiple samples or datasets using array files. This is particularly useful for processing large datasets where each row represents a separate computational task.</p>
 <p>When running a bash array job, you can specify an array file containing sample information and process each row in parallel. The CLI validates column names and provides flexible parameter mapping.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>array-job<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--command<span class="w"> </span><span class="s2">&quot;echo {file}&quot;</span><span class="w"> </span>--array-file<span class="w"> </span>my_array.csv<span class="w"> </span>--separator<span class="w"> </span>,
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>array-job<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--command<span class="w"> </span><span class="s2">"echo {file}"</span><span class="w"> </span>--array-file<span class="w"> </span>my_array.csv<span class="w"> </span>--separator<span class="w"> </span>,
 </pre></div>
 </div>
 <section id="options">
@@ -2153,7 +2167,7 @@ specify a column named ‘value’ in the array file header. Adding array parame
 <code class="docutils literal notranslate"><span class="pre">#!/bin/bash</span></code>        –-&gt; for Bash scripts</p>
 <p>Example Python Script:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/python3</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello world&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Hello world"</span><span class="p">)</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="2">
@@ -2200,7 +2214,7 @@ specify a column named ‘value’ in the array file header. Adding array parame
 <span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-p<span class="w"> </span><span class="nv">data</span><span class="o">=</span>Data/input.csv<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-p<span class="w"> </span><span class="nv">exp</span><span class="o">=</span>PROJECT_EXPRESSION/Data/input.csv<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--project-name<span class="w"> </span><span class="s2">&quot;ADIPOSE&quot;</span>
+<span class="w">    </span>--project-name<span class="w"> </span><span class="s2">"ADIPOSE"</span>
 </pre></div>
 </div>
 <p>for parameter <code class="docutils literal notranslate"><span class="pre">exp</span></code> it will point to a project named <code class="docutils literal notranslate"><span class="pre">PROJECT_EXPRESSION</span></code> in the File Explorer, and <code class="docutils literal notranslate"><span class="pre">data</span></code> parameter will be found in the global project <code class="docutils literal notranslate"><span class="pre">ADIPOSE</span></code>.</p>
@@ -2208,8 +2222,8 @@ specify a column named ‘value’ in the array file header. Adding array parame
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>array-job<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-p<span class="w"> </span><span class="nv">data</span><span class="o">=</span>Data/input.csv<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-p<span class="w"> </span><span class="nv">exp</span><span class="o">=</span><span class="s2">&quot;PROJECT_EXPRESSION/Data/*.csv&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--project-name<span class="w"> </span><span class="s2">&quot;ADIPOSE&quot;</span>
+<span class="w">    </span>-p<span class="w"> </span><span class="nv">exp</span><span class="o">=</span><span class="s2">"PROJECT_EXPRESSION/Data/*.csv"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--project-name<span class="w"> </span><span class="s2">"ADIPOSE"</span>
 </pre></div>
 </div>
 <p>will take all <code class="docutils literal notranslate"><span class="pre">csv</span></code> file extensions in the specified folder.</p>
@@ -2292,7 +2306,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <p><strong>Table Columns</strong></p>
 <p>You can customize which columns to display:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Display specific columns</span>
-cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--table-columns<span class="w"> </span><span class="s2">&quot;status,name,owner,project,created_at,cost&quot;</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--table-columns<span class="w"> </span><span class="s2">"status,name,owner,project,created_at,cost"</span>
 </pre></div>
 </div>
 <p>Available columns: <code class="docutils literal notranslate"><span class="pre">backend</span></code>, <code class="docutils literal notranslate"><span class="pre">cost</span></code>, <code class="docutils literal notranslate"><span class="pre">cost_limit</span></code>, <code class="docutils literal notranslate"><span class="pre">created_at</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">instance</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">owner</span></code>, <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">resources</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime</span></code>, <code class="docutils literal notranslate"><span class="pre">saved_at</span></code>, <code class="docutils literal notranslate"><span class="pre">spot</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">time_left</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">version</span></code></p>
@@ -2305,14 +2319,14 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <p>Create a simple Jupyter notebook session:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;My Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"My Analysis"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>jupyter
 </pre></div>
 </div>
 <p>Create an RStudio session with specific R version:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;R Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"R Analysis"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>rstudio<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--r-version<span class="w"> </span><span class="m">4</span>.4.2
 </pre></div>
@@ -2320,14 +2334,14 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <p>Create a VS Code session (AWS only):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Development&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"Development"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>vscode
 </pre></div>
 </div>
 <p>Create a Spark cluster session with custom instance types (AWS only):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Spark Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"Spark Analysis"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>spark<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--spark-master<span class="w"> </span>c5.2xlarge<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--spark-core<span class="w"> </span>c5.xlarge<span class="w"> </span><span class="se">\</span>
@@ -2338,7 +2352,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <p>You can customize your session with various options:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Advanced Session&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"Advanced Session"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--instance<span class="w"> </span>c5.2xlarge<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--storage<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="se">\</span>
@@ -2386,44 +2400,44 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <p>Copy a file from File Explorer into the session:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Data Analysis&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"Data Analysis"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;my_project/training_data.csv&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">"my_project/training_data.csv"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--copy
 </pre></div>
 </div>
 <p>Link an S3 folder:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;S3 Access&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"S3 Access"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://my-results-bucket/output/&quot;</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">"s3://my-results-bucket/output/"</span>
 </pre></div>
 </div>
 <p>Link a File Explorer folder:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;File Explorer Access&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"File Explorer Access"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;my-project/Data/results&quot;</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">"my-project/Data/results"</span>
 </pre></div>
 </div>
 <p>Link multiple folders (using multiple –link flags):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Multi-Folder Session&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"Multi-Folder Session"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://input-bucket/data/&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://output-bucket/results/&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;my-project/AnalysesResults/analysis_123/output&quot;</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">"s3://input-bucket/data/"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">"s3://output-bucket/results/"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">"my-project/AnalysesResults/analysis_123/output"</span>
 </pre></div>
 </div>
 <p>Link multiple folders (using comma-separated paths):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;Multi-Folder Session&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"Multi-Folder Session"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--link<span class="w"> </span><span class="s2">&quot;s3://bucket-1/data/,s3://bucket-2/results/,my-project/Data/analysis&quot;</span>
+<span class="w">  </span>--link<span class="w"> </span><span class="s2">"s3://bucket-1/data/,s3://bucket-2/results/,my-project/Data/analysis"</span>
 </pre></div>
 </div>
 <p>This will show progress updates like:</p>
@@ -2447,7 +2461,7 @@ The session creation output displays a success message with session details:
 ```bash
 cloudos interactive-session create \
   --profile my_profile \
-  --name &quot;My Session&quot; \
+  --name "My Session" \
   --session-type jupyter
 </pre></div>
 </div>
@@ -2988,7 +3002,7 @@ If a file was uploaded by the user, in order to be removed you must use  <code c
 <p>To list images for a specific procurement, use the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>ls<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--<span class="w"> </span>profile<span class="w"> </span>procurement_profile
-<span class="w">    </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span>
+<span class="w">    </span>--procurement-id<span class="w"> </span><span class="s2">"your_procurement_id_here"</span>
 </pre></div>
 </div>
 <p><strong>Command options:</strong></p>
@@ -3004,12 +3018,12 @@ If a file was uploaded by the user, in order to be removed you must use  <code c
 </ul>
 <p><strong>Example usage:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># List images for the procurement (first page, 10 items)</span>
-cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>ls<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span>
+cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>ls<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">"your_procurement_id_here"</span>
 </pre></div>
 </div>
 <p>To get more results per page or navigate to different pages:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get 25 images from page 2</span>
-cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>ls<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--page<span class="w"> </span><span class="m">2</span><span class="w"> </span>--limit<span class="w"> </span><span class="m">25</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span>
+cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>ls<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--page<span class="w"> </span><span class="m">2</span><span class="w"> </span>--limit<span class="w"> </span><span class="m">25</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">"your_procurement_id_here"</span>
 </pre></div>
 </div>
 <p><strong>Output format:</strong></p>
@@ -3024,7 +3038,7 @@ cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span cl
 <h4>Set Procurement Organization Image<a class="headerlink" href="#set-procurement-organization-image" title="Link to this heading">¶</a></h4>
 <p>You can set a custom image ID or name for an organization within a procurement using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">procurement</span> <span class="pre">images</span> <span class="pre">set</span></code> command. This allows you to override the default Lifebit Platform images with your own custom images for specific organizations.</p>
 <p>To set a custom image for an organization, use the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--image-id<span class="w"> </span><span class="s2">&quot;ami-0123456789abcdef0&quot;</span><span class="w"> </span>--image-name<span class="w"> </span><span class="s2">&quot;custom-image-name&quot;</span><span class="w"> </span>--image-version<span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">"JobDefault"</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">"aws"</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">"us-east-1"</span><span class="w"> </span>--image-id<span class="w"> </span><span class="s2">"ami-0123456789abcdef0"</span><span class="w"> </span>--image-name<span class="w"> </span><span class="s2">"custom-image-name"</span><span class="w"> </span>--image-version<span class="w"> </span><span class="s2">"1.0.0"</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">"your_procurement_id_here"</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">"your_organization_id"</span>
 </pre></div>
 </div>
 <p><strong>Set command options:</strong></p>
@@ -3052,7 +3066,7 @@ cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span cl
 </ul>
 <p><strong>Set command example:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set custom image for job execution</span>
-cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--image-id<span class="w"> </span><span class="s2">&quot;ami-0123456789abcdef0&quot;</span><span class="w"> </span>--image-name<span class="w"> </span><span class="s2">&quot;my-custom-job-image&quot;</span><span class="w"> </span>--image-version<span class="w"> </span><span class="s2">&quot;1.2.3&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
+cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">"JobDefault"</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">"aws"</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">"us-east-1"</span><span class="w"> </span>--image-id<span class="w"> </span><span class="s2">"ami-0123456789abcdef0"</span><span class="w"> </span>--image-name<span class="w"> </span><span class="s2">"my-custom-job-image"</span><span class="w"> </span>--image-version<span class="w"> </span><span class="s2">"1.2.3"</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">"your_procurement_id_here"</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">"your_organization_id"</span>
 </pre></div>
 </div>
 </section>
@@ -3060,7 +3074,7 @@ cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span cl
 <h4>Reset Procurement Organization Image<a class="headerlink" href="#reset-procurement-organization-image" title="Link to this heading">¶</a></h4>
 <p>You can reset an organization’s image configuration back to Lifebit Platform defaults using the <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">procurement</span> <span class="pre">images</span> <span class="pre">reset</span></code> command. This removes any custom image configurations and restores the original Lifebit Platform defaults.</p>
 <p>To reset an organization’s image to defaults, use the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>reset<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>reset<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">"JobDefault"</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">"aws"</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">"us-east-1"</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">"your_procurement_id_here"</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">"your_organization_id"</span>
 </pre></div>
 </div>
 <p><strong>Reset command options:</strong></p>
@@ -3078,7 +3092,7 @@ cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span cl
 </ul>
 <p><strong>Reset command example:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reset image configuration to Lifebit Platform defaults</span>
-cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>reset<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">&quot;JobDefault&quot;</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">&quot;your_procurement_id_here&quot;</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">&quot;your_organization_id&quot;</span>
+cloudos<span class="w"> </span>procurement<span class="w"> </span>images<span class="w"> </span>reset<span class="w"> </span>--profile<span class="w"> </span>procurement_profile<span class="w"> </span>--image-type<span class="w"> </span><span class="s2">"JobDefault"</span><span class="w"> </span>--provider<span class="w"> </span><span class="s2">"aws"</span><span class="w"> </span>--region<span class="w"> </span><span class="s2">"us-east-1"</span><span class="w"> </span>--procurement-id<span class="w"> </span><span class="s2">"your_procurement_id_here"</span><span class="w"> </span>--organisation-id<span class="w"> </span><span class="s2">"your_organization_id"</span>
 </pre></div>
 </div>
 </section>
@@ -3133,15 +3147,15 @@ cloudos<span class="w"> </span>cromwell<span class="w"> </span>stop<span class="
 <span class="w">  </span>test.number.x<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span>
 <span class="w">  </span>test.greeter.morning<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span>
 <span class="w">  </span>test.wf_hello_in<span class="w"> </span><span class="o">=</span><span class="w"> </span>bomba
-<span class="w">  </span>test.arrayTest<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;lala&quot;</span><span class="o">]</span>
-<span class="w">  </span>test.mapTest<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">{</span><span class="s2">&quot;some&quot;</span>:<span class="s2">&quot;props&quot;</span><span class="o">}</span>
+<span class="w">  </span>test.arrayTest<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="s2">"lala"</span><span class="o">]</span>
+<span class="w">  </span>test.mapTest<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">{</span><span class="s2">"some"</span>:<span class="s2">"props"</span><span class="o">}</span>
 <span class="o">}</span>
 </pre></div>
 </div>
 <blockquote>
 <div><p>NOTE: when using <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> option, if the value needs quotes (<code class="docutils literal notranslate"><span class="pre">&quot;</span></code>) you will need to escape them. E.g.: <code class="docutils literal notranslate"><span class="pre">--parameter</span> <span class="pre">test.arrayTest=[\&quot;lala\&quot;]</span></code></p>
 </div></blockquote>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--project-name<span class="w"> </span>wdl-test<span class="w"> </span>--workflow-name<span class="w"> </span><span class="s2">&quot;wdl-test&quot;</span><span class="w"> </span>--wdl-mainfile<span class="w"> </span>hello.wdl<span class="w"> </span>--wdl-importsfile<span class="w"> </span>imports_7mb.zip<span class="w"> </span>--job-config<span class="w"> </span>cloudos/examples/wdl.config<span class="w"> </span>--wait-completion
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--project-name<span class="w"> </span>wdl-test<span class="w"> </span>--workflow-name<span class="w"> </span><span class="s2">"wdl-test"</span><span class="w"> </span>--wdl-mainfile<span class="w"> </span>hello.wdl<span class="w"> </span>--wdl-importsfile<span class="w"> </span>imports_7mb.zip<span class="w"> </span>--job-config<span class="w"> </span>cloudos/examples/wdl.config<span class="w"> </span>--wait-completion
 </pre></div>
 </div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Executing run...</span>
@@ -3188,12 +3202,12 @@ status from inside a python script.</p>
 
 
 <span class="c1"># GLOBAL VARS.</span>
-<span class="n">apikey</span> <span class="o">=</span> <span class="s1">&#39;xxxxx&#39;</span>
-<span class="n">cloudos_url</span> <span class="o">=</span> <span class="s1">&#39;https://cloudos.lifebit.ai&#39;</span>
-<span class="n">workspace_id</span> <span class="o">=</span> <span class="s1">&#39;xxxxx&#39;</span>
-<span class="n">project_name</span> <span class="o">=</span> <span class="s1">&#39;API jobs&#39;</span>
-<span class="n">workflow_name</span> <span class="o">=</span> <span class="s1">&#39;rnatoy&#39;</span>
-<span class="n">job_config</span> <span class="o">=</span> <span class="s1">&#39;cloudos/examples/rnatoy.config&#39;</span>
+<span class="n">apikey</span> <span class="o">=</span> <span class="s1">'xxxxx'</span>
+<span class="n">cloudos_url</span> <span class="o">=</span> <span class="s1">'https://cloudos.lifebit.ai'</span>
+<span class="n">workspace_id</span> <span class="o">=</span> <span class="s1">'xxxxx'</span>
+<span class="n">project_name</span> <span class="o">=</span> <span class="s1">'API jobs'</span>
+<span class="n">workflow_name</span> <span class="o">=</span> <span class="s1">'rnatoy'</span>
+<span class="n">job_config</span> <span class="o">=</span> <span class="s1">'cloudos/examples/rnatoy.config'</span>
 </pre></div>
 </div>
 <p>First, create the <code class="docutils literal notranslate"><span class="pre">Job</span></code> object:</p>
@@ -3207,7 +3221,7 @@ status from inside a python script.</p>
 </div>
 <p>To check the status:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">j_status</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">j_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">)</span>
-<span class="n">j_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">j_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+<span class="n">j_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">j_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">"status"</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">j_status_h</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -3216,7 +3230,7 @@ repeat the above code.</p>
 <p>You can also collect your last 30 submitted jobs for a given workspace using the
 following command.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_list</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
-<span class="n">my_jobs_r</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;jobs&#39;</span><span class="p">]</span>  <span class="c1"># Extract jobs list from the result</span>
+<span class="n">my_jobs_r</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">'jobs'</span><span class="p">]</span>  <span class="c1"># Extract jobs list from the result</span>
 <span class="n">my_jobs</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">process_job_list</span><span class="p">(</span><span class="n">my_jobs_r</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">my_jobs</span><span class="p">)</span>
 </pre></div>
@@ -3244,45 +3258,45 @@ following command.</p>
 
 
 <span class="c1"># GLOBAL VARS.</span>
-<span class="n">apikey</span> <span class="o">=</span> <span class="s1">&#39;xxxxx&#39;</span>
-<span class="n">cloudos_url</span> <span class="o">=</span> <span class="s1">&#39;https://cloudos.lifebit.ai&#39;</span>
-<span class="n">workspace_id</span> <span class="o">=</span> <span class="s1">&#39;xxxxx&#39;</span>
-<span class="n">project_name</span> <span class="o">=</span> <span class="s1">&#39;wdl-test&#39;</span>
-<span class="n">workflow_name</span> <span class="o">=</span> <span class="s1">&#39;wdl- test&#39;</span>
-<span class="n">mainfile</span> <span class="o">=</span> <span class="s1">&#39;hello.wdl&#39;</span>
-<span class="n">importsfile</span> <span class="o">=</span> <span class="s1">&#39;imports_7mb.zip&#39;</span>
-<span class="n">job_config</span> <span class="o">=</span> <span class="s1">&#39;cloudos/examples/wdl.config&#39;</span>
+<span class="n">apikey</span> <span class="o">=</span> <span class="s1">'xxxxx'</span>
+<span class="n">cloudos_url</span> <span class="o">=</span> <span class="s1">'https://cloudos.lifebit.ai'</span>
+<span class="n">workspace_id</span> <span class="o">=</span> <span class="s1">'xxxxx'</span>
+<span class="n">project_name</span> <span class="o">=</span> <span class="s1">'wdl-test'</span>
+<span class="n">workflow_name</span> <span class="o">=</span> <span class="s1">'wdl- test'</span>
+<span class="n">mainfile</span> <span class="o">=</span> <span class="s1">'hello.wdl'</span>
+<span class="n">importsfile</span> <span class="o">=</span> <span class="s1">'imports_7mb.zip'</span>
+<span class="n">job_config</span> <span class="o">=</span> <span class="s1">'cloudos/examples/wdl.config'</span>
 
 <span class="c1"># First create cloudos object</span>
 <span class="n">cl</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">Cloudos</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
 <span class="c1"># Then, check Cromwell status</span>
 <span class="n">c_status</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_cromwell_status</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
-<span class="n">c_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+<span class="n">c_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">"status"</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">c_status_h</span><span class="p">)</span>
 
 <span class="c1"># Start Cromwell server</span>
-<span class="n">cl</span><span class="o">.</span><span class="n">cromwell_switch</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="s1">&#39;restart&#39;</span><span class="p">)</span>
+<span class="n">cl</span><span class="o">.</span><span class="n">cromwell_switch</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="s1">'restart'</span><span class="p">)</span>
 
-<span class="c1"># Check again Cromwell status (wait until status: &#39;Running&#39;)</span>
+<span class="c1"># Check again Cromwell status (wait until status: 'Running')</span>
 <span class="n">c_status</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_cromwell_status</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
-<span class="n">c_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+<span class="n">c_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">"status"</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">c_status_h</span><span class="p">)</span>
 
-<span class="c1"># Send a job (wait until job has status: &#39;Completed&#39;)</span>
+<span class="c1"># Send a job (wait until job has status: 'Completed')</span>
 <span class="n">j</span> <span class="o">=</span> <span class="n">jb</span><span class="o">.</span><span class="n">Job</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span> <span class="n">apikey</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">workflow_name</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">mainfile</span><span class="p">,</span>
            <span class="n">importsfile</span><span class="p">)</span>
-<span class="n">j_id</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">send_job</span><span class="p">(</span><span class="n">job_config</span><span class="p">,</span> <span class="n">workflow_type</span><span class="o">=</span><span class="s1">&#39;wdl&#39;</span><span class="p">,</span> <span class="n">cromwell_id</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;_id&quot;</span><span class="p">])</span>
+<span class="n">j_id</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">send_job</span><span class="p">(</span><span class="n">job_config</span><span class="p">,</span> <span class="n">workflow_type</span><span class="o">=</span><span class="s1">'wdl'</span><span class="p">,</span> <span class="n">cromwell_id</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">"_id"</span><span class="p">])</span>
 <span class="n">j_status</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">j_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">)</span>
-<span class="n">j_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">j_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+<span class="n">j_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">j_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">"status"</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">j_status_h</span><span class="p">)</span>
 
 <span class="c1"># Stop Cromwell server</span>
-<span class="n">cl</span><span class="o">.</span><span class="n">cromwell_switch</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">)</span>
+<span class="n">cl</span><span class="o">.</span><span class="n">cromwell_switch</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">,</span> <span class="s1">'stop'</span><span class="p">)</span>
 
 <span class="c1"># Check again Cromwell status</span>
 <span class="n">c_status</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="n">get_cromwell_status</span><span class="p">(</span><span class="n">workspace_id</span><span class="p">)</span>
-<span class="n">c_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+<span class="n">c_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">c_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">"status"</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">c_status_h</span><span class="p">)</span>
 </pre></div>
 </div>

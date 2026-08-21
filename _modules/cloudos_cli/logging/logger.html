@@ -403,12 +403,12 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_log_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">LogRecord</span><span class="p">):</span>
         <span class="n">always</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="n">__version__</span><span class="p">,</span>
-            <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">getMessage</span><span class="p">(),</span>
-            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">created</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">dt</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="s2">"version"</span><span class="p">:</span> <span class="n">__version__</span><span class="p">,</span>
+            <span class="s2">"message"</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">getMessage</span><span class="p">(),</span>
+            <span class="s2">"timestamp"</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">created</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">dt</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
         <span class="p">}</span>
         <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">:</span>
-            <span class="n">always</span><span class="p">[</span><span class="s2">&quot;exc_info&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatException</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">)</span>
+            <span class="n">always</span><span class="p">[</span><span class="s2">"exc_info"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatException</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">)</span>
 
         <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fmt_keys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -424,7 +424,7 @@
 <div class="viewcode-block" id="CommandContextFilter">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.CommandContextFilter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CommandContextFilter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Injects record.command and record.params everywhere.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Injects record.command and record.params everywhere."""</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">command</span>
@@ -433,7 +433,7 @@
 <div class="viewcode-block" id="CommandContextFilter.set_seed_from_argv">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.CommandContextFilter.set_seed_from_argv">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_seed_from_argv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
@@ -448,9 +448,9 @@
 <div class="viewcode-block" id="CommandContextFilter.filter">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.CommandContextFilter.filter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">&quot;command&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">"command"</span><span class="p">):</span>
             <span class="n">record</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">&quot;params&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">"params"</span><span class="p">):</span>
             <span class="n">record</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 </div>
@@ -458,7 +458,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_cmd_filter_factory</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory used by dictConfig so we can get the SAME instance later.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Factory used by dictConfig so we can get the SAME instance later."""</span>
     <span class="k">global</span> <span class="n">_cmd_filter_instance</span>
     <span class="k">if</span> <span class="n">_cmd_filter_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_cmd_filter_instance</span> <span class="o">=</span> <span class="n">CommandContextFilter</span><span class="p">()</span>
@@ -467,34 +467,34 @@
 
 
 <span class="n">LOG_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;disable_existing_loggers&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="s2">&quot;formatters&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;json&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;()&quot;</span><span class="p">:</span> <span class="n">LogFormatter</span><span class="p">,</span>
+    <span class="s2">"version"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"disable_existing_loggers"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">"formatters"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"json"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"()"</span><span class="p">:</span> <span class="n">LogFormatter</span><span class="p">,</span>
         <span class="p">},</span>
-        <span class="s2">&quot;simple&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">},</span>
+        <span class="s2">"simple"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"format"</span><span class="p">:</span> <span class="s2">"</span><span class="si">%(levelname)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">"</span><span class="p">},</span>
     <span class="p">},</span>
-    <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;cmdctx&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;()&quot;</span><span class="p">:</span> <span class="n">_cmd_filter_factory</span><span class="p">}</span>
+    <span class="s2">"filters"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"cmdctx"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"()"</span><span class="p">:</span> <span class="n">_cmd_filter_factory</span><span class="p">}</span>
     <span class="p">},</span>
-    <span class="s2">&quot;handlers&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;logging.FileHandler&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;formatter&quot;</span><span class="p">:</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cmdctx&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">"handlers"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"file"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"logging.FileHandler"</span><span class="p">,</span>
+            <span class="s2">"level"</span><span class="p">:</span> <span class="s2">"DEBUG"</span><span class="p">,</span>
+            <span class="s2">"formatter"</span><span class="p">:</span> <span class="s2">"json"</span><span class="p">,</span>
+            <span class="s2">"filters"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"cmdctx"</span><span class="p">],</span>
+            <span class="s2">"filename"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">},</span>
-        <span class="s2">&quot;stderr&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;logging.StreamHandler&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;ERROR&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;formatter&quot;</span><span class="p">:</span> <span class="s2">&quot;simple&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cmdctx&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;stream&quot;</span><span class="p">:</span> <span class="s2">&quot;ext://sys.stderr&quot;</span><span class="p">,</span>
+        <span class="s2">"stderr"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"logging.StreamHandler"</span><span class="p">,</span>
+            <span class="s2">"level"</span><span class="p">:</span> <span class="s2">"ERROR"</span><span class="p">,</span>
+            <span class="s2">"formatter"</span><span class="p">:</span> <span class="s2">"simple"</span><span class="p">,</span>
+            <span class="s2">"filters"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"cmdctx"</span><span class="p">],</span>
+            <span class="s2">"stream"</span><span class="p">:</span> <span class="s2">"ext://sys.stderr"</span><span class="p">,</span>
         <span class="p">},</span>
     <span class="p">},</span>
-    <span class="s2">&quot;root&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;handlers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]},</span>
+    <span class="s2">"root"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"level"</span><span class="p">:</span> <span class="s2">"DEBUG"</span><span class="p">,</span> <span class="s2">"handlers"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"file"</span><span class="p">]},</span>
 <span class="p">}</span>
 
 
@@ -502,34 +502,34 @@
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.setup_logging">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">setup_logging</span><span class="p">(</span><span class="n">debug</span><span class="p">):</span>
     <span class="n">debug_fields</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;version&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;levelname&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;message&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;logger&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;command&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="s2">&quot;params&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;exc_info&quot;</span><span class="p">:</span> <span class="s2">&quot;exc_info&quot;</span>
+            <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"version"</span><span class="p">,</span>
+            <span class="s2">"level"</span><span class="p">:</span> <span class="s2">"levelname"</span><span class="p">,</span>
+            <span class="s2">"timestamp"</span><span class="p">:</span> <span class="s2">"timestamp"</span><span class="p">,</span>
+            <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"message"</span><span class="p">,</span>
+            <span class="s2">"logger"</span><span class="p">:</span> <span class="s2">"name"</span><span class="p">,</span>
+            <span class="s2">"command"</span><span class="p">:</span> <span class="s2">"command"</span><span class="p">,</span>
+            <span class="s2">"params"</span><span class="p">:</span> <span class="s2">"params"</span><span class="p">,</span>
+            <span class="s2">"exc_info"</span><span class="p">:</span> <span class="s2">"exc_info"</span>
     <span class="p">}</span>
     <span class="n">non_debug_fields</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;version&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;levelname&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;message&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;logger&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;command&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="s2">&quot;params&quot;</span><span class="p">,</span>
+            <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"version"</span><span class="p">,</span>
+            <span class="s2">"level"</span><span class="p">:</span> <span class="s2">"levelname"</span><span class="p">,</span>
+            <span class="s2">"timestamp"</span><span class="p">:</span> <span class="s2">"timestamp"</span><span class="p">,</span>
+            <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"message"</span><span class="p">,</span>
+            <span class="s2">"logger"</span><span class="p">:</span> <span class="s2">"name"</span><span class="p">,</span>
+            <span class="s2">"command"</span><span class="p">:</span> <span class="s2">"command"</span><span class="p">,</span>
+            <span class="s2">"params"</span><span class="p">:</span> <span class="s2">"params"</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">LOG_CONFIG</span><span class="p">)</span>
 
     <span class="c1"># build a timestamped log filename</span>
-    <span class="n">ts</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">-%H%M%S&quot;</span><span class="p">)</span>
-    <span class="n">log_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">(),</span> <span class="s2">&quot;.cloudos/logs&quot;</span><span class="p">)</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">-%H%M%S"</span><span class="p">)</span>
+    <span class="n">log_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">(),</span> <span class="s2">".cloudos/logs"</span><span class="p">)</span>
     <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;handlers&quot;</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">][</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;cloudos-</span><span class="si">{</span><span class="n">ts</span><span class="si">}</span><span class="s2">.jsonl&quot;</span><span class="p">)</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">"handlers"</span><span class="p">][</span><span class="s2">"file"</span><span class="p">][</span><span class="s2">"filename"</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"cloudos-</span><span class="si">{</span><span class="n">ts</span><span class="si">}</span><span class="s2">.jsonl"</span><span class="p">)</span>
 
     <span class="c1"># adjust log level if requested</span>
-    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;root&quot;</span><span class="p">][</span><span class="s2">&quot;level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;DEBUG&quot;</span> <span class="k">if</span> <span class="n">debug</span> <span class="k">else</span> <span class="s2">&quot;WARNING&quot;</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">"root"</span><span class="p">][</span><span class="s2">"level"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"DEBUG"</span> <span class="k">if</span> <span class="n">debug</span> <span class="k">else</span> <span class="s2">"WARNING"</span>
 
     <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
     <span class="n">root</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
@@ -546,7 +546,7 @@
 <div class="viewcode-block" id="update_command_context_from_click">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.update_command_context_from_click">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">update_command_context_from_click</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Call this AFTER Click parsed args.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Call this AFTER Click parsed args."""</span>
     <span class="n">_cmd_filter_factory</span><span class="p">()</span><span class="o">.</span><span class="n">set_from_click_ctx</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span></div>
 
 </pre></div>
