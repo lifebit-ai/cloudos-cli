@@ -170,7 +170,7 @@ def test_parse_job_config_params_rejects_multiline_value():
     assert "line 2" in message
     assert "acceleratedFileSystems=[" in message
     assert "several lines" in message
-    assert "--params-file" in message
+    assert "single line" in message
 
 
 def test_parse_job_config_params_strips_inline_comments():
@@ -186,6 +186,29 @@ def test_strip_inline_comment_preserves_urls():
     assert Job.strip_inline_comment("reads = s3://bucket/key") == "reads = s3://bucket/key"
     assert Job.strip_inline_comment("reads = s3://bucket/key  // note") == "reads = s3://bucket/key"
     assert Job.strip_inline_comment("reads = s3://bucket/key  # note") == "reads = s3://bucket/key"
+
+
+def test_parse_job_config_params_keeps_names_containing_params():
+    """A parameter whose name contains 'params' is not dropped."""
+    assert Job.parse_job_config_params("tests/test_data/params_in_name.config") == [
+        ("input_params", "s3://bucket/a"),
+        ("reads", "s3://bucket/b"),
+        ("extra_params_file", "foo.json")]
+
+
+def test_parse_job_config_params_rejects_empty_value():
+    """A parameter with no value fails instead of being sent as empty."""
+    with pytest.raises(ValueError) as excinfo:
+        Job.parse_job_config_params("tests/test_data/no_value_params.config")
+    message = str(excinfo.value)
+    assert "line 3" in message
+    assert "'empty' has no value" in message
+
+
+def test_parse_job_config_params_keeps_single_line_lists():
+    """A single-line list literal is passed through as text."""
+    parsed = dict(Job.parse_job_config_params("tests/test_data/inline_comment_params.config"))
+    assert parsed["coloc_window"] == "0.5"
 
 
 def test_parse_job_config_params_examples_unchanged():

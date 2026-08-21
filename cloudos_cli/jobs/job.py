@@ -200,10 +200,10 @@ class Job(Cloudos):
         """Parse a job config file into a list of (name, value) parameter pairs.
 
         The job config file is a list of parameters, equivalent to repeating
-        '--parameter name=value' on the command line. Only flat 'name = value'
-        pairs are supported: the Lifebit Platform API takes named scalar
-        parameters, so arrays, nested blocks and values spanning several lines
-        cannot be represented.
+        '--parameter name=value' on the command line. Every value is sent as
+        text, exactly as when launching Nextflow from the command line, so a
+        literal such as "['a', 'b']" is passed through as a string. Values
+        spanning several lines and nested blocks cannot be represented.
 
         Parameters
         ----------
@@ -227,7 +227,7 @@ class Job(Cloudos):
         with open(job_config, 'r') as p:
             reading = False
             for line_no, p_l in enumerate(p, start=1):
-                if 'params' in p_l.lower():
+                if re.match(r'^\s*params\s*\{', p_l, re.IGNORECASE):
                     reading = True
                     continue
                 if not reading:
@@ -251,19 +251,26 @@ class Job(Cloudos):
                         f'Could not parse line {line_no} of {job_config}: ' +
                         f'"{p_l.strip()}". Expected a \'name = value\' pair. ' +
                         'The job config file is a list of parameters, not a ' +
-                        'Nextflow config: it cannot contain arrays, nested ' +
-                        'blocks, values spanning several lines, or sections ' +
-                        'such as \'process\' and \'profiles\'.')
+                        'Nextflow config: it cannot contain values spanning ' +
+                        'several lines, nested blocks, or sections such as ' +
+                        '\'process\' and \'profiles\'.')
                 p_name = p_list[0]
                 p_value = '='.join(p_list[1:])
                 if p_value.count('[') > p_value.count(']'):
                     raise ValueError(
                         f'Could not parse line {line_no} of {job_config}: ' +
                         f'"{p_l.strip()}". Values spanning several lines are ' +
-                        'not supported, and the Lifebit Platform API cannot ' +
-                        'take array parameters. Define arrays in the ' +
-                        'pipeline\'s own nextflow.config, or pass them with ' +
-                        '--params-file using a JSON or YAML file.')
+                        'not supported. Keep the value on a single line, ' +
+                        'define it in the pipeline\'s own nextflow.config, ' +
+                        'or pass it with --params-file using a JSON or YAML ' +
+                        'file.')
+                if len(p_value) == 0:
+                    raise ValueError(
+                        f'Could not parse line {line_no} of {job_config}: ' +
+                        f'"{p_l.strip()}". Parameter \'{p_name}\' has no ' +
+                        'value. Give it a value, or remove the line. A value ' +
+                        'that starts with \'//\' or \'#\' must be quoted, ' +
+                        'otherwise it is read as a comment.')
                 parsed.append((p_name, p_value))
         return parsed
 
@@ -414,12 +421,12 @@ class Job(Cloudos):
                                  command,
                                  cpus,
                                  memory):
-        """Converts a nextflow.config file into a json formatted dict.
+        """Converts a job config file into a json formatted dict.
 
         Parameters
         ----------
         job_config : string
-            Path to a nextflow.config file with parameters scope.
+            Path to a file with parameters scope.
         params_file : string
             S3 or File Explorer path to a JSON/YAML file with Nextflow parameters.
         parameter : tuple
@@ -667,7 +674,7 @@ class Job(Cloudos):
         Parameters
         ----------
         job_config : string
-            Path to a nextflow.config file with parameters scope.
+            Path to a file with parameters scope.
         params_file : string
             S3 or File Explorer path to a JSON/YAML file with Nextflow parameters.
         parameter : tuple

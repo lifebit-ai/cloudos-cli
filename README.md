@@ -585,15 +585,17 @@ params {
 
 `--job-config` is shorthand for repeating `--parameter` on the command line: the CLI reads the file line by line, splits each line on the first `=`, and sends each result as one named parameter.
 
-Because of this, only flat `name = value` pairs are supported. A `--job-config` file is **not** a `nextflow.config` file and cannot contain:
+Every value is passed through as text, exactly as it would be when launching Nextflow from the command line. A literal such as `my_param = ['a', 'b']` is therefore fine: it reaches the pipeline as the string `['a', 'b']`.
 
-- arrays or lists (e.g. `my_param = ['a', 'b']`)
-- nested blocks (e.g. `genomes { ... }`)
+What a `--job-config` file cannot contain, because it is **not** a `nextflow.config` file:
+
 - values spanning several lines
+- nested blocks (e.g. `genomes { ... }`)
 - `process`, `profiles`, `docker` or other config sections
-- a comment after a value on the same line (put comments on their own line)
 
-The Lifebit Platform API accepts a list of named scalar parameters, so there is no way to send a structured value through this option. If you need one, either define it in the pipeline's own `nextflow.config` in the git repository and expose the parts you want to change as individual parameters, or pass it with `--params-file` (see below), which supports JSON and YAML with full type fidelity.
+Comments are supported, both on their own line and after a value, using `//` or `#`.
+
+If a parameter needs a genuinely structured value rather than a string, either define it in the pipeline's own `nextflow.config` in the git repository and expose the parts you want to change as individual parameters, or pass it with `--params-file` (see below), which supports JSON and YAML with full type fidelity.
 
 In addition, parameters can also be specified using the command-line `-p` or `--parameter`. For instance:
 

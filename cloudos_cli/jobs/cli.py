@@ -66,7 +66,7 @@ def job():
                     '\'name = value\' pairs inside a \'params\' block. It is ' +
                     'equivalent to repeating --parameter, so only flat ' +
                     'parameters are supported: it is not a nextflow.config ' +
-                    'and cannot contain arrays, nested blocks or sections ' +
+                    'and cannot contain multi-line parameters, nested blocks or sections ' +
                     'such as \'process\' and \'profiles\'. Use --params-file ' +
                     'for parameters that need a structured value.'))
 @click.option('--params-file',
