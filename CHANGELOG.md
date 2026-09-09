@@ -1,5 +1,11 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.96.0 (2026-09-09)
+
+### Feat:
+
+- Changed dockerfile and release.yml to address harbor issues
+
 ## v2.95.1 (2026-08-20)
 
 ### Fix:
