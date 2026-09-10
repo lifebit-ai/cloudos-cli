@@ -96,7 +96,8 @@ def bash():
               default=30.0)
 @click.option('--accelerate-saving-results',
               help='Enables saving results directly to cloud storage bypassing the master node.',
-              is_flag=True)
+              is_flag=True,
+              default=False)
 @click.option('--request-interval',
               help=('Time interval to request (in seconds) the job status. ' +
                     'For large jobs is important to use a high number to ' +
@@ -305,7 +306,8 @@ def run_bash_job(ctx,
               default=30.0)
 @click.option('--accelerate-saving-results',
               help='Enables saving results directly to cloud storage bypassing the master node.',
-              is_flag=True)
+              is_flag=True,
+              default=False)
 @click.option('--request-interval',
               help=('Time interval to request (in seconds) the job status. ' +
                     'For large jobs is important to use a high number to ' +

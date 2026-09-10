@@ -8,13 +8,36 @@ permissions:
   contents: write   # to create/push git tags with GITHUB_TOKEN
   id-token: write   # to request an OIDC token for AWS STS
 
+# Releases run one at a time. The tag check below and the tag push at the end
+# of the job are separated by the whole build/scan/publish sequence, so without
+# this two pushes to main could both see the tag missing, build different
+# images and push them under the same version tag — and an older run finishing
+# last could drag :latest backwards. Queuing (cancel-in-progress: false) means
+# the second run's check job re-evaluates the tag only after the first run has
+# finished, by which point the tag exists and it skips.
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   QUAY_REPO: quay.io/lifebitaiorg/cloudos-cli
   PYTHON_VERSION: "3.11"
 
 jobs:
-  release:
+  # -------- VERSION & RELEASE GATE --------
+  # This workflow runs on every push to main, but only a push that bumps
+  # __version__ is a release. Without this gate an unrelated push (a docs fix,
+  # a follow-up commit) rebuilds the current version and pushes it over the
+  # image already on Quay under the same tag — and the SECURITY_REFRESH
+  # build-arg alone guarantees the rebuild is a different image, so a released
+  # artefact would silently change. The git tag is the record of what has
+  # shipped: if v$VERSION already exists, the release job is skipped.
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+      git_tag: ${{ steps.version.outputs.GIT_TAG }}
+      release: ${{ steps.released.outputs.RELEASE }}
 
     steps:
       - name: Checkout (full history)
@@ -22,7 +45,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # -------- VERSION & TAGGING --------
       - name: Extract version from cloudos_cli/_version.py
         id: version
         run: |
@@ -33,28 +55,36 @@ jobs:
           echo "VERSION=$VER"  >> "$GITHUB_OUTPUT"
           echo "GIT_TAG=v$VER" >> "$GITHUB_OUTPUT"
 
-      - name: Create and push Git tag if missing
+      - name: Decide whether this version still needs releasing
+        id: released
         run: |
           set -euo pipefail
           TAG="${{ steps.version.outputs.GIT_TAG }}"
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists; skipping."
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "$TAG already exists: this version has shipped, nothing to do."
+            echo "Bump __version__ in cloudos_cli/_version.py to cut a new release."
+            echo "RELEASE=false" >> "$GITHUB_OUTPUT"
           else
-            git tag -a "$TAG" -m "Release $TAG"
-            git push origin "$TAG"
+            echo "$TAG does not exist yet; proceeding with the release."
+            echo "RELEASE=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # -------- GITHUB RELEASE --------
-      - name: Create GitHub Release with auto-generated notes
-        uses: softprops/action-gh-release@v1
+  release:
+    needs: check
+    if: needs.check.outputs.release == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
         with:
-          tag_name: ${{ steps.version.outputs.GIT_TAG }}
-          name: Release ${{ steps.version.outputs.GIT_TAG }}
-          draft: false
-          prerelease: ${{ contains(steps.version.outputs.VERSION, 'a') || contains(steps.version.outputs.VERSION, 'b') || contains(steps.version.outputs.VERSION, 'rc') }}
-          generate_release_notes: true
+          fetch-depth: 0
+
+      # NOTE: the Git tag and the GitHub Release are created at the END of this
+      # job, after the image has passed the vulnerability gate and both
+      # artefacts have been published. Creating them here meant a failed scan
+      # or a failed upload left behind a pushed tag and a published release
+      # pointing at artefacts that never shipped.
 
       # -------- PYTHON SETUP --------
       - name: Set up Python ${{ env.PYTHON_VERSION }}
@@ -74,17 +104,85 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_LOGIN_ID }}
           password: ${{ secrets.QUAY_LOGIN_PWD }}
-      - name: Build & push image to Quay (version + latest)
+      - name: Build image
         run: |
           set -euo pipefail
-          VER="${{ steps.version.outputs.VERSION }}"
+          VER="${{ needs.check.outputs.version }}"
           echo "Building Docker image for version: $VER"
-          docker build -f Dockerfile -t "${QUAY_REPO}:v${VER}" .
+          # SECURITY_REFRESH busts the cache on the Dockerfile's final
+          # `apt-get upgrade` layer. Without it, once this job uses a build
+          # cache, a cached upgrade silently stops picking up new patches.
+          docker build -f Dockerfile \
+            --build-arg SECURITY_REFRESH="$(date +%s)" \
+            -t "${QUAY_REPO}:v${VER}" .
+
+      # Trivy runs as a pinned container, so there is nothing to install:
+      # Docker is already present on the runner (the build step above needs
+      # it). --exit-code 1 fails the step on any CRITICAL/HIGH, and unfixed
+      # CVEs are counted (no --ignore-unfixed), which mirrors the Harbor gate.
+      # A Trivy error exits 2, so a broken scanner also fails the step rather
+      # than silently passing the release.
+      - name: Scan image with Trivy (blocks the release on CRITICAL/HIGH)
+        run: |
+          set -euo pipefail
+          VER="${{ needs.check.outputs.version }}"
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
+            aquasec/trivy:0.74.0 image \
+              --image-src docker \
+              --scanners vuln \
+              --severity CRITICAL,HIGH \
+              --exit-code 1 \
+              "${QUAY_REPO}:v${VER}"
+
+      # Last check before anything leaves the runner. The concurrency group
+      # above already serializes release runs, but a manual re-run of an old
+      # workflow run, or a run started before the group was in place, is not
+      # covered by it. origin is authoritative here: the local clone was made
+      # before the build started.
+      - name: Verify the version tag is still unclaimed on the remote
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.check.outputs.git_tag }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::$TAG appeared on origin while this job was building."
+            echo "Another run has already released this version; refusing to"
+            echo "overwrite ${QUAY_REPO}:$TAG with a different image."
+            exit 1
+          fi
+          echo "$TAG is still unclaimed; publishing."
+
+      - name: Push image to Quay (version tag)
+        run: |
+          set -euo pipefail
+          VER="${{ needs.check.outputs.version }}"
           docker push "${QUAY_REPO}:v${VER}"
           echo "Pushed ${QUAY_REPO}:v${VER}"
 
+      # Only ever move :latest forward, and never onto a pre-release. A patch
+      # cut from an older branch would otherwise drag :latest backwards.
+      # NEWEST is the previous release: this version's tag is not created until
+      # the end of the job.
+      - name: Tag and push :latest (newest final release only)
+        run: |
+          set -euo pipefail
+          VER="${{ needs.check.outputs.version }}"
+          case "$VER" in
+            *a*|*b*|*rc*)
+              echo "v$VER is a pre-release; leaving :latest unchanged."
+              exit 0
+              ;;
+          esac
+          NEWEST="$(git tag --list 'v*' | sed 's/^v//' | sort -V | tail -1)"
+          if [ -n "$NEWEST" ] \
+             && [ "$(printf '%s\n%s\n' "$NEWEST" "$VER" | sort -V | tail -1)" != "$VER" ]; then
+            echo "v$VER is older than the newest tag (v$NEWEST); leaving :latest unchanged."
+            exit 0
+          fi
           docker tag  "${QUAY_REPO}:v${VER}" "${QUAY_REPO}:latest"
           docker push "${QUAY_REPO}:latest"
+          echo "Pushed ${QUAY_REPO}:latest"
 
       # -------- PYPI (no helper actions) --------
       - name: Build distribution (sdist + wheel)
@@ -102,3 +200,26 @@ jobs:
           echo "Uploading to PyPI..."
           python -m twine upload --non-interactive dist/* --skip-existing
           echo "Successfully uploaded to PyPI"
+
+      # -------- TAG & RELEASE (last: only once everything shipped) --------
+      - name: Create and push Git tag if missing
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.check.outputs.git_tag }}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists; skipping."
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Release with auto-generated notes
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.check.outputs.git_tag }}
+          name: Release ${{ needs.check.outputs.git_tag }}
+          draft: false
+          prerelease: ${{ contains(needs.check.outputs.version, 'a') || contains(needs.check.outputs.version, 'b') || contains(needs.check.outputs.version, 'rc') }}
+          generate_release_notes: true
