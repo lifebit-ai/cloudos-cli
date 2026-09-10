@@ -8,6 +8,17 @@ permissions:
   contents: write   # to create/push git tags with GITHUB_TOKEN
   id-token: write   # to request an OIDC token for AWS STS
 
+# Releases run one at a time. The tag check below and the tag push at the end
+# of the job are separated by the whole build/scan/publish sequence, so without
+# this two pushes to main could both see the tag missing, build different
+# images and push them under the same version tag — and an older run finishing
+# last could drag :latest backwards. Queuing (cancel-in-progress: false) means
+# the second run's check job re-evaluates the tag only after the first run has
+# finished, by which point the tag exists and it skips.
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   QUAY_REPO: quay.io/lifebitaiorg/cloudos-cli
   PYTHON_VERSION: "3.11"
@@ -124,6 +135,23 @@ jobs:
               --severity CRITICAL,HIGH \
               --exit-code 1 \
               "${QUAY_REPO}:v${VER}"
+
+      # Last check before anything leaves the runner. The concurrency group
+      # above already serializes release runs, but a manual re-run of an old
+      # workflow run, or a run started before the group was in place, is not
+      # covered by it. origin is authoritative here: the local clone was made
+      # before the build started.
+      - name: Verify the version tag is still unclaimed on the remote
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.check.outputs.git_tag }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::$TAG appeared on origin while this job was building."
+            echo "Another run has already released this version; refusing to"
+            echo "overwrite ${QUAY_REPO}:$TAG with a different image."
+            exit 1
+          fi
+          echo "$TAG is still unclaimed; publishing."
 
       - name: Push image to Quay (version tag)
         run: |
