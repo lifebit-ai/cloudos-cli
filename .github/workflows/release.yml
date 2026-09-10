@@ -13,8 +13,20 @@ env:
   PYTHON_VERSION: "3.11"
 
 jobs:
-  release:
+  # -------- VERSION & RELEASE GATE --------
+  # This workflow runs on every push to main, but only a push that bumps
+  # __version__ is a release. Without this gate an unrelated push (a docs fix,
+  # a follow-up commit) rebuilds the current version and pushes it over the
+  # image already on Quay under the same tag — and the SECURITY_REFRESH
+  # build-arg alone guarantees the rebuild is a different image, so a released
+  # artefact would silently change. The git tag is the record of what has
+  # shipped: if v$VERSION already exists, the release job is skipped.
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+      git_tag: ${{ steps.version.outputs.GIT_TAG }}
+      release: ${{ steps.released.outputs.RELEASE }}
 
     steps:
       - name: Checkout (full history)
@@ -22,7 +34,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # -------- VERSION & TAGGING --------
       - name: Extract version from cloudos_cli/_version.py
         id: version
         run: |
@@ -32,6 +43,31 @@ jobs:
           VER="${VER#v}"  # drop leading 'v' if someone added it
           echo "VERSION=$VER"  >> "$GITHUB_OUTPUT"
           echo "GIT_TAG=v$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Decide whether this version still needs releasing
+        id: released
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.version.outputs.GIT_TAG }}"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "$TAG already exists: this version has shipped, nothing to do."
+            echo "Bump __version__ in cloudos_cli/_version.py to cut a new release."
+            echo "RELEASE=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$TAG does not exist yet; proceeding with the release."
+            echo "RELEASE=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    needs: check
+    if: needs.check.outputs.release == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # NOTE: the Git tag and the GitHub Release are created at the END of this
       # job, after the image has passed the vulnerability gate and both
@@ -60,7 +96,7 @@ jobs:
       - name: Build image
         run: |
           set -euo pipefail
-          VER="${{ steps.version.outputs.VERSION }}"
+          VER="${{ needs.check.outputs.version }}"
           echo "Building Docker image for version: $VER"
           # SECURITY_REFRESH busts the cache on the Dockerfile's final
           # `apt-get upgrade` layer. Without it, once this job uses a build
@@ -78,7 +114,7 @@ jobs:
       - name: Scan image with Trivy (blocks the release on CRITICAL/HIGH)
         run: |
           set -euo pipefail
-          VER="${{ steps.version.outputs.VERSION }}"
+          VER="${{ needs.check.outputs.version }}"
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
@@ -92,7 +128,7 @@ jobs:
       - name: Push image to Quay (version tag)
         run: |
           set -euo pipefail
-          VER="${{ steps.version.outputs.VERSION }}"
+          VER="${{ needs.check.outputs.version }}"
           docker push "${QUAY_REPO}:v${VER}"
           echo "Pushed ${QUAY_REPO}:v${VER}"
 
@@ -103,7 +139,7 @@ jobs:
       - name: Tag and push :latest (newest final release only)
         run: |
           set -euo pipefail
-          VER="${{ steps.version.outputs.VERSION }}"
+          VER="${{ needs.check.outputs.version }}"
           case "$VER" in
             *a*|*b*|*rc*)
               echo "v$VER is a pre-release; leaving :latest unchanged."
@@ -141,7 +177,7 @@ jobs:
       - name: Create and push Git tag if missing
         run: |
           set -euo pipefail
-          TAG="${{ steps.version.outputs.GIT_TAG }}"
+          TAG="${{ needs.check.outputs.git_tag }}"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
@@ -154,8 +190,8 @@ jobs:
       - name: Create GitHub Release with auto-generated notes
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.version.outputs.GIT_TAG }}
-          name: Release ${{ steps.version.outputs.GIT_TAG }}
+          tag_name: ${{ needs.check.outputs.git_tag }}
+          name: Release ${{ needs.check.outputs.git_tag }}
           draft: false
-          prerelease: ${{ contains(steps.version.outputs.VERSION, 'a') || contains(steps.version.outputs.VERSION, 'b') || contains(steps.version.outputs.VERSION, 'rc') }}
+          prerelease: ${{ contains(needs.check.outputs.version, 'a') || contains(needs.check.outputs.version, 'b') || contains(needs.check.outputs.version, 'rc') }}
           generate_release_notes: true
