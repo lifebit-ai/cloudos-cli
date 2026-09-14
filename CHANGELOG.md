@@ -5,6 +5,8 @@
 ### Feat:
 
 - Changed dockerfile and release.yml to address harbor issues
+- The release workflow asks the registry, not git, whether a version image is already published, and creates the Git tag after the immutable artefacts (version image tag, PyPI) and before the mutable one (`:latest`)
+- CI unit tests now run on Python 3.11, 3.13 and 3.14, matching the Python shipped by the container's base image
 
 ## v2.95.1 (2026-08-20)
 
