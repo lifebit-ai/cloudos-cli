@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.95.2 (2026-09-17)
+
+### Fix:
+
+- Bash job and Bash array job `--parameter` values now resolve File Explorer paths without filename extensions as file references instead of literal text (HSM-8316)
+- Nested `Data/` paths now correctly use the current project instead of treating `Data` as a project name
+
 ## v2.95.1 (2026-08-20)
 
 ### Fix:

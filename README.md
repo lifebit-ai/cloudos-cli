@@ -1856,7 +1856,7 @@ The `--command` parameter is required and will setup the command for the paramet
 Each `--parameter` can have a different prefix, either '--', '-', or '', depending on the use case. These can be used as many times as needed.
 
 > [!NOTE]
-> At the moment only string values are allowed to the `--parameter` options, adding a filepath at the moment does not upload/download the file. This feature will be available in a future implementation.
+> `--parameter` supports text values, File Explorer paths under `Data/`, and glob patterns. Files must already exist in the platform; local files are not uploaded. Filenames do not need an extension: `--parameter "--f1=Data/no_extension_file"` resolves the file for staging into the job's working directory. See [using files from multiple projects](#use-multiple-projects-for-files-in---parameter-option) for path formats.
 
 If everything went well, you should see something like:
 
@@ -1988,6 +1988,8 @@ The option `--parameter` could specify a file input located in a different proje
 - `-p/--parameter "--file=<project>/Data/subfolder/*.txt"`
 - `-p/--parameter "--file=<project>/Data/*.txt"`
 - `-p/--parameter "--file=Data/*.txt"` (the same project as `--project-name`)
+
+These file paths also support filenames without extensions, such as `Data/no_extension_file` or `<project>/Data/subfolder/no_extension_file`, for both Bash jobs and Bash array jobs. If a referenced file does not exist, the CLI reports an error before submitting the job.
 
 The project should be specified at the beginning of the file path. For example:
 
