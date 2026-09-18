@@ -829,7 +829,8 @@ It can represent a file path, a glob pattern, or a simple text value.</p></li>
 <ul class="simple">
 <li><p>The function uses helper methods <cite>extract_project</cite>, <cite>classify_pattern</cite>, and <cite>get_file_or_folder_id</cite> to process the parameter.</p></li>
 <li><p>If the parameter represents a file path or glob pattern, the function retrieves the corresponding file or folder ID from the cloud workspace.</p></li>
-<li><p>If the parameter does not match any specific pattern or file extension, it is treated as a simple text value.</p></li>
+<li><p>Paths under Data/ are resolved as files even when the filename has no extension.</p></li>
+<li><p>Other values without a pattern or file extension are treated as simple text values.</p></li>
 </ul>
 </dd></dl>
 

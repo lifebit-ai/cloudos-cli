@@ -2053,7 +2053,7 @@ Archived jobs remain fully accessible - archiving is purely for organizational p
 <p>Each <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> can have a different prefix, either ‘–’, ‘-’, or ‘’, depending on the use case. These can be used as many times as needed.</p>
 <blockquote>
 <div><p>[!NOTE]
-At the moment only string values are allowed to the <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> options, adding a filepath at the moment does not upload/download the file. This feature will be available in a future implementation.</p>
+<code class="docutils literal notranslate"><span class="pre">--parameter</span></code> supports text values, File Explorer paths under <code class="docutils literal notranslate"><span class="pre">Data/</span></code>, and glob patterns. Files must already exist in the platform; local files are not uploaded. Filenames do not need an extension: <code class="docutils literal notranslate"><span class="pre">--parameter</span> <span class="pre">&quot;--f1=Data/no_extension_file&quot;</span></code> resolves the file for staging into the job’s working directory. See <a class="reference internal" href="#use-multiple-projects-for-files-in---parameter-option"><span class="xref myst">using files from multiple projects</span></a> for path formats.</p>
 </div></blockquote>
 <p>If everything went well, you should see something like:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Lifebit Platform bash functionality.</span>
@@ -2205,6 +2205,7 @@ specify a column named ‘value’ in the array file header. Adding array parame
 <li><p><code class="docutils literal notranslate"><span class="pre">-p/--parameter</span> <span class="pre">&quot;--file=&lt;project&gt;/Data/*.txt&quot;</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">-p/--parameter</span> <span class="pre">&quot;--file=Data/*.txt&quot;</span></code> (the same project as <code class="docutils literal notranslate"><span class="pre">--project-name</span></code>)</p></li>
 </ul>
+<p>These file paths also support filenames without extensions, such as <code class="docutils literal notranslate"><span class="pre">Data/no_extension_file</span></code> or <code class="docutils literal notranslate"><span class="pre">&lt;project&gt;/Data/subfolder/no_extension_file</span></code>, for both Bash jobs and Bash array jobs. If a referenced file does not exist, the CLI reports an error before submitting the job.</p>
 <p>The project should be specified at the beginning of the file path. For example:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>array-job<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>-p<span class="w"> </span><span class="nv">file</span><span class="o">=</span>Data/input.csv
 </pre></div>

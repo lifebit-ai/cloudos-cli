@@ -436,7 +436,8 @@
 <dt class="sig sig-object py" id="cloudos_cli.utils.array_job.extract_project">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.utils.array_job.</span></span><span class="sig-name descname"><span class="pre">extract_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/utils/array_job.html#extract_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.utils.array_job.extract_project" title="Link to this definition">¶</a></dt>
 <dd><p>Extracts the project name and the remaining path from a given file path.</p>
-<p>The function assumes that a “project” exists if the path contains at least three parts
+<p>Paths starting with Data/ belong to the current project, regardless of their depth.
+Otherwise, the function assumes that a “project” exists if the path contains at least three parts
 when split by slashes. If the path has fewer than three parts, the project name is
 considered empty, and the entire path is returned as the remaining path.</p>
 <dl class="field-list simple">
