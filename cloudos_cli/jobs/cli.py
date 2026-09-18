@@ -171,8 +171,7 @@ def job():
               is_flag=True)
 @click.option('--accelerate-saving-results',
               help='Enables saving results directly to cloud storage bypassing the master node.',
-              is_flag=True,
-              default=False)
+              is_flag=True)
 @click.option('--use-private-docker-repository',
               help=('Allows to use private docker repository for running jobs. The Docker user ' +
                     'account has to be already linked to Lifebit Platform.'),
@@ -1734,8 +1733,7 @@ def archive_unarchive_jobs(ctx,
               is_flag=True)
 @click.option('--accelerate-saving-results',
               help='Enables saving results directly to cloud storage bypassing the master node.',
-              is_flag=True,
-              default=False)
+              is_flag=True)
 @click.option('--resumable',
               help='Whether to make the job able to be resumed or not.',
               is_flag=True)

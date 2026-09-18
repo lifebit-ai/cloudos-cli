@@ -45,10 +45,28 @@ RUN pip install --no-cache-dir -e / \
 #    really is in the .so. The environment is fully built by this point and
 #    nothing solves dependencies at runtime, so removing the resolver removes
 #    real attack surface rather than silencing the scanner.
-RUN find /opt/conda -path "*/pip/_vendor/vendor.txt" -delete \
-      -o -path "*/pip/_vendor/bom.cdx.json" -delete \
-    ; rm -rf /opt/conda/lib/python*/site-packages/py_rattler* \
-             /opt/conda/lib/python*/site-packages/rattler*
+#
+#    The resolver is four things, not one: the py_rattler/rattler modules, the
+#    conda_rattler_solver plugin that dispatches to them, and the conda-meta
+#    entries for both. Removing only the modules leaves Trivy's conda-meta
+#    analyzer still reporting py-rattler as installed (so a future advisory
+#    would fail the gate on code that is no longer here) and leaves the plugin
+#    registered against a module that is gone, which turns
+#    `conda --solver rattler` into an ImportError. The default solver is
+#    libmamba, so nothing routine depends on it.
+#
+# && rather than ;: with ; the layer's exit status is rm's, which is always 0,
+# so a find that errored (a missing /opt/conda, an unreadable tree) was
+# discarded and the build carried on with an image that was never cleaned.
+# Note find still exits 0 when a pattern simply matches nothing, so this
+# guards against a broken tree, not against a base that renames these paths.
+RUN find /opt/conda \( -path "*/pip/_vendor/vendor.txt" \
+                    -o -path "*/pip/_vendor/bom.cdx.json" \) -delete \
+    && rm -rf /opt/conda/lib/python*/site-packages/py_rattler* \
+              /opt/conda/lib/python*/site-packages/rattler* \
+              /opt/conda/lib/python*/site-packages/conda_rattler_solver* \
+              /opt/conda/conda-meta/py-rattler-*.json \
+              /opt/conda/conda-meta/conda-rattler-solver-*.json
 
 # Keep the security update last and in its own layer: earlier layers get cached
 # across rebuilds and a cached update silently stops picking up new patches.
