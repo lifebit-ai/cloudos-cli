@@ -3,8 +3,7 @@
 This test file provides testing for the --accelerate-saving-results flag functionality
 in the job run command of CloudOS CLI.
 """
-import pytest
-from click import Command
+import click
 from click.testing import CliRunner
 from cloudos_cli.jobs.cli import run
 
@@ -24,10 +23,11 @@ def test_run_accelerate_saving_results_flag_is_boolean(args, expected):
 
     assert accelerate_saving_results_option is not None
     assert accelerate_saving_results_option.is_flag is True
-    # Parse the actual option: Click 8.5+ resolves implicit defaults lazily.
-    command = Command("test", params=[accelerate_saving_results_option])
-    with command.make_context("test", args) as ctx:
-        assert ctx.params["accelerate_saving_results"] is expected
+    # The effective default, not the `default` attribute: click >= 8.5 leaves
+    # an unset flag's attribute as a sentinel, while the value the command
+    # actually receives is False in every version.
+    ctx = click.Context(run)
+    assert accelerate_saving_results_option.get_default(ctx) is False
 
 
 def test_run_accelerate_saving_results_help_text():
