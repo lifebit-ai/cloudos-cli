@@ -6,3 +6,4 @@ tests
 docs
 utils
 *.egg-info
+.venv
