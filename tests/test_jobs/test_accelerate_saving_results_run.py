@@ -8,8 +8,7 @@ from click.testing import CliRunner
 from cloudos_cli.jobs.cli import run
 
 
-@pytest.mark.parametrize("args, expected", [([], False), (["--accelerate-saving-results"], True)])
-def test_run_accelerate_saving_results_flag_is_boolean(args, expected):
+def test_run_accelerate_saving_results_flag_is_boolean():
     """
     Test that --accelerate-saving-results is properly defined as a boolean flag
     """
