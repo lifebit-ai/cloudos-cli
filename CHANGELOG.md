@@ -1,5 +1,15 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.96.0 (2026-09-09)
+
+### Feat:
+
+- Changed dockerfile and release.yml to address harbor issues
+- The release workflow asks the registry, not git, whether a version image is already published, and creates the Git tag after the immutable artefacts (version image tag, PyPI) and before the mutable one (`:latest`)
+- CI unit tests now also run on Python 3.14, the version shipped by the container's base image
+- Adds a `.dockerignore`, keeping `.git` (and its full history), `tests/`, `docs/` and build artefacts out of the published image
+- The image cleanup now also removes the `conda_rattler_solver` plugin and the `conda-meta` entries for the rattler packages, so the scanner's inventory matches what is actually installed
+
 ## v2.95.1 (2026-08-20)
 
 ### Fix:
