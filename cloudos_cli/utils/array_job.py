@@ -226,7 +226,8 @@ def extract_project(path):
     """
     Extracts the project name and the remaining path from a given file path.
 
-    The function assumes that a "project" exists if the path contains at least three parts
+    Paths starting with Data/ belong to the current project, regardless of their depth.
+    Otherwise, the function assumes that a "project" exists if the path contains at least three parts
     when split by slashes. If the path has fewer than three parts, the project name is
     considered empty, and the entire path is returned as the remaining path.
 
@@ -243,6 +244,8 @@ def extract_project(path):
     """
     # Strip slashes and split the path
     parts = path.strip("/").split("/")
+    if parts[0] == "Data":
+        return "", "/".join(parts)
     # A "project" exists only if there are at least 3 parts
     # globs needs more than 3 parts i.e. PROJECT/Data/Downloads/*.csv
     if (len(parts) >= 3 and not is_glob_pattern(path)) or \

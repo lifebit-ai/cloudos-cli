@@ -1089,7 +1089,8 @@ class Job(Cloudos):
         -----
         - The function uses helper methods `extract_project`, `classify_pattern`, and `get_file_or_folder_id` to process the parameter.
         - If the parameter represents a file path or glob pattern, the function retrieves the corresponding file or folder ID from the cloud workspace.
-        - If the parameter does not match any specific pattern or file extension, it is treated as a simple text value.
+        - Paths under Data/ are resolved as files even when the filename has no extension.
+        - Other values without a pattern or file extension are treated as simple text values.
         """
 
         # split '--param_name=example_test'
@@ -1121,7 +1122,7 @@ class Job(Cloudos):
                 "parameterKind": "globPattern",
                 "folder": f"{folder}"
             }
-        elif ext:
+        elif ext or file_path.startswith('Data/'):
             if not (file_path.startswith('/Data') or file_path.startswith('Data')):
                 raise ValueError("The file path inside the project must start with '/Data' or 'Data'. ")
 
