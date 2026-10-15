@@ -87,6 +87,7 @@ def _map_session_type_to_friendly_name(session_type):
         'awsRStudio': 'RStudio',  # Handle both capitalizations
         'azureRStudio': 'RStudio',
         'awsWindowsSession': 'Windows',
+        'awsLinuxSession': 'Linux',
         'awsCustomSession': 'App',
         'azureCustomSession': 'App'
     }
@@ -583,7 +584,7 @@ def _format_session_field(field_name, value):
         if value and str(value).lower() != 'none':
             return f'R {value}'
         return '-'
-    elif field_name == 'type':
+    elif field_name in ('type', 'backend'):
         # Map internal type names to user-friendly names
         return _map_session_type_to_friendly_name(str(value))
     elif field_name == 'spot':
@@ -899,7 +900,7 @@ def build_session_payload(
     name : str
         Session name (1-100 characters)
     backend : str
-        Backend type: regular, vscode, spark, rstudio
+        Backend type: regular, vscode, spark, rstudio, windows, linux
     project_id : str
         Project MongoDB ObjectId
     execution_platform : str, optional
@@ -939,13 +940,13 @@ def build_session_payload(
         raise ValueError("Session name must be 1-100 characters")
     if not 100 <= storage_size <= 5000:
         raise ValueError("Storage size must be between 100-5000 GB")
-    if backend not in ['regular', 'vscode', 'spark', 'rstudio']:
+    if backend not in ['regular', 'vscode', 'spark', 'rstudio', 'windows', 'linux']:
         raise ValueError("Invalid backend type")
     if execution_platform not in ['aws', 'azure']:
         raise ValueError("Execution platform must be 'aws' or 'azure'")
-    # Spark is AWS only
-    if backend == 'spark' and execution_platform != 'aws':
-        raise ValueError("Spark backend is only available on AWS")
+    # Spark, Windows and Linux are AWS only
+    if backend in ('spark', 'windows', 'linux') and execution_platform != 'aws':
+        raise ValueError(f"{backend.capitalize()} backend is only available on AWS")
     if backend == 'rstudio' and not r_version:
         raise ValueError("R version (--r-version) is required for RStudio backend")
     if backend == 'spark' and (not spark_master_type or not spark_core_type):
@@ -1089,7 +1090,7 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
     storage_size : int, optional
         Storage size that was requested (for display if not in response)
     backend_type : str, optional
-        Backend type (regular, vscode, spark, rstudio) for backend-specific display
+        Backend type (regular, vscode, spark, rstudio, windows, linux) for backend-specific display
     r_version : str, optional
         R version for RStudio backend
     spark_master : str, optional

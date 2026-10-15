@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.97.0 (2026-10-15)
+
+### Feat:
+
+- `interactive-session create` supports `--session-type windows` and `--session-type linux` (AWS only)
+
+
 ## v2.96.1 (2026-09-17)
 
 ### Fix:
