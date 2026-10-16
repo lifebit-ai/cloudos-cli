@@ -312,8 +312,8 @@ def list_sessions(ctx,
               help='Name for the interactive session (1-100 characters).',
               required=True)
 @click.option('--session-type',
-              type=click.Choice(['jupyter', 'vscode', 'spark', 'rstudio'], case_sensitive=False),
-              help='Type of interactive session.',
+              type=click.Choice(['jupyter', 'vscode', 'spark', 'rstudio', 'windows', 'linux'], case_sensitive=False),
+              help='Type of interactive session. windows, linux and spark are AWS only.',
               required=True)
 @click.option('--instance',
               help='Instance type (e.g., c5.xlarge for AWS, Standard_F1s for Azure). Default depends on execution platform.',
@@ -424,6 +424,10 @@ def create_session(ctx,
     else:
         # Normalize to lowercase
         execution_platform = execution_platform.lower()
+    # Spark, Windows and Linux sessions are AWS only
+    if session_type.lower() in ('spark', 'windows', 'linux') and execution_platform != 'aws':
+        click.secho(f'Error: {session_type.lower()} sessions are only available on AWS.', fg='red', err=True)
+        raise SystemExit(1)
     # Set instance default based on execution_platform if not specified
     if instance is None:
         instance = 'c5.xlarge' if execution_platform == 'aws' else 'Standard_F1s'
@@ -482,7 +486,9 @@ def create_session(ctx,
             'jupyter': 'regular',
             'vscode': 'vscode',
             'spark': 'spark',
-            'rstudio': 'rstudio'
+            'rstudio': 'rstudio',
+            'windows': 'windows',
+            'linux': 'linux'
         }
         backend_type = backend_type_mapping.get(session_type_lower)
         if not backend_type:

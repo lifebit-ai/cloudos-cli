@@ -2030,7 +2030,7 @@ will take all `csv` file extensions in the specified folder.
 
 ### Interactive Sessions
 
-Interactive sessions allow you to work within the platform using different virtual environments (Jupyter Notebooks, RStudio, VS Code, etc.). You can list, monitor, and manage your interactive sessions using the CLI.
+Interactive sessions allow you to work within the platform using different virtual environments (Jupyter Notebooks, RStudio, VS Code, Windows and Linux desktops, etc.). You can list, monitor, and manage your interactive sessions using the CLI.
 
 #### List Interactive Sessions
 
@@ -2167,6 +2167,16 @@ cloudos interactive-session create \
   --spark-workers 3
 ```
 
+Create a Windows or Linux desktop session (AWS only):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Windows Desktop" \
+  --session-type windows \
+  --instance c6a.xlarge
+```
+
 **Configuration Options**
 
 You can customize your session with various options:
@@ -2186,7 +2196,7 @@ cloudos interactive-session create \
 
 **Required for Each Session:**
 - `--name`: Session name (1-100 characters)
-- `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, or `spark` (platform dependent)
+- `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, `spark`, `windows`, or `linux` (`spark`, `windows` and `linux` are AWS only)
 
 **Optional Configuration:**
 - `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_F1s` for Azure)
@@ -2308,7 +2318,7 @@ This will show progress updates like:
 ┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
 │ Session ID  │ 69aee0dba197abc123  │
 │ Name        │ Ready Session       │
-│ Backend     │ awsJupyterNotebook  │
+│ Backend     │ Jupyter             │
 │ Status      │ initialising        │
 └─────────────┴─────────────────────┘
 ```
@@ -2328,7 +2338,7 @@ cloudos interactive-session create \
 The output shows the session details including:
 - Session ID
 - Session name
-- Backend type (jupyter, vscode, rstudio, spark)
+- Backend type (jupyter, vscode, rstudio, spark, windows, linux)
 - Current status (scheduled, initialising, setup, running, paused)
 
 

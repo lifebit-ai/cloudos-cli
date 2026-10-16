@@ -229,6 +229,76 @@ class TestInteractiveSessionCreateIntegration:
         
         assert result.exit_code == 0
 
+    @pytest.mark.parametrize('session_type', ['windows', 'linux'])
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_create_session_windows_linux(self, mock_config, mock_cloudos, session_type):
+        """Test creating Windows and Linux sessions sends the matching backend."""
+        runner = CliRunner()
+
+        mock_config.return_value = {
+            'apikey': 'test_key',
+            'cloudos_url': 'http://test.com',
+            'workspace_id': 'test_team',
+            'project_name': 'my_project'
+        }
+
+        mock_cloudos_instance = MagicMock()
+        mock_cloudos.return_value = mock_cloudos_instance
+        mock_cloudos_instance.get_project_id_from_name.return_value = 'proj_001'
+        mock_cloudos_instance.create_interactive_session.return_value = {
+            '_id': 'session_007',
+            'name': f'{session_type} session',
+            'status': 'scheduled'
+        }
+
+        result = runner.invoke(run_cloudos_cli, [
+            'interactive-session', 'create',
+            '--apikey', 'test_key',
+            '--cloudos-url', 'http://test.com',
+            '--workspace-id', 'test_team',
+            '--project-name', 'my_project',
+            '--name', f'{session_type} session',
+            '--session-type', session_type,
+            '--instance', 'c6a.xlarge'
+        ])
+
+        assert result.exit_code == 0, result.output
+        payload = mock_cloudos_instance.create_interactive_session.call_args[0][1]
+        config = payload['interactiveSessionConfiguration']
+        assert config['backend'] == session_type
+        assert config['executionPlatform'] == 'aws'
+        assert config['instanceType'] == 'c6a.xlarge'
+
+    @pytest.mark.parametrize('session_type', ['windows', 'linux'])
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_create_session_windows_linux_azure_is_error(self, mock_config, mock_cloudos, session_type):
+        """Test that Windows and Linux sessions fail on Azure before any API call."""
+        runner = CliRunner()
+
+        mock_config.return_value = {
+            'apikey': 'test_key',
+            'cloudos_url': 'http://test.com',
+            'workspace_id': 'test_team',
+            'project_name': 'my_project'
+        }
+
+        result = runner.invoke(run_cloudos_cli, [
+            'interactive-session', 'create',
+            '--apikey', 'test_key',
+            '--cloudos-url', 'http://test.com',
+            '--workspace-id', 'test_team',
+            '--project-name', 'my_project',
+            '--name', 'Azure session',
+            '--session-type', session_type,
+            '--execution-platform', 'azure'
+        ])
+
+        assert result.exit_code == 1
+        assert 'only available on AWS' in result.output
+        mock_cloudos.return_value.create_interactive_session.assert_not_called()
+
     @patch('cloudos_cli.interactive_session.cli.Cloudos')
     @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
     def test_create_session_with_defaults(self, mock_config, mock_cloudos):
@@ -440,6 +510,39 @@ class TestSessionCreatorHelpers:
         assert 'projectId' in result
         assert result['projectId'] == 'proj_001'
         assert result['interactiveSessionConfiguration']['backend'] == 'regular'
+
+    @pytest.mark.parametrize('backend', ['windows', 'linux'])
+    def test_build_session_payload_windows_linux(self, backend):
+        """Test building payload for Windows and Linux sessions."""
+        from cloudos_cli.interactive_session.interactive_session import build_session_payload
+
+        result = build_session_payload(
+            name='Test Session',
+            backend=backend,
+            instance_type='c6a.xlarge',
+            storage_size=500,
+            project_id='proj_001'
+        )
+
+        config = result['interactiveSessionConfiguration']
+        assert config['backend'] == backend
+        assert config['executionPlatform'] == 'aws'
+        assert config['instanceType'] == 'c6a.xlarge'
+        assert 'rVersion' not in config
+        assert 'cluster' not in config
+
+    @pytest.mark.parametrize('backend', ['windows', 'linux'])
+    def test_build_session_payload_windows_linux_azure_is_error(self, backend):
+        """Test that Windows and Linux sessions are rejected on Azure."""
+        from cloudos_cli.interactive_session.interactive_session import build_session_payload
+
+        with pytest.raises(ValueError, match='only available on AWS'):
+            build_session_payload(
+                name='Test Session',
+                backend=backend,
+                execution_platform='azure',
+                project_id='proj_001'
+            )
 
     def test_format_session_creation_table_function_exists(self):
         """Test that format_session_creation_table function exists."""

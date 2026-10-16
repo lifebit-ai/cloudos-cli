@@ -9,6 +9,13 @@
 - The volume split is checked before any API call (minimums: libraries 50 GB, session results 225 GB, mounted data 35 GB; volumes must add up to `--storage`) and is shown in the create output
 - `--storage` range for `interactive-session create` and `resume` changed from 100-5000 GB to 500-64050 GB
 
+## v2.97.0 (2026-10-15)
+
+### Feat:
+
+- `interactive-session create` supports `--session-type windows` and `--session-type linux` (AWS only)
+
+
 ## v2.96.1 (2026-09-17)
 
 ### Fix:
