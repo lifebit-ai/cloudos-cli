@@ -571,5 +571,235 @@ class TestCreateSessionCopyFlag:
         assert 'S3' in result.output or 'azure' in result.output.lower() or 'Azure' in result.output
 
 
+
+class TestVolumeSizes:
+    """Tests for the volumeSizes split of the session storage."""
+
+    @pytest.mark.parametrize('backend,kwargs', [
+        ('regular', {}),
+        ('vscode', {}),
+        ('rstudio', {'r_version': '4.5.2'}),
+        ('spark', {'spark_master_type': 'c5.2xlarge', 'spark_core_type': 'c5.xlarge'}),
+    ])
+    def test_payload_has_default_volume_sizes_for_all_backends(self, backend, kwargs):
+        """Every backend gets the default 50/225/225 split for 500 GB."""
+        from cloudos_cli.interactive_session.interactive_session import build_session_payload
+
+        payload = build_session_payload(name='s', backend=backend, project_id='p', **kwargs)
+        config = payload['interactiveSessionConfiguration']
+        assert config['storageSizeInGb'] == 500
+        assert config['volumeSizes'] == {'libraries': 50, 'sessionResults': 225, 'mountedData': 225}
+
+    def test_payload_azure_has_volume_sizes(self):
+        from cloudos_cli.interactive_session.interactive_session import build_session_payload
+
+        payload = build_session_payload(name='s', backend='regular', project_id='p',
+                                        execution_platform='azure', instance_type='Standard_F1s')
+        assert payload['interactiveSessionConfiguration']['volumeSizes'] == {
+            'libraries': 50, 'sessionResults': 225, 'mountedData': 225}
+
+    def test_payload_uses_given_volume_sizes(self):
+        from cloudos_cli.interactive_session.interactive_session import build_session_payload
+
+        volumes = {'libraries': 100, 'sessionResults': 500, 'mountedData': 400}
+        payload = build_session_payload(name='s', backend='regular', project_id='p',
+                                        storage_size=1000, volume_sizes=volumes)
+        assert payload['interactiveSessionConfiguration']['volumeSizes'] == volumes
+
+    def test_payload_rejects_volume_sizes_not_matching_storage(self):
+        from cloudos_cli.interactive_session.interactive_session import build_session_payload
+
+        with pytest.raises(ValueError, match='add up to the storage size'):
+            build_session_payload(name='s', backend='regular', project_id='p', storage_size=1000,
+                                  volume_sizes={'libraries': 50, 'sessionResults': 225, 'mountedData': 225})
+
+    @pytest.mark.parametrize('storage', [499, 64051])
+    def test_payload_rejects_storage_out_of_range(self, storage):
+        from cloudos_cli.interactive_session.interactive_session import build_session_payload
+
+        with pytest.raises(ValueError, match='500-64050'):
+            build_session_payload(name='s', backend='regular', project_id='p', storage_size=storage)
+
+    @pytest.mark.parametrize('kwargs,expected', [
+        ({}, (500, {'libraries': 50, 'sessionResults': 225, 'mountedData': 225})),
+        ({'storage_size': 1000}, (1000, {'libraries': 50, 'sessionResults': 475, 'mountedData': 475})),
+        # Odd remainder: the extra GB goes to sessionResults
+        ({'storage_size': 1001}, (1001, {'libraries': 50, 'sessionResults': 476, 'mountedData': 475})),
+        ({'storage_size': 64050}, (64050, {'libraries': 50, 'sessionResults': 32000, 'mountedData': 32000})),
+        # One volume given: the other two share the rest
+        ({'storage_size': 1000, 'libraries': 100}, (1000, {'libraries': 100, 'sessionResults': 450, 'mountedData': 450})),
+        ({'storage_size': 1000, 'session_results': 300}, (1000, {'libraries': 350, 'sessionResults': 300, 'mountedData': 350})),
+        # sessionResults given, odd remainder: the extra GB goes to mountedData
+        ({'storage_size': 1001, 'session_results': 300}, (1001, {'libraries': 350, 'sessionResults': 300, 'mountedData': 351})),
+        ({'storage_size': 1000, 'mounted_data': 100}, (1000, {'libraries': 450, 'sessionResults': 450, 'mountedData': 100})),
+        # Two volumes given: the third gets the rest
+        ({'storage_size': 1000, 'libraries': 60, 'session_results': 300},
+         (1000, {'libraries': 60, 'sessionResults': 300, 'mountedData': 640})),
+        # All three given: storage is their sum
+        ({'libraries': 60, 'session_results': 400, 'mounted_data': 40},
+         (500, {'libraries': 60, 'sessionResults': 400, 'mountedData': 40})),
+        ({'storage_size': 500, 'libraries': 60, 'session_results': 400, 'mounted_data': 40},
+         (500, {'libraries': 60, 'sessionResults': 400, 'mountedData': 40})),
+    ])
+    def test_resolve_volume_sizes(self, kwargs, expected):
+        from cloudos_cli.interactive_session.interactive_session import resolve_volume_sizes
+
+        assert resolve_volume_sizes(**kwargs) == expected
+
+    @pytest.mark.parametrize('kwargs,message', [
+        ({'storage_size': 499}, '500-64050'),
+        ({'storage_size': 64051}, '500-64050'),
+        ({'libraries': 49}, 'libraries volume .*at least 50 GB'),
+        ({'session_results': 224}, 'sessionResults volume .*at least 225 GB'),
+        ({'mounted_data': 34}, 'mountedData volume .*at least 35 GB'),
+        # Even split of the rest leaves sessionResults below its minimum
+        ({'storage_size': 500, 'mounted_data': 100}, 'too small for sessionResults'),
+        ({'storage_size': 500, 'libraries': 100}, 'too small for sessionResults'),
+        # Two volumes given leave too little for the third
+        ({'storage_size': 500, 'libraries': 50, 'session_results': 430}, 'too small for mountedData'),
+        # All three given but the sum is out of range
+        ({'libraries': 50, 'session_results': 225, 'mounted_data': 35}, '500-64050'),
+        # All three given and --storage does not match
+        ({'storage_size': 600, 'libraries': 50, 'session_results': 225, 'mounted_data': 225}, 'does not match'),
+    ])
+    def test_resolve_volume_sizes_errors(self, kwargs, message):
+        from cloudos_cli.interactive_session.interactive_session import resolve_volume_sizes
+
+        with pytest.raises(ValueError, match=message):
+            resolve_volume_sizes(**kwargs)
+
+    def test_resume_payload_includes_volume_sizes(self):
+        from cloudos_cli.interactive_session.interactive_session import build_resume_payload
+
+        volumes = {'libraries': 50, 'sessionResults': 475, 'mountedData': 475}
+        payload = build_resume_payload(storage_size=1000, volume_sizes=volumes)
+        config = payload['newInteractiveSessionConfiguration']
+        assert config['storageSizeInGb'] == 1000
+        assert config['volumeSizes'] == volumes
+
+    def test_resume_payload_without_storage_has_no_volume_sizes(self):
+        from cloudos_cli.interactive_session.interactive_session import build_resume_payload
+
+        payload = build_resume_payload(instance_type='c5.2xlarge')
+        assert 'volumeSizes' not in payload['newInteractiveSessionConfiguration']
+
+    def test_creation_table_shows_volume_sizes(self, capsys):
+        from cloudos_cli.interactive_session.interactive_session import format_session_creation_table
+
+        format_session_creation_table(
+            {'_id': 's1', 'name': 'n', 'status': 'scheduled'}, storage_size=500,
+            volume_sizes={'libraries': 50, 'sessionResults': 225, 'mountedData': 225})
+        out = capsys.readouterr().out
+        assert 'Volume Sizes' in out
+        assert 'Libraries: 50 GB' in out
+
+
+class TestCreateSessionVolumeFlags:
+    """CLI tests for --storage and the volume flags in create and resume."""
+
+    BASE_ARGS = [
+        'interactive-session', 'create',
+        '--apikey', 'test_key',
+        '--cloudos-url', 'http://test.com',
+        '--workspace-id', 'test_team',
+        '--project-name', 'my_project',
+        '--name', 'Volume Session',
+        '--session-type', 'jupyter',
+    ]
+    RESUME_ARGS = [
+        'interactive-session', 'resume',
+        '--session-id', 'a' * 24,
+        '--apikey', 'test_key',
+        '--cloudos-url', 'http://test.com',
+        '--workspace-id', 'test_team',
+    ]
+    PROFILE = {
+        'apikey': 'test_key',
+        'cloudos_url': 'http://test.com',
+        'workspace_id': 'test_team',
+        'project_name': 'my_project',
+    }
+
+    def _invoke(self, mock_config, mock_cloudos, args):
+        mock_config.return_value = self.PROFILE
+        cl = MagicMock()
+        mock_cloudos.return_value = cl
+        cl.create_interactive_session.return_value = {'_id': 'sess_001', 'name': 'n', 'status': 'scheduled'}
+        cl.resume_interactive_session.return_value = {'status': 'resuming', 'interactiveSessionConfiguration': {}}
+        result = CliRunner().invoke(run_cloudos_cli, args)
+        return result, cl
+
+    def test_help_lists_volume_flags(self):
+        result = CliRunner().invoke(run_cloudos_cli, ['interactive-session', 'create', '--help'])
+        assert result.exit_code == 0
+        for flag in ('--libraries-volume', '--results-volume', '--data-volume'):
+            assert flag in result.output
+
+    @pytest.mark.parametrize('extra,storage,volumes', [
+        ([], 500, {'libraries': 50, 'sessionResults': 225, 'mountedData': 225}),
+        (['--storage', '1001'], 1001, {'libraries': 50, 'sessionResults': 476, 'mountedData': 475}),
+        (['--storage', '1000', '--data-volume', '100'], 1000,
+         {'libraries': 450, 'sessionResults': 450, 'mountedData': 100}),
+        (['--libraries-volume', '100', '--results-volume', '300', '--data-volume', '600'], 1000,
+         {'libraries': 100, 'sessionResults': 300, 'mountedData': 600}),
+    ])
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_create_sends_volume_sizes(self, mock_config, mock_cloudos, extra, storage, volumes):
+        result, cl = self._invoke(mock_config, mock_cloudos, self.BASE_ARGS + extra)
+
+        assert result.exit_code == 0, result.output
+        payload = cl.create_interactive_session.call_args[0][1]
+        config = payload['interactiveSessionConfiguration']
+        assert config['storageSizeInGb'] == storage
+        assert config['volumeSizes'] == volumes
+        assert 'Volume Sizes' in result.output
+
+    @pytest.mark.parametrize('extra,message', [
+        (['--storage', '100'], '500-64050'),
+        (['--libraries-volume', '10'], 'at least 50 GB'),
+        (['--storage', '600', '--libraries-volume', '50', '--results-volume', '225', '--data-volume', '225'],
+         'does not match'),
+    ])
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_create_invalid_volumes_fail_before_api_call(self, mock_config, mock_cloudos, extra, message):
+        result, cl = self._invoke(mock_config, mock_cloudos, self.BASE_ARGS + extra)
+
+        assert result.exit_code != 0
+        assert message in result.output
+        mock_cloudos.assert_not_called()
+        cl.create_interactive_session.assert_not_called()
+
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_resume_with_storage_sends_volume_sizes(self, mock_config, mock_cloudos):
+        result, cl = self._invoke(mock_config, mock_cloudos, self.RESUME_ARGS + ['--storage', '1000'])
+
+        assert result.exit_code == 0, result.output
+        payload = cl.resume_interactive_session.call_args[0][2]
+        config = payload['newInteractiveSessionConfiguration']
+        assert config['storageSizeInGb'] == 1000
+        assert config['volumeSizes'] == {'libraries': 50, 'sessionResults': 475, 'mountedData': 475}
+
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_resume_without_storage_sends_no_volume_sizes(self, mock_config, mock_cloudos):
+        result, cl = self._invoke(mock_config, mock_cloudos, self.RESUME_ARGS + ['--instance', 'c5.2xlarge'])
+
+        assert result.exit_code == 0, result.output
+        payload = cl.resume_interactive_session.call_args[0][2]
+        assert 'volumeSizes' not in payload['newInteractiveSessionConfiguration']
+        assert 'storageSizeInGb' not in payload['newInteractiveSessionConfiguration']
+
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_resume_partial_volumes_without_storage_is_error(self, mock_config, mock_cloudos):
+        result, cl = self._invoke(mock_config, mock_cloudos, self.RESUME_ARGS + ['--data-volume', '300'])
+
+        assert result.exit_code != 0
+        assert '--storage is required' in result.output
+        cl.resume_interactive_session.assert_not_called()
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

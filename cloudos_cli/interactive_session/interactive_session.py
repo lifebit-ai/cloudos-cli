@@ -874,6 +874,146 @@ def parse_link_path(link_path_str):
 
 
 
+MIN_STORAGE_SIZE = 500
+MAX_STORAGE_SIZE = 64050
+DEFAULT_STORAGE_SIZE = 500
+DEFAULT_LIBRARIES_VOLUME = 50
+# Minimum size in GB for each volume inside the session storage
+VOLUME_MINIMUMS = {
+    "libraries": 50,
+    "sessionResults": 225,
+    "mountedData": 35
+}
+# CLI flag for each volume, used in error messages
+VOLUME_FLAGS = {
+    "libraries": "--libraries-volume",
+    "sessionResults": "--results-volume",
+    "mountedData": "--data-volume"
+}
+
+
+def validate_volume_sizes(storage_size, volume_sizes):
+    """Check that a volume split is valid for the given storage size.
+
+    Parameters
+    ----------
+    storage_size : int
+        Total storage in GB.
+    volume_sizes : dict
+        Sizes in GB keyed by 'libraries', 'sessionResults' and 'mountedData'.
+
+    Raises
+    ------
+    ValueError
+        If a volume is missing, below its minimum, or the volumes do not add up
+        to the storage size.
+    """
+    if set(volume_sizes) != set(VOLUME_MINIMUMS):
+        raise ValueError("Volume sizes must contain exactly: libraries, sessionResults, mountedData")
+    for volume, minimum in VOLUME_MINIMUMS.items():
+        size = volume_sizes[volume]
+        if not isinstance(size, int) or size < minimum:
+            raise ValueError(
+                f"{volume} volume ({VOLUME_FLAGS[volume]}) must be at least {minimum} GB, got {size} GB"
+            )
+    total = sum(volume_sizes.values())
+    if total != storage_size:
+        raise ValueError(
+            f"Volume sizes must add up to the storage size ({storage_size} GB), "
+            f"but libraries ({volume_sizes['libraries']}) + sessionResults ({volume_sizes['sessionResults']}) "
+            f"+ mountedData ({volume_sizes['mountedData']}) = {total} GB"
+        )
+
+
+def resolve_volume_sizes(storage_size=None, libraries=None, session_results=None, mounted_data=None):
+    """Work out the storage size and its split into the three session volumes.
+
+    Rules:
+    - No volume given: libraries gets 50 GB and the rest is split evenly between
+      sessionResults and mountedData.
+    - One volume given: the other two split the remaining storage evenly.
+    - Two volumes given: the third one gets the remaining storage.
+    - All three given: the storage size is their sum. If storage_size is also
+      given, it must match the sum.
+    When the remaining storage can't be split evenly, the extra GB goes to
+    sessionResults (or to mountedData if sessionResults was given).
+
+    Parameters
+    ----------
+    storage_size : int, optional
+        Total storage in GB. Defaults to 500 unless all three volumes are given.
+    libraries : int, optional
+        Libraries volume in GB.
+    session_results : int, optional
+        Session results volume in GB.
+    mounted_data : int, optional
+        Mounted data volume in GB.
+
+    Returns
+    -------
+    tuple
+        (storage_size, volume_sizes) where volume_sizes is a dict keyed by
+        'libraries', 'sessionResults' and 'mountedData'.
+
+    Raises
+    ------
+    ValueError
+        If the storage size is out of range or the split is not valid.
+    """
+    given = {
+        volume: size for volume, size in (
+            ("libraries", libraries),
+            ("sessionResults", session_results),
+            ("mountedData", mounted_data)
+        ) if size is not None
+    }
+    if len(given) == 3:
+        total = sum(given.values())
+        if storage_size is not None and storage_size != total:
+            raise ValueError(
+                f"--storage ({storage_size} GB) does not match the sum of the volume sizes ({total} GB). "
+                "Omit --storage to use the sum, or adjust the volumes."
+            )
+        storage_size = total
+    elif storage_size is None:
+        storage_size = DEFAULT_STORAGE_SIZE
+    if not MIN_STORAGE_SIZE <= storage_size <= MAX_STORAGE_SIZE:
+        raise ValueError(f"Storage size must be between {MIN_STORAGE_SIZE}-{MAX_STORAGE_SIZE} GB")
+    if not given:
+        given = {"libraries": DEFAULT_LIBRARIES_VOLUME}
+    for volume, size in given.items():
+        if size < VOLUME_MINIMUMS[volume]:
+            raise ValueError(
+                f"{volume} volume ({VOLUME_FLAGS[volume]}) must be at least {VOLUME_MINIMUMS[volume]} GB, got {size} GB"
+            )
+    missing = [volume for volume in ("sessionResults", "mountedData", "libraries") if volume not in given]
+    remaining = storage_size - sum(given.values())
+    volume_sizes = dict(given)
+    if missing:
+        share, extra = divmod(remaining, len(missing))
+        for i, volume in enumerate(missing):
+            volume_sizes[volume] = share + (extra if i == 0 else 0)
+        too_small = [v for v in missing if volume_sizes[v] < VOLUME_MINIMUMS[v]]
+        if too_small:
+            split = ', '.join(f"{v}={volume_sizes[v]} GB" for v in missing)
+            short = ', '.join(f"{v} (min {VOLUME_MINIMUMS[v]} GB)" for v in too_small)
+            raise ValueError(
+                f"Storage size ({storage_size} GB) leaves {remaining} GB, split evenly as {split}, "
+                f"which is too small for {short}. Increase --storage or set the volumes explicitly with "
+                f"{', '.join(VOLUME_FLAGS[v] for v in VOLUME_MINIMUMS)}."
+            )
+    volume_sizes = {volume: volume_sizes[volume] for volume in VOLUME_MINIMUMS}
+    validate_volume_sizes(storage_size, volume_sizes)
+    return storage_size, volume_sizes
+
+
+def format_volume_sizes(volume_sizes):
+    """Format a volume split for display, e.g. 'Libraries: 50 GB, Session results: 225 GB, ...'."""
+    return (f"Libraries: {volume_sizes.get('libraries', 'N/A')} GB, "
+            f"Session results: {volume_sizes.get('sessionResults', 'N/A')} GB, "
+            f"Mounted data: {volume_sizes.get('mountedData', 'N/A')} GB")
+
+
 def build_session_payload(
     name,
     backend,
@@ -881,6 +1021,7 @@ def build_session_payload(
     execution_platform='aws',
     instance_type='c5.xlarge',
     storage_size=500,
+    volume_sizes=None,
     is_spot=False,
     is_shared=False,
     cost_limit=-1,
@@ -907,7 +1048,11 @@ def build_session_payload(
     instance_type : str
         Instance type (EC2 for AWS, e.g., c5.xlarge; Azure VM size, e.g., Standard_F1s)
     storage_size : int
-        Storage in GB (default: 500, range: 100-5000)
+        Storage in GB (default: 500, range: 500-64050)
+    volume_sizes : dict, optional
+        Split of the storage into 'libraries', 'sessionResults' and 'mountedData' (GB).
+        Must add up to storage_size. If not given, the default split is used
+        (see resolve_volume_sizes).
     is_spot : bool
         Use spot instances (AWS only, default: False)
     is_shared : bool
@@ -937,8 +1082,12 @@ def build_session_payload(
     # Validate inputs
     if not 1 <= len(name) <= 100:
         raise ValueError("Session name must be 1-100 characters")
-    if not 100 <= storage_size <= 5000:
-        raise ValueError("Storage size must be between 100-5000 GB")
+    if not MIN_STORAGE_SIZE <= storage_size <= MAX_STORAGE_SIZE:
+        raise ValueError(f"Storage size must be between {MIN_STORAGE_SIZE}-{MAX_STORAGE_SIZE} GB")
+    if volume_sizes is None:
+        _, volume_sizes = resolve_volume_sizes(storage_size)
+    else:
+        validate_volume_sizes(storage_size, volume_sizes)
     if backend not in ['regular', 'vscode', 'spark', 'rstudio']:
         raise ValueError("Invalid backend type")
     if execution_platform not in ['aws', 'azure']:
@@ -961,6 +1110,7 @@ def build_session_payload(
         "instanceType": instance_type,
         "isCostSaving": is_spot,
         "storageSizeInGb": storage_size,
+        "volumeSizes": dict(volume_sizes),
         "storageMode": "regular",
         "visibility": "workspace" if is_shared else "private",
         "execution": {
@@ -1027,6 +1177,7 @@ def build_resume_payload(
     storage_size=None,
     cost_limit=None,
     shutdown_at=None,
+    volume_sizes=None,
 ):
     """Build the resume session payload for the API.
 
@@ -1038,6 +1189,9 @@ def build_resume_payload(
         New instance type (if changing)
     storage_size : int, optional
         New storage size in GB (if changing)
+    volume_sizes : dict, optional
+        New split of the storage into 'libraries', 'sessionResults' and 'mountedData' (GB).
+        Must add up to storage_size.
     cost_limit : float, optional
         New compute cost limit (if changing)
     shutdown_at : str, optional
@@ -1060,6 +1214,11 @@ def build_resume_payload(
         config_updates["instanceType"] = instance_type
     if storage_size is not None:
         config_updates["storageSizeInGb"] = storage_size
+    if volume_sizes is not None:
+        if storage_size is None:
+            raise ValueError("Storage size is required when volume sizes are given")
+        validate_volume_sizes(storage_size, volume_sizes)
+        config_updates["volumeSizes"] = dict(volume_sizes)
     # Build execution updates if cost_limit or shutdown_at are specified
     execution_updates = {}
     if cost_limit is not None:
@@ -1077,7 +1236,8 @@ def build_resume_payload(
 def format_session_creation_table(session_data, instance_type=None, storage_size=None,
                                   backend_type=None, r_version=None,
                                   spark_master=None, spark_core=None, spark_workers=None,
-                                  data_files=None, s3_mounts=None, shutdown_in=None):
+                                  data_files=None, s3_mounts=None, shutdown_in=None,
+                                  volume_sizes=None):
     """Display session creation result in table format.
 
     Parameters
@@ -1104,6 +1264,8 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
         List of parsed S3 mount objects to display
     shutdown_in : str, optional
         Shutdown duration value (e.g., '12h', '2d') that was requested
+    volume_sizes : dict, optional
+        Volume split that was requested (for display if not in response)
 
     Returns
     -------
@@ -1131,6 +1293,11 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
                        session_data.get('interactiveSessionConfiguration', {}).get('storageSizeInGb')
     storage_display = f"{response_storage} GB" if response_storage else (f"{storage_size} GB" if storage_size else "N/A")
     table.add_row("Storage", storage_display)
+    # Try to get volume split from response, fallback to provided value
+    response_volumes = session_data.get('resources', {}).get('volumeSizes') or \
+                       session_data.get('interactiveSessionConfiguration', {}).get('volumeSizes')
+    if response_volumes or volume_sizes:
+        table.add_row("Volume Sizes", format_volume_sizes(response_volumes or volume_sizes))
     # Display shutdown duration
     if shutdown_in:
         table.add_row("Auto-Shutdown", shutdown_in)
