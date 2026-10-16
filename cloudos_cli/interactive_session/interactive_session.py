@@ -1008,6 +1008,35 @@ def resolve_volume_sizes(storage_size=None, libraries=None, session_results=None
     return storage_size, volume_sizes
 
 
+# Display label for each volume, in display order
+VOLUME_LABELS = {
+    "libraries": "Libraries",
+    "sessionResults": "Session results",
+    "mountedData": "Mounted data"
+}
+
+
+def get_response_volume_sizes(session_data):
+    """Return the volumeSizes dict from a session API response, or None if absent.
+
+    The session endpoints return it at the top level; resources and
+    interactiveSessionConfiguration are checked as fallbacks.
+    """
+    return session_data.get('volumeSizes') or \
+        session_data.get('resources', {}).get('volumeSizes') or \
+        session_data.get('interactiveSessionConfiguration', {}).get('volumeSizes')
+
+
+def volume_size_rows(volume_sizes):
+    """Return (label, value) table rows for each volume, drawn as a tree under Storage."""
+    rows = []
+    for i, (volume, label) in enumerate(VOLUME_LABELS.items()):
+        branch = "└─" if i == len(VOLUME_LABELS) - 1 else "├─"
+        size = volume_sizes.get(volume)
+        rows.append((f"  {branch} {label}", f"{size} GB" if size is not None else "N/A"))
+    return rows
+
+
 def format_volume_sizes(volume_sizes):
     """Format a volume split for display, e.g. 'Libraries: 50 GB, Session results: 225 GB, ...'."""
     return (f"Libraries: {volume_sizes.get('libraries', 'N/A')} GB, "
@@ -1089,7 +1118,7 @@ def build_session_payload(
         _, volume_sizes = resolve_volume_sizes(storage_size)
     else:
         validate_volume_sizes(storage_size, volume_sizes)
-    if backend not in ['regular', 'vscode', 'spark', 'rstudio']:
+    if backend not in ['regular', 'vscode', 'spark', 'rstudio', 'windows', 'linux']:
         raise ValueError("Invalid backend type")
     if execution_platform not in ['aws', 'azure']:
         raise ValueError("Execution platform must be 'aws' or 'azure'")
@@ -1294,11 +1323,11 @@ def format_session_creation_table(session_data, instance_type=None, storage_size
                        session_data.get('interactiveSessionConfiguration', {}).get('storageSizeInGb')
     storage_display = f"{response_storage} GB" if response_storage else (f"{storage_size} GB" if storage_size else "N/A")
     table.add_row("Storage", storage_display)
-    # Try to get volume split from response, fallback to provided value
-    response_volumes = session_data.get('resources', {}).get('volumeSizes') or \
-                       session_data.get('interactiveSessionConfiguration', {}).get('volumeSizes')
-    if response_volumes or volume_sizes:
-        table.add_row("Volume Sizes", format_volume_sizes(response_volumes or volume_sizes))
+    # Show each storage volume, from the response if present, fallback to provided value
+    volumes_display = get_response_volume_sizes(session_data) or volume_sizes
+    if volumes_display:
+        for label, value in volume_size_rows(volumes_display):
+            table.add_row(label, value)
     # Display shutdown duration
     if shutdown_in:
         table.add_row("Auto-Shutdown", shutdown_in)
@@ -1617,6 +1646,9 @@ class OutputFormatter:
         table.add_row("Project", session_data.get('project', 'N/A'))
         table.add_row("Instance Type", session_data.get('instance_type', 'N/A'))
         table.add_row("Storage", session_data.get('storage_size', 'N/A'))
+        if session_data.get('volume_sizes'):
+            for label, value in volume_size_rows(session_data['volume_sizes']):
+                table.add_row(label, value)
         table.add_row("Cost", session_data.get('cost', 'N/A'))
         table.add_row("Runtime", session_data.get('runtime', 'N/A'))
         table.add_row("Created At", session_data.get('created_at', 'N/A'))
@@ -1643,10 +1675,16 @@ class OutputFormatter:
             'Backend': session_data.get('backend_type', ''),
             'Instance': session_data.get('instance_type', ''),
             'Storage': session_data.get('storage_size', ''),
+        }
+        volume_sizes = session_data.get('volume_sizes') or {}
+        for volume, label in VOLUME_LABELS.items():
+            size = volume_sizes.get(volume)
+            csv_data[f'{label} volume'] = f'{size} GB' if size is not None else ''
+        csv_data.update({
             'Cost': session_data.get('cost', ''),
             'Runtime': session_data.get('runtime', ''),
             'Created': session_data.get('created_at', ''),
-        }
+        })
         lines = []
         lines.append(','.join(csv_data.keys()))
         lines.append(','.join(str(v) if v else '' for v in csv_data.values()))
@@ -1753,6 +1791,7 @@ def transform_session_response(api_response: dict) -> dict:
     instance_display = format_instance_type(instance_type, is_spot)
     storage_size_gb = resources.get('storageSizeInGb', 'N/A')
     storage_display = f"{storage_size_gb} GB" if isinstance(storage_size_gb, int) else 'N/A'
+    volume_sizes = get_response_volume_sizes(api_response)
     # Cost and runtime
     total_cost = api_response.get('totalCostInUsd', 0)
     cost = format_cost(total_cost)
@@ -1775,6 +1814,7 @@ def transform_session_response(api_response: dict) -> dict:
         'project': project_name,
         'instance_type': instance_display,
         'storage_size': storage_display,
+        'volume_sizes': volume_sizes,
         'cost': cost,
         'runtime': runtime,
         'created_at': created_at,

@@ -683,6 +683,8 @@ class TestVolumeSizes:
         ('vscode', {}),
         ('rstudio', {'r_version': '4.5.2'}),
         ('spark', {'spark_master_type': 'c5.2xlarge', 'spark_core_type': 'c5.xlarge'}),
+        ('windows', {}),
+        ('linux', {}),
     ])
     def test_payload_has_default_volume_sizes_for_all_backends(self, backend, kwargs):
         """Every backend gets the default 50/225/225 split for 500 GB."""
@@ -793,8 +795,74 @@ class TestVolumeSizes:
             {'_id': 's1', 'name': 'n', 'status': 'scheduled'}, storage_size=500,
             volume_sizes={'libraries': 50, 'sessionResults': 225, 'mountedData': 225})
         out = capsys.readouterr().out
-        assert 'Volume Sizes' in out
-        assert 'Libraries: 50 GB' in out
+        assert 'Libraries' in out
+        assert 'Session results' in out
+        assert 'Mounted data' in out
+        assert '225 GB' in out
+
+    def test_creation_table_prefers_response_volume_sizes(self, capsys):
+        from cloudos_cli.interactive_session.interactive_session import format_session_creation_table
+
+        format_session_creation_table(
+            {'_id': 's1', 'name': 'n', 'status': 'scheduled',
+             'volumeSizes': {'libraries': 70, 'sessionResults': 230, 'mountedData': 200}},
+            storage_size=500,
+            volume_sizes={'libraries': 50, 'sessionResults': 225, 'mountedData': 225})
+        out = capsys.readouterr().out
+        assert '70 GB' in out and '230 GB' in out and '200 GB' in out
+        assert '225 GB' not in out
+
+    # Trimmed from a real status response: top-level volumeSizes plus a volumes list
+    STATUS_RESPONSE = {
+        '_id': '6ad228df564b8bcbd11c8b07', 'name': 'vs-check', 'status': 'initializing',
+        'interactiveSessionType': 'awsVSCode',
+        'resources': {'instanceType': 'c5.xlarge', 'storageSizeInGb': 500},
+        'volumes': [{'type': 'environment', 'storageSizeInGb': 100},
+                    {'type': 'vscode-libraries', 'storageSizeInGb': 50},
+                    {'type': 'mounted-data', 'storageSizeInGb': 225},
+                    {'type': 'session-results', 'storageSizeInGb': 225}],
+        'volumeSizes': {'libraries': 50, 'mountedData': 225, 'sessionResults': 225},
+    }
+
+    def test_status_transform_includes_volume_sizes(self):
+        from cloudos_cli.interactive_session.interactive_session import transform_session_response
+
+        data = transform_session_response(self.STATUS_RESPONSE)
+        assert data['volume_sizes'] == {'libraries': 50, 'mountedData': 225, 'sessionResults': 225}
+
+    def test_status_transform_without_volume_sizes(self):
+        from cloudos_cli.interactive_session.interactive_session import transform_session_response
+
+        data = transform_session_response({'_id': 'x', 'resources': {'storageSizeInGb': 500}})
+        assert data['volume_sizes'] is None
+
+    def test_status_table_shows_volume_sizes(self, capsys):
+        from cloudos_cli.interactive_session.interactive_session import (
+            transform_session_response, format_session_status_table)
+
+        format_session_status_table(transform_session_response(self.STATUS_RESPONSE))
+        out = capsys.readouterr().out
+        assert 'Libraries' in out and '50 GB' in out
+        assert 'Session results' in out and 'Mounted data' in out
+
+    def test_status_table_without_volume_sizes_has_no_volume_rows(self, capsys):
+        from cloudos_cli.interactive_session.interactive_session import (
+            transform_session_response, format_session_status_table)
+
+        format_session_status_table(transform_session_response({'_id': 'x', 'resources': {'storageSizeInGb': 500}}))
+        out = capsys.readouterr().out
+        assert 'Libraries' not in out
+
+    def test_status_csv_has_volume_columns(self):
+        from cloudos_cli.interactive_session.interactive_session import (
+            transform_session_response, export_session_status_csv)
+
+        header, row = export_session_status_csv(transform_session_response(self.STATUS_RESPONSE)).split('\n')
+        columns = dict(zip(header.split(','), row.split(',')))
+        assert columns['Storage'] == '500 GB'
+        assert columns['Libraries volume'] == '50 GB'
+        assert columns['Session results volume'] == '225 GB'
+        assert columns['Mounted data volume'] == '225 GB'
 
 
 class TestCreateSessionVolumeFlags:
@@ -856,7 +924,8 @@ class TestCreateSessionVolumeFlags:
         config = payload['interactiveSessionConfiguration']
         assert config['storageSizeInGb'] == storage
         assert config['volumeSizes'] == volumes
-        assert 'Volume Sizes' in result.output
+        assert 'Mounted data' in result.output
+        assert f"{volumes['mountedData']} GB" in result.output
 
     @pytest.mark.parametrize('extra,message', [
         (['--storage', '100'], '500-64050'),

@@ -2217,7 +2217,7 @@ The session storage is split into three volumes (libraries, session results and 
 - Two volume options: the third volume gets the rest of `--storage`.
 - All three volume options: they are used as given, and `--storage` defaults to their sum.
 
-When the rest can't be split evenly, the extra GB goes to session results (or to mounted data if `--results-volume` was given). The CLI checks the split before calling the API and stops with an error if a volume would be below its minimum. The split is shown in the "Volume Sizes" row of the create output.
+When the rest can't be split evenly, the extra GB goes to session results (or to mounted data if `--results-volume` was given). The CLI checks the split before calling the API and stops with an error if a volume would be below its minimum. Each volume is shown as its own row under "Storage" in the output of `create` and `status`, and `status --output-format csv` adds a column for each volume.
 
 ```bash
 # 1000 GB: libraries 50, session results 475, mounted data 475
