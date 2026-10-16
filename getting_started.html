@@ -2241,7 +2241,7 @@ Project names in the <code class="docutils literal notranslate"><span class="pre
 <hr class="docutils" />
 <section id="interactive-sessions">
 <h3>Interactive Sessions<a class="headerlink" href="#interactive-sessions" title="Link to this heading">¶</a></h3>
-<p>Interactive sessions allow you to work within the platform using different virtual environments (Jupyter Notebooks, RStudio, VS Code, etc.). You can list, monitor, and manage your interactive sessions using the CLI.</p>
+<p>Interactive sessions allow you to work within the platform using different virtual environments (Jupyter Notebooks, RStudio, VS Code, Windows and Linux desktops, etc.). You can list, monitor, and manage your interactive sessions using the CLI.</p>
 <section id="list-interactive-sessions">
 <h4>List Interactive Sessions<a class="headerlink" href="#list-interactive-sessions" title="Link to this heading">¶</a></h4>
 <p>You can get a list of all interactive sessions in your workspace by running <code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">interactive-session</span> <span class="pre">list</span></code>. The command can produce three different output formats that can be selected using the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option:</p>
@@ -2349,6 +2349,14 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <span class="w">  </span>--spark-workers<span class="w"> </span><span class="m">3</span>
 </pre></div>
 </div>
+<p>Create a Windows or Linux desktop session (AWS only):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">"Windows Desktop"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--session-type<span class="w"> </span>windows<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--instance<span class="w"> </span>c6a.xlarge
+</pre></div>
+</div>
 <p><strong>Configuration Options</strong></p>
 <p>You can customize your session with various options:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
@@ -2366,7 +2374,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <p><strong>Required for Each Session:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--name</span></code>: Session name (1-100 characters)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--session-type</span></code>: Type of backend - <code class="docutils literal notranslate"><span class="pre">jupyter</span></code>, <code class="docutils literal notranslate"><span class="pre">vscode</span></code>, <code class="docutils literal notranslate"><span class="pre">rstudio</span></code>, or <code class="docutils literal notranslate"><span class="pre">spark</span></code> (platform dependent)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--session-type</span></code>: Type of backend - <code class="docutils literal notranslate"><span class="pre">jupyter</span></code>, <code class="docutils literal notranslate"><span class="pre">vscode</span></code>, <code class="docutils literal notranslate"><span class="pre">rstudio</span></code>, <code class="docutils literal notranslate"><span class="pre">spark</span></code>, <code class="docutils literal notranslate"><span class="pre">windows</span></code>, or <code class="docutils literal notranslate"><span class="pre">linux</span></code> (<code class="docutils literal notranslate"><span class="pre">spark</span></code>, <code class="docutils literal notranslate"><span class="pre">windows</span></code> and <code class="docutils literal notranslate"><span class="pre">linux</span></code> are AWS only)</p></li>
 </ul>
 <p><strong>Optional Configuration:</strong></p>
 <ul class="simple">
@@ -2449,7 +2457,7 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 <span class="go">┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩</span>
 <span class="go">│ Session ID  │ 69aee0dba197abc123  │</span>
 <span class="go">│ Name        │ Ready Session       │</span>
-<span class="go">│ Backend     │ awsJupyterNotebook  │</span>
+<span class="go">│ Backend     │ Jupyter             │</span>
 <span class="go">│ Status      │ initialising        │</span>
 <span class="go">└─────────────┴─────────────────────┘</span>
 </pre></div>
@@ -2470,7 +2478,7 @@ cloudos interactive-session create \
 <ul class="simple">
 <li><p>Session ID</p></li>
 <li><p>Session name</p></li>
-<li><p>Backend type (jupyter, vscode, rstudio, spark)</p></li>
+<li><p>Backend type (jupyter, vscode, rstudio, spark, windows, linux)</p></li>
 <li><p>Current status (scheduled, initialising, setup, running, paused)</p></li>
 </ul>
 </section>

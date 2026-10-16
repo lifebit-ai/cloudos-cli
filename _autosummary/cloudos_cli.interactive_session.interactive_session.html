@@ -694,7 +694,7 @@ response dict with app sessions already removed from <code class="docutils liter
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Session name (1-100 characters)</p></li>
-<li><p><strong>backend</strong> (<em>str</em>) – Backend type: regular, vscode, spark, rstudio</p></li>
+<li><p><strong>backend</strong> (<em>str</em>) – Backend type: regular, vscode, spark, rstudio, windows, linux</p></li>
 <li><p><strong>project_id</strong> (<em>str</em>) – Project MongoDB ObjectId</p></li>
 <li><p><strong>execution_platform</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution platform: ‘aws’ (default) or ‘azure’</p></li>
 <li><p><strong>instance_type</strong> (<em>str</em>) – Instance type (EC2 for AWS, e.g., c5.xlarge; Azure VM size, e.g., Standard_F1s)</p></li>
@@ -882,7 +882,7 @@ Should accept page number (1-indexed) and return dict with ‘sessions’ and �
 <li><p><strong>session_data</strong> (<em>dict</em>) – Session data from API response</p></li>
 <li><p><strong>instance_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Instance type that was requested (for display if not in response)</p></li>
 <li><p><strong>storage_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Storage size that was requested (for display if not in response)</p></li>
-<li><p><strong>backend_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Backend type (regular, vscode, spark, rstudio) for backend-specific display</p></li>
+<li><p><strong>backend_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Backend type (regular, vscode, spark, rstudio, windows, linux) for backend-specific display</p></li>
 <li><p><strong>r_version</strong> (<em>str</em><em>, </em><em>optional</em>) – R version for RStudio backend</p></li>
 <li><p><strong>spark_master</strong> (<em>str</em><em>, </em><em>optional</em>) – Spark master instance type</p></li>
 <li><p><strong>spark_core</strong> (<em>str</em><em>, </em><em>optional</em>) – Spark core instance type</p></li>

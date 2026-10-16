@@ -465,6 +465,7 @@
         <span class="s1">'awsRStudio'</span><span class="p">:</span> <span class="s1">'RStudio'</span><span class="p">,</span>  <span class="c1"># Handle both capitalizations</span>
         <span class="s1">'azureRStudio'</span><span class="p">:</span> <span class="s1">'RStudio'</span><span class="p">,</span>
         <span class="s1">'awsWindowsSession'</span><span class="p">:</span> <span class="s1">'Windows'</span><span class="p">,</span>
+        <span class="s1">'awsLinuxSession'</span><span class="p">:</span> <span class="s1">'Linux'</span><span class="p">,</span>
         <span class="s1">'awsCustomSession'</span><span class="p">:</span> <span class="s1">'App'</span><span class="p">,</span>
         <span class="s1">'azureCustomSession'</span><span class="p">:</span> <span class="s1">'App'</span>
     <span class="p">}</span>
@@ -967,7 +968,7 @@
         <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">'none'</span><span class="p">:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s1">'R </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">'</span>
         <span class="k">return</span> <span class="s1">'-'</span>
-    <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">'type'</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'type'</span><span class="p">,</span> <span class="s1">'backend'</span><span class="p">):</span>
         <span class="c1"># Map internal type names to user-friendly names</span>
         <span class="k">return</span> <span class="n">_map_session_type_to_friendly_name</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">'spot'</span><span class="p">:</span>
@@ -1300,7 +1301,7 @@
 <span class="sd">    name : str</span>
 <span class="sd">        Session name (1-100 characters)</span>
 <span class="sd">    backend : str</span>
-<span class="sd">        Backend type: regular, vscode, spark, rstudio</span>
+<span class="sd">        Backend type: regular, vscode, spark, rstudio, windows, linux</span>
 <span class="sd">    project_id : str</span>
 <span class="sd">        Project MongoDB ObjectId</span>
 <span class="sd">    execution_platform : str, optional</span>
@@ -1340,13 +1341,13 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Session name must be 1-100 characters"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="mi">100</span> <span class="o">&lt;=</span> <span class="n">storage_size</span> <span class="o">&lt;=</span> <span class="mi">5000</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Storage size must be between 100-5000 GB"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'regular'</span><span class="p">,</span> <span class="s1">'vscode'</span><span class="p">,</span> <span class="s1">'spark'</span><span class="p">,</span> <span class="s1">'rstudio'</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'regular'</span><span class="p">,</span> <span class="s1">'vscode'</span><span class="p">,</span> <span class="s1">'spark'</span><span class="p">,</span> <span class="s1">'rstudio'</span><span class="p">,</span> <span class="s1">'windows'</span><span class="p">,</span> <span class="s1">'linux'</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Invalid backend type"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">execution_platform</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'aws'</span><span class="p">,</span> <span class="s1">'azure'</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Execution platform must be 'aws' or 'azure'"</span><span class="p">)</span>
-    <span class="c1"># Spark is AWS only</span>
-    <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">'spark'</span> <span class="ow">and</span> <span class="n">execution_platform</span> <span class="o">!=</span> <span class="s1">'aws'</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Spark backend is only available on AWS"</span><span class="p">)</span>
+    <span class="c1"># Spark, Windows and Linux are AWS only</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'spark'</span><span class="p">,</span> <span class="s1">'windows'</span><span class="p">,</span> <span class="s1">'linux'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">execution_platform</span> <span class="o">!=</span> <span class="s1">'aws'</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">backend</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2"> backend is only available on AWS"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">'rstudio'</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">r_version</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"R version (--r-version) is required for RStudio backend"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">'spark'</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">spark_master_type</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">spark_core_type</span><span class="p">):</span>
@@ -1496,7 +1497,7 @@
 <span class="sd">    storage_size : int, optional</span>
 <span class="sd">        Storage size that was requested (for display if not in response)</span>
 <span class="sd">    backend_type : str, optional</span>
-<span class="sd">        Backend type (regular, vscode, spark, rstudio) for backend-specific display</span>
+<span class="sd">        Backend type (regular, vscode, spark, rstudio, windows, linux) for backend-specific display</span>
 <span class="sd">    r_version : str, optional</span>
 <span class="sd">        R version for RStudio backend</span>
 <span class="sd">    spark_master : str, optional</span>
