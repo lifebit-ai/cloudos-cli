@@ -308,10 +308,26 @@ class TestAppSessionFilter:
             'awsJupyterNotebook', 'azureJupyterNotebook',
             'awsVSCode', 'azureVSCode',
             'awsRstudio', 'azureRstudio',
-            'awsSpark', 'awsWindowsSession',
+            'awsSpark', 'awsWindowsSession', 'awsLinuxSession',
         ]
         for t in regular_types:
             assert t not in APP_SESSION_TYPES, f"{t} should not be filtered out"
+
+
+class TestSessionTypeDisplay:
+    """Tests for how session types are rendered in the list table."""
+
+    @pytest.mark.parametrize('field_name', ['type', 'backend'])
+    @pytest.mark.parametrize('api_type,expected', [
+        ('awsWindowsSession', 'Windows'),
+        ('awsLinuxSession', 'Linux'),
+        ('awsJupyterNotebook', 'Jupyter'),
+    ])
+    def test_type_and_backend_columns_use_friendly_names(self, field_name, api_type, expected):
+        """Type and Backend columns must show friendly names, not raw API types."""
+        from cloudos_cli.interactive_session.interactive_session import _format_session_field
+
+        assert _format_session_field(field_name, api_type) == expected
 
 
 class TestBuildAppFilteredPageFetcher:
