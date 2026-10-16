@@ -9,6 +9,7 @@
 - The volume split is checked before any API call (minimums: libraries 50 GB, session results 225 GB, mounted data 35 GB; volumes must add up to `--storage`)
 - `interactive-session create` and `status` show each volume (libraries, session results, mounted data) as its own row under Storage, and `status --output-format csv` adds a column for each volume
 - `--storage` range for `interactive-session create` and `resume` changed from 100-5000 GB to 500-64050 GB
+- Default Azure instance type for `interactive-session create` changed from `Standard_F1s` to `Standard_D4s_v3`
 
 ## v2.97.0 (2026-10-15)
 

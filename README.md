@@ -2199,7 +2199,7 @@ cloudos interactive-session create \
 - `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, `spark`, `windows`, or `linux` (`spark`, `windows` and `linux` are AWS only)
 
 **Optional Configuration:**
-- `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_F1s` for Azure)
+- `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_D4s_v3` for Azure)
 - `--storage`: Total storage in GB (default: 500, range: 500-64050). If all three volume options below are given, `--storage` defaults to their sum; if it is also given, it must match the sum.
 - `--libraries-volume`: Libraries volume in GB (min 50)
 - `--results-volume`: Session results volume in GB (min 225)

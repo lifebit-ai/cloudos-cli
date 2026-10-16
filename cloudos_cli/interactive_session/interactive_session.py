@@ -1076,7 +1076,7 @@ def build_session_payload(
     execution_platform : str, optional
         Execution platform: 'aws' (default) or 'azure'
     instance_type : str
-        Instance type (EC2 for AWS, e.g., c5.xlarge; Azure VM size, e.g., Standard_F1s)
+        Instance type (EC2 for AWS, e.g., c5.xlarge; Azure VM size, e.g., Standard_D4s_v3)
     storage_size : int
         Storage in GB (default: 500, range: 500-64050)
     volume_sizes : dict, optional

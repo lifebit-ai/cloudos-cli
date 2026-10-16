@@ -699,7 +699,7 @@ class TestVolumeSizes:
         from cloudos_cli.interactive_session.interactive_session import build_session_payload
 
         payload = build_session_payload(name='s', backend='regular', project_id='p',
-                                        execution_platform='azure', instance_type='Standard_F1s')
+                                        execution_platform='azure', instance_type='Standard_D4s_v3')
         assert payload['interactiveSessionConfiguration']['volumeSizes'] == {
             'libraries': 50, 'sessionResults': 225, 'mountedData': 225}
 
@@ -942,6 +942,18 @@ class TestCreateSessionVolumeFlags:
         assert message in result.output
         mock_cloudos.assert_not_called()
         cl.create_interactive_session.assert_not_called()
+
+    @pytest.mark.parametrize('platform,instance', [('aws', 'c5.xlarge'), ('azure', 'Standard_D4s_v3')])
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_create_default_instance_per_platform(self, mock_config, mock_cloudos, platform, instance):
+        result, cl = self._invoke(mock_config, mock_cloudos, self.BASE_ARGS + ['--execution-platform', platform])
+
+        assert result.exit_code == 0, result.output
+        config = cl.create_interactive_session.call_args[0][1]['interactiveSessionConfiguration']
+        assert config['executionPlatform'] == platform
+        assert config['instanceType'] == instance
+        assert config['volumeSizes'] == {'libraries': 50, 'sessionResults': 225, 'mountedData': 225}
 
     @patch('cloudos_cli.interactive_session.cli.Cloudos')
     @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')

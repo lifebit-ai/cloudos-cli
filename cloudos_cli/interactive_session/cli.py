@@ -316,7 +316,7 @@ def list_sessions(ctx,
               help='Type of interactive session. windows, linux and spark are AWS only.',
               required=True)
 @click.option('--instance',
-              help='Instance type (e.g., c5.xlarge for AWS, Standard_F1s for Azure). Default depends on execution platform.',
+              help='Instance type (e.g., c5.xlarge for AWS, Standard_D4s_v3 for Azure). Default=c5.xlarge for AWS, Standard_D4s_v3 for Azure.',
               default=None)
 @click.option('--storage',
               type=int,
@@ -430,7 +430,7 @@ def create_session(ctx,
         raise SystemExit(1)
     # Set instance default based on execution_platform if not specified
     if instance is None:
-        instance = 'c5.xlarge' if execution_platform == 'aws' else 'Standard_F1s'
+        instance = 'c5.xlarge' if execution_platform == 'aws' else 'Standard_D4s_v3'
 
     # Work out the storage size and volume split before any API call
     try:
