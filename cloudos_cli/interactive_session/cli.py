@@ -29,6 +29,8 @@ from cloudos_cli.interactive_session.interactive_session import (
     format_stop_success_output,
     poll_session_termination,
     build_resume_payload,
+    resolve_volume_sizes,
+    format_volume_sizes,
     fetch_interactive_session_page,
     APP_SESSION_TYPES,
     build_app_filtered_page_fetcher
@@ -314,12 +316,29 @@ def list_sessions(ctx,
               help='Type of interactive session. windows, linux and spark are AWS only.',
               required=True)
 @click.option('--instance',
-              help='Instance type (e.g., c5.xlarge for AWS, Standard_F1s for Azure). Default depends on execution platform.',
+              help='Instance type (e.g., c5.xlarge for AWS, Standard_D4s_v3 for Azure). Default=c5.xlarge for AWS, Standard_D4s_v3 for Azure.',
               default=None)
 @click.option('--storage',
               type=int,
-              help='Storage in GB (100-5000). Default=500.',
-              default=500)
+              help=('Total storage in GB (500-64050). Default=500, or the sum of the three volume '
+                    'sizes when --libraries-volume, --results-volume and --data-volume are all given. '
+                    'The storage is split into libraries, session results and mounted data volumes.'),
+              default=None)
+@click.option('--libraries-volume',
+              type=int,
+              help=('Libraries volume in GB (min 50). Default=50 when no volume is set; otherwise '
+                    'the volumes not set share the rest of --storage evenly.'),
+              default=None)
+@click.option('--results-volume',
+              type=int,
+              help=('Session results volume in GB (min 225). Default=225 with the default storage; '
+                    'otherwise the volumes not set share the rest of --storage evenly.'),
+              default=None)
+@click.option('--data-volume',
+              type=int,
+              help=('Mounted data volume in GB (min 35). Default=225 with the default storage; '
+                    'otherwise the volumes not set share the rest of --storage evenly.'),
+              default=None)
 @click.option('--spot',
               is_flag=True,
               help='Use spot instances.')
@@ -378,6 +397,9 @@ def create_session(ctx,
                    session_type,
                    instance,
                    storage,
+                   libraries_volume,
+                   results_volume,
+                   data_volume,
                    spot,
                    shared,
                    cost_limit,
@@ -408,7 +430,19 @@ def create_session(ctx,
         raise SystemExit(1)
     # Set instance default based on execution_platform if not specified
     if instance is None:
-        instance = 'c5.xlarge' if execution_platform == 'aws' else 'Standard_F1s'
+        instance = 'c5.xlarge' if execution_platform == 'aws' else 'Standard_D4s_v3'
+
+    # Work out the storage size and volume split before any API call
+    try:
+        storage, volume_sizes = resolve_volume_sizes(
+            storage_size=storage,
+            libraries=libraries_volume,
+            session_results=results_volume,
+            mounted_data=data_volume
+        )
+    except ValueError as e:
+        click.secho(f'Error: {e}', fg='red', err=True)
+        raise SystemExit(1)
 
     # Validate instance type format
     is_valid, error_msg = validate_instance_type(instance, execution_platform)
@@ -659,6 +693,7 @@ def create_session(ctx,
             execution_platform=execution_platform,
             instance_type=instance,
             storage_size=storage,
+            volume_sizes=volume_sizes,
             is_spot=spot,
             is_shared=shared,
             cost_limit=cost_limit,
@@ -692,7 +727,8 @@ def create_session(ctx,
             spark_workers=spark_workers,
             data_files=data_files_for_display,
             s3_mounts=s3_mounts_for_display,  # Use display version with markers
-            shutdown_in=shutdown_in
+            shutdown_in=shutdown_in,
+            volume_sizes=volume_sizes
         )
         # Output session link in greppable format for CI/automation
         click.echo(f"Session link: {cloudos_url}/app/data-science/interactive-analysis/view/{session_id}")
@@ -1151,7 +1187,21 @@ def pause_session(ctx,
               default=None)
 @click.option('--storage',
               type=int,
-              help='Update storage size in GB (100-5000).',
+              help=('Update storage size in GB (500-64050). The volume split is sent with it: '
+                    'by default libraries=50 GB and the rest is shared evenly by session results '
+                    'and mounted data.'),
+              default=None)
+@click.option('--libraries-volume',
+              type=int,
+              help='Update libraries volume in GB (min 50). Requires --storage unless all three volumes are given.',
+              default=None)
+@click.option('--results-volume',
+              type=int,
+              help='Update session results volume in GB (min 225). Requires --storage unless all three volumes are given.',
+              default=None)
+@click.option('--data-volume',
+              type=int,
+              help='Update mounted data volume in GB (min 35). Requires --storage unless all three volumes are given.',
               default=None)
 @click.option('--cost-limit',
               type=float,
@@ -1179,6 +1229,9 @@ def resume_session(ctx,
                    workspace_id,
                    instance,
                    storage,
+                   libraries_volume,
+                   results_volume,
+                   data_volume,
                    cost_limit,
                    shutdown_in,
                    verbose,
@@ -1192,10 +1245,24 @@ def resume_session(ctx,
     if not validate_session_id(session_id):
         click.secho(f'Error: Invalid session ID format. Expected 24-character hex string, got: {session_id}', fg='red', err=True)
         raise SystemExit(1)
-    # Validate storage if provided
-    if storage is not None and not (100 <= storage <= 5000):
-        click.secho('Error: Storage size must be between 100-5000 GB', fg='red', err=True)
-        raise SystemExit(1)
+    # Work out the storage size and volume split if either is being changed
+    volume_sizes = None
+    volumes_given = [v for v in (libraries_volume, results_volume, data_volume) if v is not None]
+    if storage is not None or volumes_given:
+        if storage is None and len(volumes_given) < 3:
+            click.secho('Error: --storage is required when changing fewer than all three volumes '
+                        '(--libraries-volume, --results-volume, --data-volume)', fg='red', err=True)
+            raise SystemExit(1)
+        try:
+            storage, volume_sizes = resolve_volume_sizes(
+                storage_size=storage,
+                libraries=libraries_volume,
+                session_results=results_volume,
+                mounted_data=data_volume
+            )
+        except ValueError as e:
+            click.secho(f'Error: {e}', fg='red', err=True)
+            raise SystemExit(1)
     if verbose:
         print('Executing resume interactive session...')
         print('\t...Preparing objects')
@@ -1223,7 +1290,8 @@ def resume_session(ctx,
             instance_type=instance,
             storage_size=storage,
             cost_limit=cost_limit,
-            shutdown_at=shutdown_at_parsed
+            shutdown_at=shutdown_at_parsed,
+            volume_sizes=volume_sizes
         )
         if verbose:
             print('\tResume payload constructed:')
@@ -1242,6 +1310,7 @@ def resume_session(ctx,
                 click.echo(f'  Instance type: {updated_config.get("instanceType", instance)}')
             if storage:
                 click.echo(f'  Storage: {updated_config.get("storageSizeInGb", storage)} GB')
+                click.echo(f'  Volume sizes: {format_volume_sizes(updated_config.get("volumeSizes") or volume_sizes)}')
             if cost_limit is not None:
                 exec_config = updated_config.get('execution', {})
                 click.echo(f'  Cost limit: ${exec_config.get("computeCostLimit", cost_limit)}')

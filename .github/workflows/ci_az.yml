@@ -737,7 +737,7 @@ jobs:
         EXECUTION_PLATFORM: "azure"
         INSTANCE_TYPE: "Standard_D4as_v4"
       run: |
-        cloudos interactive-session create --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name $SESSION_NAME --session-type $SESSION_TYPE --shutdown-in $SHUTDOWN_IN --execution-platform $EXECUTION_PLATFORM --instance $INSTANCE_TYPE 2>&1 | tee out.txt
+        cloudos interactive-session create --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" --name $SESSION_NAME --session-type $SESSION_TYPE --shutdown-in $SHUTDOWN_IN --libraries-volume 100 --results-volume 300 --data-volume 600 --execution-platform $EXECUTION_PLATFORM --instance $INSTANCE_TYPE 2>&1 | tee out.txt
         SESSION_ID=$(grep -oP '(?<=/view/)[a-f0-9]{24}' out.txt | head -1)
         echo "session_id=$SESSION_ID" >> $GITHUB_OUTPUT
   interactive_session_status:
@@ -764,7 +764,11 @@ jobs:
         CLOUDOS_URL: "https://dev.sdlc.lifebit.ai"
         SESSION_ID: ${{ needs.interactive_session_create.outputs.session_id }}
       run: |
-        cloudos interactive-session status --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --session-id $SESSION_ID
+        cloudos interactive-session status --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --session-id $SESSION_ID | tee status.txt
+        # The volume rows only appear when the API returns volumeSizes
+        for expected in "Libraries\W+100 GB" "Session results\W+300 GB" "Mounted data\W+600 GB"; do
+          grep -qE "$expected" status.txt || { echo "Expected volume row not found: $expected"; exit 1; }
+        done
   interactive_session_pause:
     needs: interactive_session_create
     runs-on: ubuntu-latest
@@ -816,6 +820,6 @@ jobs:
         SESSION_ID: ${{ needs.interactive_session_create.outputs.session_id }}
       run: |
         sleep 60 # wait for session to be fully paused before resuming
-        cloudos interactive-session resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --session-id $SESSION_ID --shutdown-in 1m
+        cloudos interactive-session resume --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --session-id $SESSION_ID --shutdown-in 1m --libraries-volume 100 --results-volume 300 --data-volume 700
 
 

@@ -1,6 +1,6 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.98.0 (2026-10-19)
+## v2.99.0 (2026-10-19)
 
 ### Feat:
 
@@ -11,6 +11,16 @@
 
 - `bash array-job` raises a clear error when the `--custom-script-path` file is not found
 
+## v2.98.0 (2026-10-15)
+
+### Feat:
+
+- `interactive-session create` now sends a `volumeSizes` split (`libraries`, `sessionResults`, `mountedData`) with the session storage for all backends. By default libraries gets 50 GB and the rest is split evenly, so the default 500 GB gives 50 / 225 / 225 GB
+- New `--libraries-volume`, `--results-volume` and `--data-volume` options for `interactive-session create` and `resume` set the volumes explicitly. Volumes that aren't set share the rest of `--storage` evenly, and when all three are set `--storage` defaults to their sum
+- The volume split is checked before any API call (minimums: libraries 50 GB, session results 225 GB, mounted data 35 GB; volumes must add up to `--storage`)
+- `interactive-session create` and `status` show each volume (libraries, session results, mounted data) as its own row under Storage, and `status --output-format csv` adds a column for each volume
+- `--storage` range for `interactive-session create` and `resume` changed from 100-5000 GB to 500-64050 GB
+- Default Azure instance type for `interactive-session create` changed from `Standard_F1s` to `Standard_D4s_v3`
 
 ## v2.97.0 (2026-10-15)
 
