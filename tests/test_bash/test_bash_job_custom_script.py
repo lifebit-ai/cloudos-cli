@@ -1,5 +1,6 @@
 """pytest tests for --custom-script-path in 'cloudos bash job'"""
 import json
+import click
 import mock
 import pytest
 from click.testing import CliRunner
@@ -60,7 +61,8 @@ def test_setup_params_array_file_uses_custom_script():
 def test_bash_job_requires_command_or_custom_script():
     result = CliRunner().invoke(run_cloudos_cli, base_args)
     assert result.exit_code == 2
-    assert "Must provide --command or --custom-script-path" in result.output
+    # rich-click colours option names when colour is forced (e.g. GitHub Actions)
+    assert "Must provide --command or --custom-script-path" in click.unstyle(result.output)
 
 
 @pytest.mark.parametrize("extra_args, expected_project", [
