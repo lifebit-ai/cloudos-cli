@@ -2378,13 +2378,36 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>list<s
 </ul>
 <p><strong>Optional Configuration:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--instance</span></code>: Instance type (default depends on execution platform: <code class="docutils literal notranslate"><span class="pre">c5.xlarge</span></code> for AWS, <code class="docutils literal notranslate"><span class="pre">Standard_F1s</span></code> for Azure)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--storage</span></code>: Storage in GB (default: 500, range: 100-5000)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--instance</span></code>: Instance type (default depends on execution platform: <code class="docutils literal notranslate"><span class="pre">c5.xlarge</span></code> for AWS, <code class="docutils literal notranslate"><span class="pre">Standard_D4s_v3</span></code> for Azure)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--storage</span></code>: Total storage in GB (default: 500, range: 500-64050). If all three volume options below are given, <code class="docutils literal notranslate"><span class="pre">--storage</span></code> defaults to their sum; if it is also given, it must match the sum.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--libraries-volume</span></code>: Libraries volume in GB (min 50)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--results-volume</span></code>: Session results volume in GB (min 225)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--data-volume</span></code>: Mounted data volume in GB (min 35)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--spot</span></code>: Use spot instances (AWS only, cost-saving)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--shared</span></code>: Make session accessible to workspace members</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--cost-limit</span></code>: Compute cost limit in USD (default: -1 for unlimited)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--shutdown-in</span></code>: Auto-shutdown duration (e.g., <code class="docutils literal notranslate"><span class="pre">8h</span></code>, <code class="docutils literal notranslate"><span class="pre">2d</span></code>, <code class="docutils literal notranslate"><span class="pre">30m</span></code>, default: <code class="docutils literal notranslate"><span class="pre">12h</span></code>)</p></li>
 </ul>
+<p><strong>Storage Volume Split:</strong></p>
+<p>The session storage is split into three volumes (libraries, session results and mounted data), which always add up to <code class="docutils literal notranslate"><span class="pre">--storage</span></code>:</p>
+<ul class="simple">
+<li><p>No volume option: libraries gets 50 GB and the rest is split evenly between session results and mounted data. The default 500 GB gives 50 / 225 / 225 GB.</p></li>
+<li><p>One volume option: the other two volumes split the rest of <code class="docutils literal notranslate"><span class="pre">--storage</span></code> evenly.</p></li>
+<li><p>Two volume options: the third volume gets the rest of <code class="docutils literal notranslate"><span class="pre">--storage</span></code>.</p></li>
+<li><p>All three volume options: they are used as given, and <code class="docutils literal notranslate"><span class="pre">--storage</span></code> defaults to their sum.</p></li>
+</ul>
+<p>When the rest can’t be split evenly, the extra GB goes to session results (or to mounted data if <code class="docutils literal notranslate"><span class="pre">--results-volume</span></code> was given). The CLI checks the split before calling the API and stops with an error if a volume would be below its minimum. Each volume is shown as its own row under “Storage” in the output of <code class="docutils literal notranslate"><span class="pre">create</span></code> and <code class="docutils literal notranslate"><span class="pre">status</span></code>, and <code class="docutils literal notranslate"><span class="pre">status</span> <span class="pre">--output-format</span> <span class="pre">csv</span></code> adds a column for each volume.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1000 GB: libraries 50, session results 475, mounted data 475</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Big"</span><span class="w"> </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span>--storage<span class="w"> </span><span class="m">1000</span>
+
+<span class="c1"># 1000 GB with 100 GB mounted data: libraries 450, session results 450, mounted data 100</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Custom"</span><span class="w"> </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span>--storage<span class="w"> </span><span class="m">1000</span><span class="w"> </span>--data-volume<span class="w"> </span><span class="m">100</span>
+
+<span class="c1"># 1000 GB set volume by volume (--storage is the sum)</span>
+cloudos<span class="w"> </span>interactive-session<span class="w"> </span>create<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--name<span class="w"> </span><span class="s2">"Exact"</span><span class="w"> </span>--session-type<span class="w"> </span>jupyter<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--libraries-volume<span class="w"> </span><span class="m">100</span><span class="w"> </span>--results-volume<span class="w"> </span><span class="m">300</span><span class="w"> </span>--data-volume<span class="w"> </span><span class="m">600</span>
+</pre></div>
+</div>
 <p><strong>Data &amp; Storage Management:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--link</span></code>: Link a file or folder into the session for read access (AWS only). Supports S3 files/folders (e.g., <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/file.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">s3://my-bucket/data/</span></code>) and File Explorer files/folders (e.g., <code class="docutils literal notranslate"><span class="pre">my-project/Data/file.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">my-project/Data/results</span></code>). S3 paths whose last segment contains a <code class="docutils literal notranslate"><span class="pre">.</span></code> are treated as files; paths ending with <code class="docutils literal notranslate"><span class="pre">/</span></code> or without an extension are treated as folders. Multiple items can be specified using multiple <code class="docutils literal notranslate"><span class="pre">--link</span></code> flags or as comma-separated paths in a single <code class="docutils literal notranslate"><span class="pre">--link</span></code> argument. Use <code class="docutils literal notranslate"><span class="pre">--copy</span></code> to copy data into the session instead.</p></li>
@@ -2732,7 +2755,8 @@ cloudos<span class="w"> </span>interactive-session<span class="w"> </span>pause<
 <p>All configuration parameters are optional. If not specified, the session resumes with its previous configuration.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--instance</span> <span class="pre">&lt;TYPE&gt;</span></code> - Change instance type (validated by platform)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--storage</span> <span class="pre">&lt;GB&gt;</span></code> - Update storage size (100-5000 GB)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--storage</span> <span class="pre">&lt;GB&gt;</span></code> - Update storage size (500-64050 GB). The volume split is sent with it, using the same rules as <code class="docutils literal notranslate"><span class="pre">create</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--libraries-volume</span> <span class="pre">&lt;GB&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">--results-volume</span> <span class="pre">&lt;GB&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">--data-volume</span> <span class="pre">&lt;GB&gt;</span></code> - Update the volume split (minimums 50, 225 and 35 GB). These require <code class="docutils literal notranslate"><span class="pre">--storage</span></code> unless all three are given, in which case the storage is their sum</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--cost-limit</span> <span class="pre">&lt;USD&gt;</span></code> - Update compute cost limit (-1 for unlimited)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--shutdown-in</span> <span class="pre">&lt;DURATION&gt;</span></code> - Update auto-shutdown time (e.g., 8h, 2d)</p></li>
 </ul>
