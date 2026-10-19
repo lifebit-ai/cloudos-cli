@@ -1,5 +1,17 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.98.0 (2026-10-19)
+
+### Feat:
+
+- `bash job` supports `--custom-script-path` and `--custom-script-project` to run a File Explorer script instead of `--command`
+- `bash job` `--parameter` help now documents File Explorer file paths, matching `bash array-job`
+
+### Fix:
+
+- `bash array-job` raises a clear error when the `--custom-script-path` file is not found
+
+
 ## v2.97.0 (2026-10-15)
 
 ### Feat:

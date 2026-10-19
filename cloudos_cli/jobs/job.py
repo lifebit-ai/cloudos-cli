@@ -941,6 +941,49 @@ class Job(Cloudos):
 
         return r
 
+    def setup_custom_script_command(self, custom_script_path, ds_custom):
+        """
+        Builds the command payload for a bash job that runs a File Explorer custom script.
+
+        Parameters
+        ----------
+        custom_script_path : str
+            File Explorer path to the custom script file (e.g. Data/scripts/run.sh).
+        ds_custom : object
+            An object providing access to folder content listing functionality.
+
+        Raises
+        ------
+        ValueError
+            If the custom script is not found in the specified folder.
+
+        Returns
+        -------
+        dict
+            A dictionary containing:
+                - "command": The custom script file name.
+                - "customScriptFile": Details of the custom script file.
+        """
+        command_path = Path(custom_script_path)
+        command_dir = str(command_path.parent)
+        command_name = command_path.name
+        result_script = ds_custom.list_folder_content(command_dir)
+        for file in result_script['files']:
+            if file.get("name") == command_name:
+                custom_script_item = file.get("_id")
+                break
+        else:
+            raise ValueError(f'Custom script "{command_name}" not found in the "{command_dir}" folder.')
+        return {
+            "command": f"{command_name}",
+            "customScriptFile": {
+                "dataItem": {
+                    "kind": "File",
+                    "item": f"{custom_script_item}"
+                }
+            }
+        }
+
     def setup_params_array_file(self, custom_script_path, ds_custom, command, separator):
         """
         Sets up a dictionary representing command parameters, including support for custom scripts
@@ -966,24 +1009,8 @@ class Job(Cloudos):
                 - "arrayFile": Details of the array file and its separator.
         """
         if custom_script_path is not None:
-            command_path = Path(custom_script_path)
-            command_dir = str(command_path.parent)
-            command_name = command_path.name
-            result_script = ds_custom.list_folder_content(command_dir)
-            for file in result_script['files']:
-                if file.get("name") == command_name:
-                    custom_script_item = file.get("_id")
-                    break
             # use this in case the command is in a custom script
-            cmd = {
-                "command": f"{command_name}",
-                "customScriptFile": {
-                    "dataItem": {
-                        "kind": "File",
-                        "item": f"{custom_script_item}"
-                    }
-                }
-            }
+            cmd = self.setup_custom_script_command(custom_script_path, ds_custom)
         else:
             # use this for text commands
             cmd = {"command": command}
