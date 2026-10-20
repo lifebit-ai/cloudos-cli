@@ -1,0 +1,38 @@
+name: Image scan
+
+# Catches a vulnerable image on the PR that causes it, instead of at release.
+# Only changes that can alter what ends up in the image trigger it.
+on:
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - Dockerfile
+      - environment.yml
+      - setup.py
+      - requirements.txt
+      - .trivyignore.yaml
+      - .github/actions/trivy-scan/**
+      - .github/workflows/image-scan.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same build as the release, SECURITY_REFRESH included, so the PR sees
+      # what the release would ship today.
+      - name: Build image
+        run: |
+          docker build -f Dockerfile \
+            --build-arg SECURITY_REFRESH="$(date +%s)" \
+            -t cloudos-cli:scan .
+
+      - name: Scan image with Trivy (fails on CRITICAL/HIGH)
+        uses: ./.github/actions/trivy-scan
+        with:
+          image: cloudos-cli:scan

@@ -1,0 +1,186 @@
+name: Security autofix
+
+# Weekly: scan what is published, and build + scan what the next release
+# would ship. If the build fails the scan, an open model on AWS Bedrock
+# proposes fixes to the dependency files, the image is rebuilt and rescanned
+# (up to MAX_ROUNDS times), and the result is opened as a PR. Nothing is ever
+# merged or published from here: the release workflow still does that, and
+# still runs its own scan.
+on:
+  schedule:
+    - cron: "0 6 * * 2"   # Tuesday 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      max_rounds:
+        description: Fix rounds before giving up
+        default: "3"
+  # PoC ONLY, remove before merging to main: lets the automation run from
+  # this branch (workflow_dispatch needs the file on the default branch) and
+  # open its fix PR against it.
+  push:
+    branches: [ fix-release ]
+    paths:
+      - .github/workflows/security-autofix.yml
+      - .github/scripts/**
+      - .github/actions/trivy-scan/**
+
+permissions:
+  contents: write        # push the fix branch
+  pull-requests: write   # open or update the fix PR
+  id-token: write        # OIDC to AWS for Bedrock, when a role is configured
+
+concurrency:
+  group: security-autofix-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  QUAY_REPO: quay.io/lifebitaiorg/cloudos-cli
+  # Any Bedrock model that supports the Converse API works; switching is a
+  # repo variable, not a code change.
+  BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID || 'openai.gpt-oss-120b-1:0' }}
+  AWS_REGION: ${{ vars.BEDROCK_REGION || 'us-west-2' }}
+
+jobs:
+  # Report only. Published tags are immutable, so a finding here can't be
+  # fixed in place: it means the pipelines pinning that tag need a new release.
+  published:
+    name: Scan published ${{ matrix.tag }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: ${{ fromJSON(vars.SCAN_PUBLISHED_TAGS || '["latest", "v2.96.0"]') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan ${{ env.QUAY_REPO }}:${{ matrix.tag }}
+        id: scan
+        uses: ./.github/actions/trivy-scan
+        with:
+          image: ${{ env.QUAY_REPO }}:${{ matrix.tag }}
+          image-src: remote
+          fail-on-findings: "false"
+
+      - name: Summary
+        env:
+          TAG: ${{ matrix.tag }}
+          FINDINGS: ${{ steps.scan.outputs.findings }}
+        run: |
+          if [ "$FINDINGS" -gt 0 ]; then
+            echo "::warning::$QUAY_REPO:$TAG has $FINDINGS CRITICAL/HIGH finding(s)"
+            echo "**$QUAY_REPO:$TAG**: $FINDINGS CRITICAL/HIGH finding(s). Pipelines pinning this tag need a newer release." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**$QUAY_REPO:$TAG**: clean" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  fix:
+    name: Build, scan and fix
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: cloudos-cli:autofix
+      MAX_ROUNDS: ${{ inputs.max_rounds || '3' }}
+      BASE: ${{ github.ref_name }}
+      FIX_BRANCH: security/autofix-${{ github.ref_name }}
+      # The secrets context isn't available in a step's `if`, so expose
+      # whether the role is configured (not the ARN itself) here.
+      HAS_BEDROCK_ROLE: ${{ secrets.AWS_BEDROCK_ROLE_ARN != '' }}
+    steps:
+      # Reports and history live outside the checkout so they can't be committed.
+      - name: Working directory
+        run: echo "AUTOFIX_DIR=$RUNNER_TEMP/autofix" >> "$GITHUB_ENV"
+
+      # A GitHub App or PAT token, when there is one, makes the fix PR run
+      # the repo's CI; PRs opened with GITHUB_TOKEN don't trigger workflows.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # tags too: the version bump checks what has shipped
+          token: ${{ secrets.SECURITY_BOT_TOKEN || github.token }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Bedrock client
+        run: python -m pip install "boto3>=1.40"
+
+      # Bedrock credentials, either way round: an IAM role through OIDC
+      # (preferred: its trust policy only accepts this repo's main and PoC
+      # branches, and there is nothing long-lived to leak or rotate) when the
+      # AWS_BEDROCK_ROLE_ARN secret is set, otherwise the
+      # AWS_BEARER_TOKEN_BEDROCK API key secret below. The ARN is a secret
+      # only to keep it and the account ID out of this public repo's logs.
+      - name: Assume the Bedrock role
+        if: env.HAS_BEDROCK_ROLE == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_BEDROCK_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build, scan, fix, rescan
+        id: loop
+        env:
+          AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          .github/scripts/autofix_loop.sh
+
+      - name: Version and changelog
+        id: version
+        if: steps.loop.outputs.changed == 'true'
+        run: |
+          python .github/scripts/autofix.py bump-version \
+            --initial "$AUTOFIX_DIR/initial.json" --final "$AUTOFIX_DIR/final.json"
+          git commit -qam "Security autofix: version and changelog"
+
+      - name: Open or update the fix PR
+        if: steps.loop.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.SECURITY_BOT_TOKEN || github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REMAINING: ${{ steps.loop.outputs.remaining }}
+          INITIAL: ${{ steps.loop.outputs.initial }}
+        run: |
+          set -euo pipefail
+          python .github/scripts/autofix.py pr-body \
+            --initial "$AUTOFIX_DIR/initial.json" --final "$AUTOFIX_DIR/final.json" \
+            --history "$AUTOFIX_DIR/history.json" --base "$BASE" --model "$BEDROCK_MODEL_ID" \
+            --version "${{ steps.version.outputs.version }}" \
+            --bumped "${{ steps.version.outputs.bumped }}" \
+            --run-url "$RUN_URL" --output "$AUTOFIX_DIR/pr-body.md"
+          cat "$AUTOFIX_DIR/pr-body.md" >> "$GITHUB_STEP_SUMMARY"
+
+          # One open fix PR per base branch: a later run replaces its contents.
+          git push --force origin "HEAD:refs/heads/$FIX_BRANCH"
+          title="Security: fix $((INITIAL - REMAINING)) of $INITIAL CRITICAL/HIGH image findings"
+          pr=$(gh pr list --head "$FIX_BRANCH" --base "$BASE" --state open --json number --jq '.[].number')
+          if [ -n "$pr" ]; then
+            gh pr edit "$pr" --title "$title" --body-file "$AUTOFIX_DIR/pr-body.md"
+            echo "Updated PR #$pr"
+          else
+            gh pr create --head "$FIX_BRANCH" --base "$BASE" \
+              --title "$title" --body-file "$AUTOFIX_DIR/pr-body.md"
+          fi
+
+      # Clean: nothing to do. Anything left needs a person (a manual fix or an
+      # S&C exemption in .trivyignore.yaml), so the run goes red to say so.
+      - name: Result
+        if: always() && steps.loop.outcome == 'success'
+        env:
+          INITIAL: ${{ steps.loop.outputs.initial }}
+          REMAINING: ${{ steps.loop.outputs.remaining }}
+          ROUNDS: ${{ steps.loop.outputs.rounds }}
+        run: |
+          echo "Initial findings: $INITIAL, after $ROUNDS round(s): $REMAINING"
+          if [ "$REMAINING" -gt 0 ]; then
+            echo "::error::$REMAINING CRITICAL/HIGH finding(s) still need a person: fix by hand or request an S&C exemption."
+            exit 1
+          fi
+
+      - name: Keep reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autofix-reports
+          path: ${{ env.AUTOFIX_DIR }}
+          if-no-files-found: ignore
