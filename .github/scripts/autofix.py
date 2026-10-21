@@ -6,6 +6,7 @@ Called by .github/scripts/autofix_loop.sh and the security-autofix workflow:
   fix           ask a Bedrock model for edits to the dependency files and apply them
   record        note how a round went: did it build, what still fails
   bump-version  make the fix releasable: bump the patch version if the current one shipped
+  count-fixed   how many findings the rescan no longer reports
   pr-body       write the pull request description
 
 The model only proposes edits. It never builds, scans, commits or pushes, and
@@ -287,6 +288,10 @@ def cmd_bump_version(args):
     print(f"v{current} {'is released; bumped to' if bumped else 'is unreleased; fix ships in'} v{version}")
 
 
+def cmd_count_fixed(args):
+    print(sum(len(f) for f in fixed_by_package(args.initial, args.final).values()))
+
+
 def cell(text):
     return str(text).replace("|", "\\|").replace("\n", " ")
 
@@ -298,12 +303,34 @@ def cmd_pr_body(args):
     notes = {(n.get("id"), n.get("package")): n
              for entry in history for n in entry.get("model_findings", []) if isinstance(n, dict)}
 
+    if args.mode == "rebuild":
+        intro = (
+            f"The newest release, `v{args.release}`, has **{len(initial)}** CRITICAL/HIGH "
+            f"finding(s) that a fresh build of `{args.base}` no longer has, usually OS packages "
+            "patched since it was built, which the build's `apt-get upgrade` picks up. Released "
+            "images are never rebuilt in place, so this PR only bumps the version: merging it "
+            "makes the release workflow publish a new, clean versioned image (and PyPI package)."
+        )
+        after = "Fresh build"
+    elif args.mode == "pr":
+        intro = (
+            f"The image built from `{args.base}` had **{len(initial)}** CRITICAL/HIGH "
+            f"finding(s). `{args.model}` proposed fixes over {len(history)} round(s), each one "
+            f"rebuilt and rescanned; **{len(remaining)}** remain. Rounds that built were pushed "
+            "to this branch as `Security autofix` commits."
+        )
+        after = "After rescan"
+    else:
+        intro = (
+            f"The scheduled Trivy scan of the image built from `{args.base}` found "
+            f"**{len(initial)}** CRITICAL/HIGH finding(s). `{args.model}` proposed fixes over "
+            f"{len(history)} round(s); after rebuilding and rescanning, **{len(remaining)}** remain."
+        )
+        after = "After rescan"
     out = [
-        f"The scheduled Trivy scan of the image built from `{args.base}` found "
-        f"**{len(initial)}** CRITICAL/HIGH finding(s). `{args.model}` proposed fixes over "
-        f"{len(history)} round(s); after rebuilding and rescanning, **{len(remaining)}** remain.",
+        intro,
         "",
-        "| CVE | Severity | Package | Installed | Fixed in | After rescan | Model's note |",
+        f"| CVE | Severity | Package | Installed | Fixed in | {after} | Model's note |",
         "|---|---|---|---|---|---|---|",
     ]
     for f in initial:
@@ -315,7 +342,8 @@ def cmd_pr_body(args):
             status, cell(note.get("change") or note.get("reason") or "") + " |",
         ]))
 
-    out += ["", "### Rounds", ""]
+    if history:
+        out += ["", "### Rounds", ""]
     for entry in history:
         applied = ", ".join(f"`{e['path']}`" for e in entry.get("applied", [])) or "no edits"
         line = f"- Round {entry['round']}: {applied}; build {entry.get('build', 'not run')}"
@@ -325,17 +353,20 @@ def cmd_pr_body(args):
             line += f"; {len(entry['still_failing'])} still failing after it"
         out.append(line)
 
+    if args.version:
+        out += [
+            "", "### Release", "",
+            f"Version bumped to `v{args.version}` because the previous version is already released."
+            if args.bumped == "true" else
+            f"`v{args.version}` is not released yet, so the fix ships with it; no version bump.",
+        ]
     out += [
-        "", "### Release", "",
-        f"Version bumped to `v{args.version}` because the previous version is already released."
-        if args.bumped == "true" else
-        f"`v{args.version}` is not released yet, so the fix ships with it; no version bump.",
         "", "### Review", "",
         "- [ ] Only dependency files, the version and the changelog changed",
         "- [ ] The rescan in the workflow run is clean, or what remains is explained above",
         "- [ ] No major version bump that needs a wider test run",
         "",
-        f"Opened by the [security-autofix run]({args.run_url}). It is never merged automatically.",
+        f"From the [workflow run]({args.run_url}). Nothing here is merged automatically.",
     ]
     Path(args.output).write_text("\n".join(out) + "\n")
 
@@ -364,14 +395,21 @@ def main():
     bump.add_argument("--final", required=True)
     bump.set_defaults(func=cmd_bump_version)
 
+    count = sub.add_parser("count-fixed")
+    count.add_argument("--initial", required=True)
+    count.add_argument("--final", required=True)
+    count.set_defaults(func=cmd_count_fixed)
+
     body = sub.add_parser("pr-body")
+    body.add_argument("--mode", choices=["fix", "rebuild", "pr"], default="fix")
+    body.add_argument("--release")
     body.add_argument("--initial", required=True)
     body.add_argument("--final", required=True)
     body.add_argument("--history", required=True)
     body.add_argument("--base", required=True)
     body.add_argument("--model", required=True)
-    body.add_argument("--version", required=True)
-    body.add_argument("--bumped", required=True)
+    body.add_argument("--version")
+    body.add_argument("--bumped")
     body.add_argument("--run-url", required=True)
     body.add_argument("--output", required=True)
     body.set_defaults(func=cmd_pr_body)

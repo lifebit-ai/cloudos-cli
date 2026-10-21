@@ -1,11 +1,12 @@
 name: Security autofix
 
-# Weekly: scan what is published, and build + scan what the next release
-# would ship. If the build fails the scan, an open model on AWS Bedrock
-# proposes fixes to the dependency files, the image is rebuilt and rescanned
-# (up to MAX_ROUNDS times), and the result is opened as a PR. Nothing is ever
-# merged or published from here: the release workflow still does that, and
-# still runs its own scan.
+# Weekly: scan the newest released image, and build + scan what the next
+# release would ship. If the build fails the scan, an open model on AWS
+# Bedrock proposes fixes to the dependency files, the image is rebuilt and
+# rescanned (up to MAX_ROUNDS times), and the result is opened as a PR. If the
+# build is clean but the released image is not, the PR is a version bump so
+# the next release replaces it. Nothing is ever merged or published from
+# here: the release workflow still does that, and still runs its own scan.
 on:
   schedule:
     - cron: "0 6 * * 2"   # Tuesday 06:00 UTC
@@ -14,15 +15,6 @@ on:
       max_rounds:
         description: Fix rounds before giving up
         default: "3"
-  # PoC ONLY, remove before merging to main: lets the automation run from
-  # this branch (workflow_dispatch needs the file on the default branch) and
-  # open its fix PR against it.
-  push:
-    branches: [ fix-release ]
-    paths:
-      - .github/workflows/security-autofix.yml
-      - .github/scripts/**
-      - .github/actions/trivy-scan/**
 
 permissions:
   contents: write        # push the fix branch
@@ -41,36 +33,8 @@ env:
   AWS_REGION: ${{ vars.BEDROCK_REGION || 'us-west-2' }}
 
 jobs:
-  # Report only: is the newest release (:latest, which the release workflow
-  # moves forward on every release) vulnerable today? Released images are
-  # never rebuilt in place, so a finding here is fixed by the next release.
-  published:
-    name: Scan published latest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Scan ${{ env.QUAY_REPO }}:latest
-        id: scan
-        uses: ./.github/actions/trivy-scan
-        with:
-          image: ${{ env.QUAY_REPO }}:latest
-          image-src: remote
-          fail-on-findings: "false"
-
-      - name: Summary
-        env:
-          FINDINGS: ${{ steps.scan.outputs.findings }}
-        run: |
-          if [ "$FINDINGS" -gt 0 ]; then
-            echo "::warning::$QUAY_REPO:latest has $FINDINGS CRITICAL/HIGH finding(s)"
-            echo "**$QUAY_REPO:latest**: $FINDINGS CRITICAL/HIGH finding(s); the next release fixes them." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "**$QUAY_REPO:latest**: clean" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
   fix:
-    name: Build, scan and fix
+    name: Scan, fix and open PR
     runs-on: ubuntu-latest
     env:
       IMAGE: cloudos-cli:autofix
@@ -89,8 +53,36 @@ jobs:
       # the repo's CI; PRs opened with GITHUB_TOKEN don't trigger workflows.
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # tags too: the version bump checks what has shipped
+          fetch-depth: 0   # tags too: the newest release and the version bump come from them
           token: ${{ secrets.SECURITY_BOT_TOKEN || github.token }}
+
+      # The newest final release, from git tags rather than :latest, so the
+      # versioned image pipelines pin is the one checked. Moves with every
+      # release; pre-releases are skipped, as they are for :latest.
+      - name: Find the newest release
+        id: release
+        run: |
+          set -euo pipefail
+          version=$(git tag --list 'v*' | sed 's/^v//' | grep -Ev '(a|b|rc)[0-9]*$' | sort -V | tail -1)
+          current=$(grep -Po "__version__\s*=\s*['\"]v?\K[^'\"]+" cloudos_cli/_version.py)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # An unreleased version in the code is a release still to come
+          # (possibly one this scan is blocking), and it will publish a fresh build.
+          if git rev-parse -q --verify "refs/tags/v$current" >/dev/null; then
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Newest release: v$version; version in $BASE: v$current"
+
+      - name: Scan the newest release (${{ env.QUAY_REPO }}:v${{ steps.release.outputs.version }})
+        id: published
+        uses: ./.github/actions/trivy-scan
+        with:
+          image: ${{ env.QUAY_REPO }}:v${{ steps.release.outputs.version }}
+          image-src: remote
+          report: ${{ env.AUTOFIX_DIR }}/published.json
+          fail-on-findings: "false"
 
       - uses: actions/setup-python@v5
         with:
@@ -125,34 +117,85 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           .github/scripts/autofix_loop.sh
 
+      # Two reasons to open a PR:
+      # - fix: the model changed dependency files to fix the fresh build.
+      # - rebuild: the fresh build is already clean but the newest release
+      #   is not (typically OS packages patched since it was built, which the
+      #   build's apt-get upgrade picks up). Only a new release replaces the
+      #   versioned image, so the PR is a version bump. Not needed while a
+      #   release is pending: that release publishes a fresh build anyway.
+      - name: Decide
+        id: plan
+        env:
+          CHANGED: ${{ steps.loop.outputs.changed }}
+          REMAINING: ${{ steps.loop.outputs.remaining }}
+          PUBLISHED: ${{ steps.published.outputs.findings }}
+          PENDING: ${{ steps.release.outputs.pending }}
+          RELEASE: ${{ steps.release.outputs.version }}
+        run: |
+          if [ "$CHANGED" = true ]; then
+            mode=fix
+          elif [ "$REMAINING" -eq 0 ] && [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = false ]; then
+            mode=rebuild
+          else
+            mode=none
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          {
+            echo "**$QUAY_REPO:v$RELEASE** (newest release): $PUBLISHED CRITICAL/HIGH finding(s)"
+            echo ""
+            echo "**Fresh build of \`$BASE\`**: ${{ steps.loop.outputs.initial }} finding(s), $REMAINING after fixes"
+            echo ""
+            case "$mode" in
+              fix)     echo "Opening a PR with the dependency fixes." ;;
+              rebuild) echo "Opening a version-bump PR so the next release republishes a clean image." ;;
+              none)    [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = true ] \
+                         && echo "The pending release in \`$BASE\` will publish a clean image." ;;
+            esac
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Version and changelog
         id: version
-        if: steps.loop.outputs.changed == 'true'
+        if: steps.plan.outputs.mode != 'none'
+        env:
+          MODE: ${{ steps.plan.outputs.mode }}
         run: |
+          # What the changelog says was fixed: the fresh build's findings for
+          # a fix, the published image's for a rebuild.
+          if [ "$MODE" = fix ]; then before=initial.json; else before=published.json; fi
           python .github/scripts/autofix.py bump-version \
-            --initial "$AUTOFIX_DIR/initial.json" --final "$AUTOFIX_DIR/final.json"
+            --initial "$AUTOFIX_DIR/$before" --final "$AUTOFIX_DIR/final.json"
           git commit -qam "Security autofix: version and changelog"
 
-      - name: Open or update the fix PR
-        if: steps.loop.outputs.changed == 'true'
+      - name: Open or update the PR
+        if: steps.plan.outputs.mode != 'none'
         env:
           GH_TOKEN: ${{ secrets.SECURITY_BOT_TOKEN || github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          REMAINING: ${{ steps.loop.outputs.remaining }}
-          INITIAL: ${{ steps.loop.outputs.initial }}
+          MODE: ${{ steps.plan.outputs.mode }}
+          RELEASE: ${{ steps.release.outputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUMPED: ${{ steps.version.outputs.bumped }}
         run: |
           set -euo pipefail
-          python .github/scripts/autofix.py pr-body \
-            --initial "$AUTOFIX_DIR/initial.json" --final "$AUTOFIX_DIR/final.json" \
+          if [ "$MODE" = fix ]; then before=initial.json; else before=published.json; fi
+          python .github/scripts/autofix.py pr-body --mode "$MODE" \
+            --initial "$AUTOFIX_DIR/$before" --final "$AUTOFIX_DIR/final.json" \
             --history "$AUTOFIX_DIR/history.json" --base "$BASE" --model "$BEDROCK_MODEL_ID" \
-            --version "${{ steps.version.outputs.version }}" \
-            --bumped "${{ steps.version.outputs.bumped }}" \
+            --release "$RELEASE" --version "$VERSION" --bumped "$BUMPED" \
             --run-url "$RUN_URL" --output "$AUTOFIX_DIR/pr-body.md"
           cat "$AUTOFIX_DIR/pr-body.md" >> "$GITHUB_STEP_SUMMARY"
 
-          # One open fix PR per base branch: a later run replaces its contents.
+          fixed=$(python .github/scripts/autofix.py count-fixed \
+            --initial "$AUTOFIX_DIR/$before" --final "$AUTOFIX_DIR/final.json")
+          if [ "$MODE" = fix ]; then
+            title="Security: fix $fixed CRITICAL/HIGH image finding(s)"
+          else
+            title="Security: release v$VERSION to replace v$RELEASE ($fixed CRITICAL/HIGH finding(s))"
+          fi
+
+          # One open PR per base branch: a later run replaces its contents.
           git push --force origin "HEAD:refs/heads/$FIX_BRANCH"
-          title="Security: fix $((INITIAL - REMAINING)) of $INITIAL CRITICAL/HIGH image findings"
           pr=$(gh pr list --head "$FIX_BRANCH" --base "$BASE" --state open --json number --jq '.[].number')
           if [ -n "$pr" ]; then
             gh pr edit "$pr" --title "$title" --body-file "$AUTOFIX_DIR/pr-body.md"
