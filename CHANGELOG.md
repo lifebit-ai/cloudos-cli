@@ -11,6 +11,10 @@
 - `--storage` range for `interactive-session create` and `resume` changed from 100-5000 GB to 500-64050 GB
 - Default Azure instance type for `interactive-session create` changed from `Standard_F1s` to `Standard_D4s_v3`
 
+### Fix:
+
+- Docker image: `urllib3` updated to 2.8.0 to fix CVE-2026-97687, CVE-2026-97689
+
 ## v2.97.0 (2026-10-15)
 
 ### Feat:
