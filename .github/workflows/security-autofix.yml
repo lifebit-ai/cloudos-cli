@@ -70,6 +70,7 @@ jobs:
           version=$(git tag --list 'v*' | sed 's/^v//' | { grep -E "$final" || true; } | sort -V | tail -1)
           current=$(grep -Po "__version__\s*=\s*['\"]v?\K[^'\"]+" cloudos_cli/_version.py)
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
           # The code's version counts as released only when it is a final
           # X.Y.Z with its tag. Anything else (not tagged yet, possibly
           # because this scan blocked it, or a pre-release) is a final release
@@ -129,8 +130,10 @@ jobs:
       # - rebuild: the fresh build is already clean but the newest release
       #   is not (typically OS packages patched since it was built, which the
       #   build's apt-get upgrade picks up). Only a new release replaces the
-      #   versioned image, so the PR is a version bump. Not needed while a
-      #   release is pending: that release publishes a fresh build anyway.
+      #   versioned image, so the PR is a version bump. Only on the branch
+      #   whose version is that release: bumping an older branch would not
+      #   replace it. Not needed while a release is pending: that release
+      #   publishes a fresh build anyway.
       - name: Decide
         id: plan
         env:
@@ -139,10 +142,12 @@ jobs:
           PUBLISHED: ${{ steps.published.outputs.findings || '0' }}
           PENDING: ${{ steps.release.outputs.pending }}
           RELEASE: ${{ steps.release.outputs.version }}
+          CURRENT: ${{ steps.release.outputs.current }}
         run: |
           if [ "$CHANGED" = true ]; then
             mode=fix
-          elif [ "$REMAINING" -eq 0 ] && [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = false ]; then
+          elif [ "$REMAINING" -eq 0 ] && [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = false ] \
+               && [ "$CURRENT" = "$RELEASE" ]; then
             mode=rebuild
           else
             mode=none
@@ -156,8 +161,13 @@ jobs:
             case "$mode" in
               fix)     echo "Opening a PR with the dependency fixes." ;;
               rebuild) echo "Opening a version-bump PR so the next release republishes a clean image." ;;
-              none)    [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = true ] \
-                         && echo "The pending release in \`$BASE\` will publish a clean image." ;;
+              none)
+                if [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = true ]; then
+                  echo "The pending release in \`$BASE\` will publish a clean image."
+                elif [ "$PUBLISHED" -gt 0 ] && [ "$CURRENT" != "$RELEASE" ]; then
+                  echo "\`$BASE\` is at v$CURRENT, not v$RELEASE: run this on the branch that released v$RELEASE to replace it."
+                fi
+                ;;
             esac
           } >> "$GITHUB_STEP_SUMMARY"
 

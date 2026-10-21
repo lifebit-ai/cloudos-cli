@@ -54,11 +54,21 @@ while [ "$remaining" -gt 0 ] && [ "$round" -le "$MAX_ROUNDS" ]; do
 
   if build "$AUTOFIX_DIR/build-$round.log"; then
     "$scan" "$IMAGE" "$AUTOFIX_DIR/round-$round.json"
-    python "$autofix" record --history "$history" --build ok --report "$AUTOFIX_DIR/round-$round.json"
-    git commit -qam "Security autofix: round $round"
-    last="$AUTOFIX_DIR/round-$round.json"
-    remaining=$(count "$last")
-    echo "After round $round: $remaining finding(s) left"
+    after=$(count "$AUTOFIX_DIR/round-$round.json")
+    # Keep a round only if it reduced the findings: an edit that builds but
+    # fixes nothing would otherwise be committed, pushed and put in a PR.
+    if [ "$after" -lt "$remaining" ]; then
+      python "$autofix" record --history "$history" --build ok --report "$AUTOFIX_DIR/round-$round.json"
+      git commit -qam "Security autofix: round $round"
+      last="$AUTOFIX_DIR/round-$round.json"
+      remaining=$after
+      echo "After round $round: $remaining finding(s) left"
+    else
+      python "$autofix" record --history "$history" --build ok --report "$AUTOFIX_DIR/round-$round.json" \
+        --rolled-back "the rescan still had $after finding(s), no fewer than before"
+      git checkout -- .
+      echo "Round $round fixed nothing ($after finding(s) left), so its edits were rolled back."
+    fi
   else
     tail -30 "$AUTOFIX_DIR/build-$round.log"
     python "$autofix" record --history "$history" --build failed --build-log "$AUTOFIX_DIR/build-$round.log"

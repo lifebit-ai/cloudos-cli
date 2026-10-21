@@ -49,7 +49,7 @@ Rules:
 - Only edit: environment.yml, Dockerfile, setup.py, requirements.txt.
 - Do not change the version or the changelog; the workflow does that.
 - Do not repeat an edit an earlier round made that did not fix the finding or
-  broke the build.
+  broke the build. Those edits were rolled back and are not in the current files.
 - Every edit is an exact find-and-replace: `find` must be copied character for
   character from the current file and must occur exactly once in it.
 
@@ -217,6 +217,9 @@ def cmd_record(args):
             f"{f['id']} {f['package']} {f['installed']} (fixed in {f['fixed'] or 'none'})"
             for f in load_findings(args.report)
         ]
+    if args.rolled_back:
+        # Tells the next round this edit was undone and didn't help.
+        entry["rolled_back"] = args.rolled_back
     save_history(args.history, history)
 
 
@@ -316,7 +319,7 @@ def cmd_pr_body(args):
         intro = (
             f"The image built from `{args.base}` had **{len(initial)}** CRITICAL/HIGH "
             f"finding(s). `{args.model}` proposed fixes over {len(history)} round(s), each one "
-            f"rebuilt and rescanned; **{len(remaining)}** remain. Rounds that built were pushed "
+            f"rebuilt and rescanned; **{len(remaining)}** remain. Rounds that reduced the findings were pushed "
             "to this branch as `Security autofix` commits."
         )
         after = "After rescan"
@@ -351,6 +354,8 @@ def cmd_pr_body(args):
             line += f"; {len(entry['rejected'])} edit(s) rejected"
         if "still_failing" in entry:
             line += f"; {len(entry['still_failing'])} still failing after it"
+        if entry.get("rolled_back"):
+            line += "; rolled back, it fixed nothing"
         out.append(line)
 
     if args.version:
@@ -388,6 +393,7 @@ def main():
     record.add_argument("--build", choices=["ok", "failed"], required=True)
     record.add_argument("--build-log")
     record.add_argument("--report")
+    record.add_argument("--rolled-back", help="why the round's edits were undone")
     record.set_defaults(func=cmd_record)
 
     bump = sub.add_parser("bump-version")

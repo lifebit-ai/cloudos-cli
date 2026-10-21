@@ -115,12 +115,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run image-scan.yml --ref "$BRANCH" -f fix=false \
-            || echo "::warning::Could not start image-scan.yml on $BRANCH"
+          # These dispatches are the only thing that puts checks on the fixed
+          # commit, so try them all, then fail if any didn't start.
+          failed=""
+          gh workflow run image-scan.yml --ref "$BRANCH" -f fix=false || failed="$failed image-scan.yml"
           for workflow in ci.yml ci_az.yml ci_dev.yml; do
-            gh workflow run "$workflow" --ref "$BRANCH" \
-              || echo "::warning::Could not start $workflow on $BRANCH"
+            gh workflow run "$workflow" --ref "$BRANCH" || failed="$failed $workflow"
           done
+          if [ -n "$failed" ]; then
+            echo "::error::Could not start$failed on $BRANCH; start them by hand or request review again."
+            exit 1
+          fi
 
       - name: Comment on the PR
         if: steps.loop.outputs.rounds != '0' && github.event_name == 'pull_request'
