@@ -64,20 +64,26 @@ jobs:
         id: release
         run: |
           set -euo pipefail
-          version=$(git tag --list 'v*' | sed 's/^v//' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          final='^[0-9]+\.[0-9]+\.[0-9]+$'
+          # Empty when there is no final release yet: the published scan is
+          # then skipped and only the fresh build is checked.
+          version=$(git tag --list 'v*' | sed 's/^v//' | { grep -E "$final" || true; } | sort -V | tail -1)
           current=$(grep -Po "__version__\s*=\s*['\"]v?\K[^'\"]+" cloudos_cli/_version.py)
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          # An unreleased version in the code is a release still to come
-          # (possibly one this scan is blocking), and it will publish a fresh build.
-          if git rev-parse -q --verify "refs/tags/v$current" >/dev/null; then
+          # The code's version counts as released only when it is a final
+          # X.Y.Z with its tag. Anything else (not tagged yet, possibly
+          # because this scan blocked it, or a pre-release) is a final release
+          # still to come, which will publish a fresh build anyway.
+          if [[ "$current" =~ $final ]] && git rev-parse -q --verify "refs/tags/v$current" >/dev/null; then
             echo "pending=false" >> "$GITHUB_OUTPUT"
           else
             echo "pending=true" >> "$GITHUB_OUTPUT"
           fi
-          echo "Newest release: v$version; version in $BASE: v$current"
+          echo "Newest release: ${version:+v$version}${version:-none}; version in $BASE: v$current"
 
       - name: Scan the newest release (${{ env.QUAY_REPO }}:v${{ steps.release.outputs.version }})
         id: published
+        if: steps.release.outputs.version != ''
         uses: ./.github/actions/trivy-scan
         with:
           image: ${{ env.QUAY_REPO }}:v${{ steps.release.outputs.version }}
@@ -130,7 +136,7 @@ jobs:
         env:
           CHANGED: ${{ steps.loop.outputs.changed }}
           REMAINING: ${{ steps.loop.outputs.remaining }}
-          PUBLISHED: ${{ steps.published.outputs.findings }}
+          PUBLISHED: ${{ steps.published.outputs.findings || '0' }}
           PENDING: ${{ steps.release.outputs.pending }}
           RELEASE: ${{ steps.release.outputs.version }}
         run: |
