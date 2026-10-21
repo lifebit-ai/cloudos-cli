@@ -13,7 +13,17 @@ on:
   pull_request:
     types: [ opened, synchronize, reopened, ready_for_review, review_requested ]
     branches: [ main, dev ]
+  # A manual run only scans unless asked to fix. The run this workflow starts
+  # on its own fixed commit is a manual run too, so it never fixes and never
+  # pushes, which keeps fix -> push -> dispatch from cycling. Fixing from a
+  # manual run also needs the branch in the Bedrock role's trust policy,
+  # which accepts PRs and main only.
   workflow_dispatch:
+    inputs:
+      fix:
+        description: Let the model fix findings and push the fixes to the branch
+        type: boolean
+        default: false
 
 permissions:
   contents: write        # push the fixes to the PR branch
@@ -37,19 +47,25 @@ jobs:
     env:
       IMAGE: cloudos-cli:pr
       BRANCH: ${{ github.head_ref || github.ref_name }}
-      # PRs from forks get no secrets or OIDC token, and their branch can't be
+      # Fixes run on same-repo PRs and on manual runs that ask for them. PRs
+      # from forks get no secrets or OIDC token, and their branch can't be
       # pushed to: they are scanned, not fixed.
-      CAN_FIX: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (secrets.AWS_BEDROCK_ROLE_ARN != '' || secrets.AWS_BEARER_TOKEN_BEDROCK != '') }}
+      CAN_FIX: ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'workflow_dispatch' && inputs.fix)) && (secrets.AWS_BEDROCK_ROLE_ARN != '' || secrets.AWS_BEARER_TOKEN_BEDROCK != '') }}
       HAS_BEDROCK_ROLE: ${{ secrets.AWS_BEDROCK_ROLE_ARN != '' }}
     steps:
       # Reports and history live outside the checkout so they can't be committed.
       - name: Working directory
         run: echo "AUTOFIX_DIR=$RUNNER_TEMP/autofix" >> "$GITHUB_ENV"
 
-      # The PR branch itself, not the merge commit, so fixes can be pushed to it.
+      # The PR branch itself, not the merge commit, so fixes can be pushed to
+      # it, and from the PR's own repository, so a fork's branch is never
+      # looked up (or mistaken for a same-named one) here. Git credentials
+      # stay on the runner only when the job may push.
       - uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           ref: ${{ env.BRANCH }}
+          persist-credentials: ${{ env.CAN_FIX == 'true' }}
 
       - uses: actions/setup-python@v5
         if: env.CAN_FIX == 'true'
@@ -91,14 +107,17 @@ jobs:
 
       # GITHUB_TOKEN events don't start workflows, except workflow_dispatch.
       # So start CI, and this scan, on the fixed commit ourselves: their
-      # checks land on the PR's new head. The dispatched scan finds the
-      # image clean, pushes nothing, and so dispatches nothing further.
+      # checks land on the PR's new head. The scan is started with fix=false
+      # (see workflow_dispatch above): it only reports, needs no AWS role,
+      # and can't push or dispatch anything further.
       - name: Run CI on the fixed commit
         if: steps.loop.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for workflow in ci.yml ci_az.yml ci_dev.yml image-scan.yml; do
+          gh workflow run image-scan.yml --ref "$BRANCH" -f fix=false \
+            || echo "::warning::Could not start image-scan.yml on $BRANCH"
+          for workflow in ci.yml ci_az.yml ci_dev.yml; do
             gh workflow run "$workflow" --ref "$BRANCH" \
               || echo "::warning::Could not start $workflow on $BRANCH"
           done
@@ -116,8 +135,19 @@ jobs:
             --history "$AUTOFIX_DIR/history.json" --base "$BRANCH" --model "$BEDROCK_MODEL_ID" \
             --run-url "$RUN_URL" --output "$AUTOFIX_DIR/pr-body.md"
           cat "$AUTOFIX_DIR/pr-body.md" >> "$GITHUB_STEP_SUMMARY"
-          gh pr comment "$PR" --edit-last --body-file "$AUTOFIX_DIR/pr-body.md" 2>/dev/null \
-            || gh pr comment "$PR" --body-file "$AUTOFIX_DIR/pr-body.md"
+          # Keep one summary comment per PR, found by a hidden marker:
+          # --edit-last would edit whatever github-actions[bot] posted last,
+          # possibly another workflow's comment.
+          marker='<!-- image-scan-summary -->'
+          printf '\n%s\n' "$marker" >> "$AUTOFIX_DIR/pr-body.md"
+          id=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"$marker\"))) | .id" | tail -1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" \
+              -F body=@"$AUTOFIX_DIR/pr-body.md" >/dev/null
+          else
+            gh pr comment "$PR" --body-file "$AUTOFIX_DIR/pr-body.md"
+          fi
 
       - name: Result
         if: always() && steps.loop.outcome == 'success'
