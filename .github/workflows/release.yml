@@ -125,25 +125,15 @@ jobs:
             --build-arg SECURITY_REFRESH="$(date +%s)" \
             -t "${QUAY_REPO}:v${VER}" .
 
-      # Trivy runs as a pinned container, so there is nothing to install:
-      # Docker is already present on the runner (the build step above needs
-      # it). --exit-code 1 fails the step on any CRITICAL/HIGH, and unfixed
-      # CVEs are counted (no --ignore-unfixed), which mirrors the Harbor gate.
-      # A Trivy error exits 2, so a broken scanner also fails the step rather
-      # than silently passing the release.
+      # Same scan as the PR gate and the weekly security-autofix run (see
+      # .github/actions/trivy-scan): fails on any CRITICAL/HIGH, counts
+      # unfixed CVEs like the Harbor gate, skips what .trivyignore.yaml
+      # accepts. A Trivy error also fails the step rather than silently
+      # passing the release.
       - name: Scan image with Trivy (blocks the release on CRITICAL/HIGH)
-        run: |
-          set -euo pipefail
-          VER="${{ needs.check.outputs.version }}"
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
-            aquasec/trivy:0.74.0 image \
-              --image-src docker \
-              --scanners vuln \
-              --severity CRITICAL,HIGH \
-              --exit-code 1 \
-              "${QUAY_REPO}:v${VER}"
+        uses: ./.github/actions/trivy-scan
+        with:
+          image: ${{ env.QUAY_REPO }}:v${{ needs.check.outputs.version }}
 
       # Last check before anything leaves the runner. The concurrency group
       # above already serializes release runs, but a manual re-run of an old
