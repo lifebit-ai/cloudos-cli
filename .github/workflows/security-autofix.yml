@@ -41,36 +41,32 @@ env:
   AWS_REGION: ${{ vars.BEDROCK_REGION || 'us-west-2' }}
 
 jobs:
-  # Report only. Published tags are immutable, so a finding here can't be
-  # fixed in place: it means the pipelines pinning that tag need a new release.
+  # Report only: is the newest release (:latest, which the release workflow
+  # moves forward on every release) vulnerable today? Released images are
+  # never rebuilt in place, so a finding here is fixed by the next release.
   published:
-    name: Scan published ${{ matrix.tag }}
+    name: Scan published latest
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        tag: ${{ fromJSON(vars.SCAN_PUBLISHED_TAGS || '["latest", "v2.96.0"]') }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Scan ${{ env.QUAY_REPO }}:${{ matrix.tag }}
+      - name: Scan ${{ env.QUAY_REPO }}:latest
         id: scan
         uses: ./.github/actions/trivy-scan
         with:
-          image: ${{ env.QUAY_REPO }}:${{ matrix.tag }}
+          image: ${{ env.QUAY_REPO }}:latest
           image-src: remote
           fail-on-findings: "false"
 
       - name: Summary
         env:
-          TAG: ${{ matrix.tag }}
           FINDINGS: ${{ steps.scan.outputs.findings }}
         run: |
           if [ "$FINDINGS" -gt 0 ]; then
-            echo "::warning::$QUAY_REPO:$TAG has $FINDINGS CRITICAL/HIGH finding(s)"
-            echo "**$QUAY_REPO:$TAG**: $FINDINGS CRITICAL/HIGH finding(s). Pipelines pinning this tag need a newer release." >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::$QUAY_REPO:latest has $FINDINGS CRITICAL/HIGH finding(s)"
+            echo "**$QUAY_REPO:latest**: $FINDINGS CRITICAL/HIGH finding(s); the next release fixes them." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "**$QUAY_REPO:$TAG**: clean" >> "$GITHUB_STEP_SUMMARY"
+            echo "**$QUAY_REPO:latest**: clean" >> "$GITHUB_STEP_SUMMARY"
           fi
 
   fix:
@@ -121,6 +117,10 @@ jobs:
         env:
           AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
         run: |
+          # An unset secret still arrives as an empty variable, and boto3
+          # switches to API-key auth whenever the variable exists, even
+          # empty, ignoring the role's credentials.
+          [ -n "$AWS_BEARER_TOKEN_BEDROCK" ] || unset AWS_BEARER_TOKEN_BEDROCK
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           .github/scripts/autofix_loop.sh
