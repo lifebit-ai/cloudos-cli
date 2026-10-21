@@ -18,6 +18,7 @@ on:
 permissions:
   contents: write        # push the fixes to the PR branch
   pull-requests: write   # comment the scan and fix summary on the PR
+  actions: write         # start CI on the fixed commit
   id-token: write        # OIDC to AWS for Bedrock
 
 # Opening a PR and requesting review fire together: keep only the latest run.
@@ -87,6 +88,20 @@ jobs:
       - name: Push the fixes to the PR branch
         if: steps.loop.outputs.changed == 'true'
         run: git push origin "HEAD:refs/heads/$BRANCH"
+
+      # GITHUB_TOKEN events don't start workflows, except workflow_dispatch.
+      # So start CI, and this scan, on the fixed commit ourselves: their
+      # checks land on the PR's new head. The dispatched scan finds the
+      # image clean, pushes nothing, and so dispatches nothing further.
+      - name: Run CI on the fixed commit
+        if: steps.loop.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for workflow in ci.yml ci_az.yml ci_dev.yml image-scan.yml; do
+            gh workflow run "$workflow" --ref "$BRANCH" \
+              || echo "::warning::Could not start $workflow on $BRANCH"
+          done
 
       - name: Comment on the PR
         if: steps.loop.outputs.rounds != '0' && github.event_name == 'pull_request'
