@@ -58,12 +58,13 @@ jobs:
 
       # The newest final release, from git tags rather than :latest, so the
       # versioned image pipelines pin is the one checked. Moves with every
-      # release; pre-releases are skipped, as they are for :latest.
+      # release. Only plain vX.Y.Z tags count: anything with a suffix
+      # (rc1, b2, -alpha.1, ...) is a pre-release, as it is for :latest.
       - name: Find the newest release
         id: release
         run: |
           set -euo pipefail
-          version=$(git tag --list 'v*' | sed 's/^v//' | grep -Ev '(a|b|rc)[0-9]*$' | sort -V | tail -1)
+          version=$(git tag --list 'v*' | sed 's/^v//' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
           current=$(grep -Po "__version__\s*=\s*['\"]v?\K[^'\"]+" cloudos_cli/_version.py)
           echo "version=$version" >> "$GITHUB_OUTPUT"
           # An unreleased version in the code is a release still to come
