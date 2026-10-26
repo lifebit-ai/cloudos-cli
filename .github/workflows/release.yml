@@ -127,9 +127,8 @@ jobs:
 
       # Same scan as the PR gate and the weekly security-autofix run (see
       # .github/actions/trivy-scan): fails on any CRITICAL/HIGH, counts
-      # unfixed CVEs like the Harbor gate, skips what .trivyignore.yaml
-      # accepts. A Trivy error also fails the step rather than silently
-      # passing the release.
+      # unfixed CVEs like the Harbor gate. A Trivy error also fails the step
+      # rather than silently passing the release.
       - name: Scan image with Trivy (blocks the release on CRITICAL/HIGH)
         uses: ./.github/actions/trivy-scan
         with:

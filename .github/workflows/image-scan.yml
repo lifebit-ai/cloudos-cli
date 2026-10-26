@@ -128,10 +128,11 @@ jobs:
           fi
 
       - name: Comment on the PR
-        if: steps.loop.outputs.rounds != '0' && github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && env.CAN_FIX == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
+          ROUNDS: ${{ steps.loop.outputs.rounds }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
@@ -150,7 +151,8 @@ jobs:
           if [ -n "$id" ]; then
             gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" \
               -F body=@"$AUTOFIX_DIR/pr-body.md" >/dev/null
-          else
+          # A PR that was clean from the start gets no comment.
+          elif [ "$ROUNDS" != 0 ]; then
             gh pr comment "$PR" --body-file "$AUTOFIX_DIR/pr-body.md"
           fi
 

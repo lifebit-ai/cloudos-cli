@@ -10,7 +10,7 @@
 # --exit-code is deliberately not set): callers count the findings and decide
 # what they mean, because the release gate fails on them and the weekly scan
 # does not. Unfixed CVEs are counted (no --ignore-unfixed), which mirrors the
-# Harbor gate. CVEs accepted in .trivyignore.yaml at the repo root are skipped.
+# Harbor gate.
 set -euo pipefail
 
 image=$1
@@ -22,11 +22,6 @@ severity=${SEVERITY:-CRITICAL,HIGH}
 mkdir -p "$(dirname "$report")" "$HOME/.cache/trivy"
 report_dir=$(cd "$(dirname "$report")" && pwd)
 report_name=$(basename "$report")
-
-ignore=()
-if [ -f .trivyignore.yaml ]; then
-  ignore=(--ignorefile /src/.trivyignore.yaml)
-fi
 
 # Local runs only: behind a TLS-inspecting VPN, Trivy can't verify the DB or
 # registry downloads. TRIVY_CA_BUNDLE points at a PEM bundle of the public
@@ -56,7 +51,6 @@ trivy image \
   --severity "$severity" \
   --format json \
   --output "/out/$report_name" \
-  ${ignore[@]+"${ignore[@]}"} \
   "$image"
 
 trivy convert --format table "/out/$report_name"

@@ -23,7 +23,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-ALLOWED_FILES = ("environment.yml", "Dockerfile", "setup.py", "requirements.txt")
+ALLOWED_FILES = ("environment.yml", "requirements.txt")
+# Shown to the model for context only; never edited.
+CONTEXT_FILES = ("Dockerfile", "setup.py")
 VERSION_FILE = Path("cloudos_cli/_version.py")
 CHANGELOG = Path("CHANGELOG.md")
 
@@ -46,7 +48,7 @@ earlier rounds tried. For each finding:
   leave it and say why.
 
 Rules:
-- Only edit: environment.yml, Dockerfile, setup.py, requirements.txt.
+- Only edit: environment.yml, requirements.txt.
 - Do not change the version or the changelog; the workflow does that.
 - Do not repeat an edit an earlier round made that did not fix the finding or
   broke the build. Those edits were rolled back and are not in the current files.
@@ -97,7 +99,7 @@ def save_history(path, history):
 def build_prompt(findings, history, round_no, max_rounds):
     files = "\n\n".join(
         f"=== {name} ===\n{Path(name).read_text()}"
-        for name in ALLOWED_FILES if Path(name).exists()
+        for name in ALLOWED_FILES + CONTEXT_FILES if Path(name).exists()
     )
     earlier = json.dumps(history, indent=2) if history else "none, this is the first round"
     return (
@@ -238,7 +240,9 @@ def changelog_lines(packages):
         return ["- Docker image: dependency updates for security findings"]
     lines = []
     for package, findings in sorted(packages.items()):
-        fixed = max((f["fixed"] for f in findings), key=len, default="")
+        # Trivy may list several fixed versions ("1.26.19, 2.2.2"); name the highest.
+        versions = [v.strip() for f in findings for v in f["fixed"].split(",") if v.strip()]
+        fixed = max(versions, key=lambda v: [int(n) for n in re.findall(r"\d+", v)], default="")
         ids = ", ".join(sorted({f["id"] for f in findings}))
         target = f" to {fixed}" if fixed else ""
         lines.append(f"- Docker image: `{package}` updated{target} to fix {ids}")

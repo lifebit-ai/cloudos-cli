@@ -223,7 +223,7 @@ jobs:
           fi
 
       # Clean: nothing to do. Anything left needs a person (a manual fix or an
-      # S&C exemption in .trivyignore.yaml), so the run goes red to say so.
+      # S&C exemption), so the run goes red to say so.
       - name: Result
         if: always() && steps.loop.outcome == 'success'
         env:

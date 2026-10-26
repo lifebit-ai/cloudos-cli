@@ -13,6 +13,13 @@ on:
 permissions:
   contents: read
 
+# A pull_request run and the image scan's dispatch on the same branch share a
+# group, so a run on a stale commit is cancelled instead of racing the new one
+# on the same CloudOS workspace.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   Pytest:
     runs-on: ubuntu-latest

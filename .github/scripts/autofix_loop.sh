@@ -42,11 +42,25 @@ round=1
 while [ "$remaining" -gt 0 ] && [ "$round" -le "$MAX_ROUNDS" ]; do
   echo "::group::Round $round of $MAX_ROUNDS"
   rounds=$round
-  python "$autofix" fix --report "$last" --history "$history" \
-    --round "$round" --max-rounds "$MAX_ROUNDS" --model "$BEDROCK_MODEL_ID"
+  if ! python "$autofix" fix --report "$last" --history "$history" \
+    --round "$round" --max-rounds "$MAX_ROUNDS" --model "$BEDROCK_MODEL_ID"; then
+    # Bedrock throttling, a timeout or an unusable reply: keep the rounds
+    # already committed and report them instead of failing the whole job.
+    echo "::warning::Round $round: the model call failed; keeping the earlier rounds."
+    echo "::endgroup::"
+    break
+  fi
 
   if git diff --quiet; then
-    echo "The model proposed no edits that apply; stopping."
+    # Rejected edits are in the history with their reason, so the next round
+    # can correct them; stop only when the model proposed nothing at all.
+    if jq -e '.[-1].rejected | length > 0' "$history" >/dev/null; then
+      echo "No proposed edit applied; retrying with the rejections as feedback."
+      echo "::endgroup::"
+      round=$((round + 1))
+      continue
+    fi
+    echo "The model proposed no edits; stopping."
     echo "::endgroup::"
     break
   fi
