@@ -13,6 +13,14 @@ on:
 permissions:
   contents: read
 
+# A pull_request run and the image scan's dispatch on the same branch share a
+# group, so a run on a stale commit is cancelled instead of racing the new one
+# on the same CloudOS workspace. The head repository is part of the key so two
+# forks' PRs from same-named branches don't cancel each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   job_list_dev:
     runs-on: ubuntu-latest
