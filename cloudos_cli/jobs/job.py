@@ -975,6 +975,8 @@ class Job(Cloudos):
         for file in result_script.get('files', []):
             if file.get("name") == command_name:
                 custom_script_item = file.get("_id")
+                if not custom_script_item:
+                    raise ValueError(f'Custom script "{command_name}" has no file ID.')
                 break
         else:
             raise ValueError(f'Custom script "{command_name}" not found in the "{command_dir}" folder.')

@@ -69,6 +69,12 @@ def test_setup_custom_script_command_listing_without_files():
         _job_without_init().setup_custom_script_command("Data/run.sh", ds)
 
 
+def test_setup_custom_script_command_file_without_id():
+    ds = _ds_with_files([{"name": "run.sh"}])
+    with pytest.raises(ValueError, match='Custom script "run.sh" has no file ID'):
+        _job_without_init().setup_custom_script_command("Data/run.sh", ds)
+
+
 def test_setup_params_array_file_uses_custom_script():
     job = _job_without_init()
     job.array_file_id = "9876"
