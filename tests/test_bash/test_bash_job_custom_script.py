@@ -1,5 +1,6 @@
 """pytest tests for --custom-script-path in 'cloudos bash job'"""
 import json
+import re
 import click
 import mock
 import pytest
@@ -44,13 +45,13 @@ def test_setup_custom_script_command_found():
 
 def test_setup_custom_script_command_not_found():
     ds = _ds_with_files([{"name": "other.sh", "_id": "000"}])
-    with pytest.raises(ValueError, match='Custom script "command.sh" not found'):
+    with pytest.raises(ValueError, match=re.escape('Custom script "command.sh" not found')):
         _job_without_init().setup_custom_script_command("Data/command.sh", ds)
 
 
 def test_setup_custom_script_command_requires_folder():
     ds = _ds_with_files([{"name": "run.sh", "_id": SCRIPT_ID}])
-    with pytest.raises(ValueError, match='"run.sh" must include its folder, e.g. Data/run.sh'):
+    with pytest.raises(ValueError, match=re.escape('"run.sh" must include its folder, e.g. Data/run.sh')):
         _job_without_init().setup_custom_script_command("run.sh", ds)
     ds.list_folder_content.assert_not_called()
 
@@ -65,13 +66,13 @@ def test_setup_custom_script_command_nested_path():
 def test_setup_custom_script_command_listing_without_files():
     ds = mock.MagicMock()
     ds.list_folder_content.return_value = {"folders": []}
-    with pytest.raises(ValueError, match='Custom script "run.sh" not found in the "Data" folder'):
+    with pytest.raises(ValueError, match=re.escape('Custom script "run.sh" not found in the "Data" folder')):
         _job_without_init().setup_custom_script_command("Data/run.sh", ds)
 
 
 def test_setup_custom_script_command_file_without_id():
     ds = _ds_with_files([{"name": "run.sh"}])
-    with pytest.raises(ValueError, match='Custom script "run.sh" has no file ID'):
+    with pytest.raises(ValueError, match=re.escape('Custom script "run.sh" has no file ID')):
         _job_without_init().setup_custom_script_command("Data/run.sh", ds)
 
 
