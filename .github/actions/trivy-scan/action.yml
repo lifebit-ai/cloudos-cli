@@ -1,0 +1,49 @@
+name: Trivy image scan
+description: >
+  Scan a Docker image with Trivy and, by default, fail on any CRITICAL/HIGH
+  finding, as the Harbor gate does. One scan definition for the release gate,
+  the PR gate and the weekly scan, so they cannot drift apart.
+
+inputs:
+  image:
+    description: Image reference to scan
+    required: true
+  image-src:
+    description: Where Trivy reads the image from ("docker" for a local build, "remote" for the registry)
+    default: docker
+  report:
+    description: Path for the JSON report (defaults to $RUNNER_TEMP/trivy-report.json)
+    default: ""
+  fail-on-findings:
+    description: Fail the step when there is at least one CRITICAL/HIGH finding
+    default: "true"
+
+outputs:
+  findings:
+    description: Number of CRITICAL/HIGH findings
+    value: ${{ steps.scan.outputs.findings }}
+  report:
+    description: Path of the JSON report
+    value: ${{ steps.scan.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - id: scan
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.image }}
+        IMAGE_SRC: ${{ inputs.image-src }}
+        REPORT: ${{ inputs.report }}
+        FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings }}
+      run: |
+        set -euo pipefail
+        report="${REPORT:-$RUNNER_TEMP/trivy-report.json}"
+        "$GITHUB_ACTION_PATH/scan.sh" "$IMAGE" "$report" "$IMAGE_SRC"
+        findings=$(jq '[.Results[]?.Vulnerabilities[]?] | length' "$report")
+        echo "findings=$findings" >> "$GITHUB_OUTPUT"
+        echo "report=$report" >> "$GITHUB_OUTPUT"
+        if [ "$findings" -gt 0 ] && [ "$FAIL_ON_FINDINGS" = "true" ]; then
+          echo "::error::$findings CRITICAL/HIGH finding(s) in $IMAGE"
+          exit 1
+        fi

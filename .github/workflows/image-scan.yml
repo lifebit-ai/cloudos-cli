@@ -1,0 +1,185 @@
+name: Image scan
+
+# On a PR: build and scan the image with the PR's changes. While CRITICAL/HIGH
+# findings remain, an open model on AWS Bedrock proposes dependency fixes, the
+# image is rebuilt and rescanned (up to MAX_ROUNDS times), and the fixes are
+# pushed to the PR branch. The job fails while anything remains, so a PR can't
+# merge an image the release gate would reject.
+#
+# It runs on every PR, not only ones touching the Dockerfile or dependencies:
+# a CVE published since the last release fails the release whatever the PR
+# changed, and this is where to find out.
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review, review_requested ]
+    branches: [ main, dev ]
+  # A manual run only scans unless asked to fix. The run this workflow starts
+  # on its own fixed commit is a manual run too, so it never fixes and never
+  # pushes, which keeps fix -> push -> dispatch from cycling. Fixing from a
+  # manual run also needs the branch in the Bedrock role's trust policy,
+  # which accepts PRs and main only.
+  workflow_dispatch:
+    inputs:
+      fix:
+        description: Let the model fix findings and push the fixes to the branch
+        type: boolean
+        default: false
+
+permissions:
+  contents: write        # push the fixes to the PR branch
+  pull-requests: write   # comment the scan and fix summary on the PR
+  actions: write         # start CI on the fixed commit
+  id-token: write        # OIDC to AWS for Bedrock
+
+# Opening a PR and requesting review fire together: keep only the latest run.
+concurrency:
+  group: image-scan-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID || 'openai.gpt-oss-120b-1:0' }}
+  AWS_REGION: ${{ vars.BEDROCK_REGION || 'us-west-2' }}
+
+jobs:
+  scan:
+    name: Build, scan and fix
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: cloudos-cli:pr
+      BRANCH: ${{ github.head_ref || github.ref_name }}
+      # Fixes run on same-repo PRs and on manual runs that ask for them. PRs
+      # from forks get no secrets or OIDC token, and their branch can't be
+      # pushed to: they are scanned, not fixed.
+      CAN_FIX: ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'workflow_dispatch' && inputs.fix)) && (secrets.AWS_BEDROCK_ROLE_ARN != '' || secrets.AWS_BEARER_TOKEN_BEDROCK != '') }}
+      HAS_BEDROCK_ROLE: ${{ secrets.AWS_BEDROCK_ROLE_ARN != '' }}
+    steps:
+      # Reports and history live outside the checkout so they can't be committed.
+      - name: Working directory
+        run: echo "AUTOFIX_DIR=$RUNNER_TEMP/autofix" >> "$GITHUB_ENV"
+
+      # The PR branch itself, not the merge commit, so fixes can be pushed to
+      # it, and from the PR's own repository, so a fork's branch is never
+      # looked up (or mistaken for a same-named one) here. Git credentials
+      # stay on the runner only when the job may push.
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ env.BRANCH }}
+          persist-credentials: ${{ env.CAN_FIX == 'true' }}
+
+      - uses: actions/setup-python@v5
+        if: env.CAN_FIX == 'true'
+        with:
+          python-version: "3.11"
+
+      - name: Install Bedrock client
+        if: env.CAN_FIX == 'true'
+        run: python -m pip install "boto3>=1.40"
+
+      - name: Assume the Bedrock role
+        if: env.CAN_FIX == 'true' && env.HAS_BEDROCK_ROLE == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_BEDROCK_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Same build as the release, SECURITY_REFRESH included, so the PR sees
+      # what the release would ship today. MAX_ROUNDS=0 is a plain scan.
+      - name: Build, scan, fix, rescan
+        id: loop
+        env:
+          AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
+          MAX_ROUNDS: ${{ env.CAN_FIX == 'true' && '3' || '0' }}
+        run: |
+          # An unset secret still arrives as an empty variable, and boto3
+          # switches to API-key auth whenever the variable exists, even
+          # empty, ignoring the role's credentials.
+          [ -n "$AWS_BEARER_TOKEN_BEDROCK" ] || unset AWS_BEARER_TOKEN_BEDROCK
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          .github/scripts/autofix_loop.sh
+
+      # Pushed with GITHUB_TOKEN, so the push doesn't start another run of
+      # this or any other workflow: the rescan above is the check on it.
+      - name: Push the fixes to the PR branch
+        if: steps.loop.outputs.changed == 'true'
+        run: git push origin "HEAD:refs/heads/$BRANCH"
+
+      # GITHUB_TOKEN events don't start workflows, except workflow_dispatch.
+      # So start CI, and this scan, on the fixed commit ourselves: their
+      # checks land on the PR's new head. The scan is started with fix=false
+      # (see workflow_dispatch above): it only reports, needs no AWS role,
+      # and can't push or dispatch anything further.
+      - name: Run CI on the fixed commit
+        if: steps.loop.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # These dispatches are the only thing that puts checks on the fixed
+          # commit, so try them all, then fail if any didn't start.
+          failed=""
+          gh workflow run image-scan.yml --ref "$BRANCH" -f fix=false || failed="$failed image-scan.yml"
+          for workflow in ci.yml ci_az.yml ci_dev.yml; do
+            gh workflow run "$workflow" --ref "$BRANCH" || failed="$failed $workflow"
+          done
+          if [ -n "$failed" ]; then
+            echo "::error::Could not start$failed on $BRANCH; start them by hand or request review again."
+            exit 1
+          fi
+
+      - name: Comment on the PR
+        if: github.event_name == 'pull_request' && env.CAN_FIX == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          ROUNDS: ${{ steps.loop.outputs.rounds }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          python .github/scripts/autofix.py pr-body --mode pr \
+            --initial "$AUTOFIX_DIR/initial.json" --final "$AUTOFIX_DIR/final.json" \
+            --history "$AUTOFIX_DIR/history.json" --base "$BRANCH" --model "$BEDROCK_MODEL_ID" \
+            --run-url "$RUN_URL" --output "$AUTOFIX_DIR/pr-body.md"
+          cat "$AUTOFIX_DIR/pr-body.md" >> "$GITHUB_STEP_SUMMARY"
+          # Keep one summary comment per PR, found by a hidden marker:
+          # --edit-last would edit whatever github-actions[bot] posted last,
+          # possibly another workflow's comment.
+          marker='<!-- image-scan-summary -->'
+          printf '\n%s\n' "$marker" >> "$AUTOFIX_DIR/pr-body.md"
+          id=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"$marker\"))) | .id" | tail -1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" \
+              -F body=@"$AUTOFIX_DIR/pr-body.md" >/dev/null
+          # A PR that was clean from the start gets no comment.
+          elif [ "$ROUNDS" != 0 ]; then
+            gh pr comment "$PR" --body-file "$AUTOFIX_DIR/pr-body.md"
+          fi
+
+      - name: Result
+        if: always() && steps.loop.outcome == 'success'
+        env:
+          INITIAL: ${{ steps.loop.outputs.initial }}
+          REMAINING: ${{ steps.loop.outputs.remaining }}
+          CHANGED: ${{ steps.loop.outputs.changed }}
+        run: |
+          echo "Initial findings: $INITIAL, remaining: $REMAINING"
+          if [ "$REMAINING" -gt 0 ]; then
+            if [ "$CAN_FIX" = true ]; then
+              echo "::error::$REMAINING CRITICAL/HIGH finding(s) the automatic fix couldn't resolve: fix by hand or request an S&C exemption."
+            else
+              echo "::error::$REMAINING CRITICAL/HIGH finding(s). Automatic fixes don't run on PRs from forks."
+            fi
+            exit 1
+          fi
+          if [ "$CHANGED" = true ]; then
+            echo "::notice::Fixes pushed to $BRANCH; the image built from them passes the scan."
+          fi
+
+      - name: Keep reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-scan-reports
+          path: ${{ env.AUTOFIX_DIR }}
+          if-no-files-found: ignore

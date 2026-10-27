@@ -1,6 +1,6 @@
 ## lifebit-ai/cloudos-cli: changelog
 
-## v2.99.0 (2026-10-19)
+## v2.99.0 (2026-10-27)
 
 ### Feat:
 
@@ -10,6 +10,12 @@
 ### Fix:
 
 - `bash array-job` raises a clear error when the `--custom-script-path` file is not found
+
+## v2.98.1 (2026-10-26)
+
+### Fix:
+
+- Docker image: `urllib3` raised to 2.8.0 to fix CVE-2026-97687, CVE-2026-97689, and `Brotli` to 1.2.1 to fix GHSA-9v8h-qqgm-4m35
 
 ## v2.98.0 (2026-10-15)
 
