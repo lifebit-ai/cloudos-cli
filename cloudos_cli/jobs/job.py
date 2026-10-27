@@ -8,7 +8,7 @@ import json
 from cloudos_cli.clos import Cloudos
 from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.requests import retry_requests_post, retry_requests_get, retry_requests_delete
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
 import base64
 import re
@@ -955,7 +955,7 @@ class Job(Cloudos):
         Raises
         ------
         ValueError
-            If the custom script is not found in the specified folder.
+            If the custom script path has no folder, or the script is not found in it.
 
         Returns
         -------
@@ -964,11 +964,15 @@ class Job(Cloudos):
                 - "command": The custom script file name.
                 - "customScriptFile": Details of the custom script file.
         """
-        command_path = Path(custom_script_path)
+        # File Explorer paths are always '/'-separated, whatever the local OS
+        command_path = PurePosixPath(custom_script_path.strip('/'))
         command_dir = str(command_path.parent)
+        if command_dir == '.':
+            raise ValueError(f'Custom script path "{custom_script_path}" must include its folder, '
+                             f'e.g. Data/{command_path.name}.')
         command_name = command_path.name
         result_script = ds_custom.list_folder_content(command_dir)
-        for file in result_script['files']:
+        for file in result_script.get('files', []):
             if file.get("name") == command_name:
                 custom_script_item = file.get("_id")
                 break

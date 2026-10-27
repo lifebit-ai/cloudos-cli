@@ -48,6 +48,27 @@ def test_setup_custom_script_command_not_found():
         _job_without_init().setup_custom_script_command("Data/command.sh", ds)
 
 
+def test_setup_custom_script_command_requires_folder():
+    ds = _ds_with_files([{"name": "run.sh", "_id": SCRIPT_ID}])
+    with pytest.raises(ValueError, match='"run.sh" must include its folder, e.g. Data/run.sh'):
+        _job_without_init().setup_custom_script_command("run.sh", ds)
+    ds.list_folder_content.assert_not_called()
+
+
+def test_setup_custom_script_command_nested_path():
+    ds = _ds_with_files([{"name": "run.sh", "_id": SCRIPT_ID}])
+    cmd = _job_without_init().setup_custom_script_command("Data/a/b/run.sh", ds)
+    assert cmd["command"] == "run.sh"
+    ds.list_folder_content.assert_called_once_with("Data/a/b")
+
+
+def test_setup_custom_script_command_listing_without_files():
+    ds = mock.MagicMock()
+    ds.list_folder_content.return_value = {"folders": []}
+    with pytest.raises(ValueError, match='Custom script "run.sh" not found in the "Data" folder'):
+        _job_without_init().setup_custom_script_command("Data/run.sh", ds)
+
+
 def test_setup_params_array_file_uses_custom_script():
     job = _job_without_init()
     job.array_file_id = "9876"
@@ -96,3 +117,19 @@ def test_bash_job_sends_text_command():
     gen_ds.assert_not_called()
     job.setup_custom_script_command.assert_not_called()
     assert job.send_job.call_args.kwargs["command"] == {"command": "echo hi"}
+
+
+@pytest.mark.parametrize("extra_args", [
+    ['bash', 'job'] + base_args[2:],
+    ['bash', 'array-job'] + base_args[2:] + ['--array-file', 'Data/array.csv', '-a', 'id=id'],
+])
+def test_command_and_custom_script_are_mutually_exclusive(extra_args):
+    with mock.patch('cloudos_cli.bash.cli.jb.Job') as job_cls:
+        result = CliRunner().invoke(
+            run_cloudos_cli,
+            extra_args + ['--command', 'run.sh --threads 8', '--custom-script-path', 'Data/run.sh']
+        )
+
+    assert result.exit_code == 2
+    assert "Use either --command or --custom-script-path, not both." in click.unstyle(result.output)
+    job_cls.assert_not_called()

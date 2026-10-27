@@ -1851,9 +1851,9 @@ cloudos bash job \
     --resumable
 ```
 
-Either `--command` or `--custom-script-path` is required and will setup the command for the parameters to run.
+Either `--command` or `--custom-script-path` is required (but not both) and will setup the command for the parameters to run.
 
-Instead of a command, a script stored in File Explorer can be run with `--custom-script-path`. When added, `--command` is ignored. Use `--custom-script-project` if the script is placed in a project different from `--project-name`:
+Instead of a command, a script stored in File Explorer can be run with `--custom-script-path`, which cannot be combined with `--command`. Use `--custom-script-project` if the script is placed in a project different from `--project-name`:
 
 ```bash
 cloudos bash job \
@@ -1954,7 +1954,7 @@ id,bgen,csv
 and in the command there is need to go over the `bgen` column, this can be specified as `--array-parameter file=bgen`, refering to the column in the header.
 
 ###### Custom Script Path
-- **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter `--command` is ignored. To ensure the script runs successfully, you must either:
+- **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. It cannot be combined with `--command`. To ensure the script runs successfully, you must either:
 
 1. Use a Shebang Line at the Top of the Script
 

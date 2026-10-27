@@ -24,7 +24,7 @@ def bash():
               help='Your Lifebit Platform API key',
               required=True)
 @click.option('--command',
-              help='The command to run in the bash job.')
+              help='The command to run in the bash job. Required unless --custom-script-path is set.')
 @click.option('-c',
               '--cloudos-url',
               help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
@@ -157,6 +157,8 @@ def run_bash_job(ctx,
 
     if not (command or custom_script_path):
         raise click.UsageError("Must provide --command or --custom-script-path.")
+    if command and custom_script_path:
+        raise click.UsageError("Use either --command or --custom-script-path, not both.")
 
     # this needs to be in another call to datasets, by default it uses the global project name
     if custom_script_project is None:
@@ -257,7 +259,8 @@ def run_bash_job(ctx,
               help='Your Lifebit Platform API key',
               required=True)
 @click.option('--command',
-              help='The command to run in the bash job.')
+              help=('The command to run in the bash job. Required unless --custom-script-path ' +
+                    'or --list-columns is set.'))
 @click.option('-c',
               '--cloudos-url',
               help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
@@ -422,6 +425,8 @@ def run_bash_array_job(ctx,
 
     if not list_columns and not (command or custom_script_path):
         raise click.UsageError("Must provide --command or --custom-script-path if --list-columns is not set.")
+    if command and custom_script_path:
+        raise click.UsageError("Use either --command or --custom-script-path, not both.")
 
     # when not set, use the global project name
     if array_file_project is None:
