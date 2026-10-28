@@ -271,6 +271,35 @@ class TestRedactParams:
         assert result == ["cloudos", "job", "run", "--apikey", "***", "-k", "***", "-k***",
                           "--apikey=***", "--cromwell-token", "***", "--workspace-id", "ws123", "--debug"]
 
+    def test_redact_argv_masks_cromwell_token_short_flag(self):
+        """Test that -t (--cromwell-token) values are masked"""
+        assert redact_argv(["cloudos", "cromwell", "status", "-t", "secret1", "-tsecret2"]) == \
+            ["cloudos", "cromwell", "status", "-t", "***", "-t***"]
+
+    def test_redact_argv_masks_secret_assignments(self):
+        """Test that secret name=value assignments inside free-form args are masked"""
+        argv = ["cloudos", "bash", "job", "--parameter", "password=secret1", "--parameter", "reads=s3://bucket/r.fq",
+                "--parameter=db_token=secret2", "--command", "export API_KEY='secret 3' && echo GENOME=hg38"]
+
+        result = redact_argv(argv)
+
+        assert result == ["cloudos", "bash", "job", "--parameter", "password=***", "--parameter", "reads=s3://bucket/r.fq",
+                          "--parameter=db_token=***", "--command", "export API_KEY=*** && echo GENOME=hg38"]
+
+    def test_redact_params_masks_secret_assignments(self):
+        """Test that secret name=value assignments inside parameter and command values are masked"""
+        params = {
+            "parameter": ("password=secret1", "reads=s3://bucket/r.fq", "-db_token=secret2"),
+            "command": 'export TOKEN="secret 3"; run --genome=hg38',
+            "workspace_id": "ws123",
+        }
+
+        result = redact_params(params)
+
+        assert result["parameter"] == ("password=***", "reads=s3://bucket/r.fq", "-db_token=***")
+        assert result["command"] == "export TOKEN=***; run --genome=hg38"
+        assert result["workspace_id"] == "ws123"
+
     @patch('sys.argv', ['cloudos', 'job', 'run', '--apikey', 'my-secret-apikey-1234', '--workspace-id', 'ws123'])
     def test_set_seed_from_argv_redacts_apikey(self):
         """Test that the argv seed, used before Click has parsed, does not keep the apikey"""

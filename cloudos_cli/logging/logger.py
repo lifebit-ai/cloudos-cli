@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 import json
 import datetime as dt
 import logging
@@ -14,8 +15,10 @@ _cmd_filter_instance = None
 # Click params whose values must never be written to a log
 SECRET_PARAM_NAMES = {"apikey", "cromwell_token"}
 SECRET_PARAM_MARKERS = ("token", "secret", "password", "key")
-SECRET_SHORT_FLAGS = {"-k"}  # -k is --apikey on every command
+SECRET_SHORT_FLAGS = {"-k", "-t"}  # -k is --apikey and -t is --cromwell-token on every command
 REDACTED = "***"
+# name=value assignments inside free-form values, e.g. --parameter password=X or --command "TOKEN=X ..."
+ASSIGNMENT_RE = re.compile(r"""([A-Za-z0-9_.-]+)=("[^"]*"|'[^']*'|\S+)""")
 
 
 def _is_secret_param(name):
@@ -23,12 +26,25 @@ def _is_secret_param(name):
     return name in SECRET_PARAM_NAMES or any(marker in name for marker in SECRET_PARAM_MARKERS)
 
 
+def _redact_assignments(value):
+    """Mask secret-named name=value assignments inside a string, list or tuple."""
+    if isinstance(value, str):
+        # recurse into non-secret values to catch nested ones, e.g. --parameter=password=X
+        return ASSIGNMENT_RE.sub(
+            lambda m: f"{m.group(1)}={REDACTED if _is_secret_param(m.group(1)) else _redact_assignments(m.group(2))}",
+            value,
+        )
+    if isinstance(value, (list, tuple)):
+        return type(value)(_redact_assignments(item) for item in value)
+    return value
+
+
 def redact_params(params):
     """Return a copy of params with secret-bearing values masked."""
     if not isinstance(params, dict):
         return params
     return {
-        name: REDACTED if value is not None and _is_secret_param(name) else value
+        name: REDACTED if value is not None and _is_secret_param(name) else _redact_assignments(value)
         for name, value in params.items()
     }
 
@@ -51,9 +67,13 @@ def redact_argv(argv):
                     arg = f"--{name}={REDACTED}"
                 else:
                     mask_next = True
+            else:
+                arg = _redact_assignments(arg)
         elif arg[:2] in SECRET_SHORT_FLAGS:
             # attached value, e.g. -kVALUE
             arg = arg[:2] + REDACTED
+        else:
+            arg = _redact_assignments(arg)
         out.append(arg)
     return out
 
