@@ -5,8 +5,11 @@ name: Security autofix
 # Bedrock proposes fixes to the dependency files, the image is rebuilt and
 # rescanned (up to MAX_ROUNDS times), and the result is opened as a PR. If the
 # build is clean but the released image is not, the PR is a version bump so
-# the next release replaces it. Nothing is ever merged or published from
-# here: the release workflow still does that, and still runs its own scan.
+# the next release replaces it. If main's version is still untagged (its
+# release was blocked by the scan) and the build is clean as it is, the release
+# is re-run instead. The release workflow also starts this one when its scan
+# blocks a release. Nothing is ever merged or published from here: the release
+# workflow still does that, and still runs its own scan.
 on:
   schedule:
     - cron: "0 6 * * 2"   # Tuesday 06:00 UTC
@@ -20,6 +23,7 @@ permissions:
   contents: write        # push the fix branch
   pull-requests: write   # open or update the fix PR
   id-token: write        # OIDC to AWS for Bedrock, when a role is configured
+  actions: write         # re-run a blocked release whose fresh build is now clean
 
 concurrency:
   group: security-autofix-${{ github.ref }}
@@ -134,6 +138,10 @@ jobs:
       #   whose version is that release: bumping an older branch would not
       #   replace it. Not needed while a release is pending: that release
       #   publishes a fresh build anyway.
+      # And one reason to re-run the release instead of opening a PR:
+      # - release: main's version is untagged (its release was blocked by the
+      #   scan, or never ran) and the fresh build is clean without changing
+      #   any file. Rebuilding the same commit is then all the release needs.
       - name: Decide
         id: plan
         env:
@@ -149,6 +157,9 @@ jobs:
           elif [ "$REMAINING" -eq 0 ] && [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = false ] \
                && [ "$CURRENT" = "$RELEASE" ]; then
             mode=rebuild
+          elif [ "$REMAINING" -eq 0 ] && [ "$BASE" = main ] \
+               && ! git rev-parse -q --verify "refs/tags/v$CURRENT" >/dev/null; then
+            mode=release
           else
             mode=none
           fi
@@ -161,6 +172,7 @@ jobs:
             case "$mode" in
               fix)     echo "Opening a PR with the dependency fixes." ;;
               rebuild) echo "Opening a version-bump PR so the next release republishes a clean image." ;;
+              release) echo "v$CURRENT is untagged and \`$BASE\` now builds clean: re-running the release." ;;
               none)
                 if [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = true ]; then
                   echo "The pending release in \`$BASE\` will publish a clean image."
@@ -171,9 +183,21 @@ jobs:
             esac
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # The release workflow rebuilds and rescans on its own, and its check
+      # job skips if the tag appeared meanwhile, so a dispatch that turns out
+      # unneeded is harmless.
+      - name: Re-run the release
+        if: steps.plan.outputs.mode == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$BASE"
+          echo "Started the release workflow on $BASE."
+
       - name: Version and changelog
         id: version
-        if: steps.plan.outputs.mode != 'none'
+        if: steps.plan.outputs.mode == 'fix' || steps.plan.outputs.mode == 'rebuild'
         env:
           MODE: ${{ steps.plan.outputs.mode }}
         run: |
@@ -185,7 +209,7 @@ jobs:
           git commit -qam "Security autofix: version and changelog"
 
       - name: Open or update the PR
-        if: steps.plan.outputs.mode != 'none'
+        if: steps.plan.outputs.mode == 'fix' || steps.plan.outputs.mode == 'rebuild'
         env:
           GH_TOKEN: ${{ secrets.SECURITY_BOT_TOKEN || github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

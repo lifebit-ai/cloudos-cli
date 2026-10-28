@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.99.1 (2026-10-28)
+
+### Fix:
+
+- fixes version for `msgpack-python>=1.2.3` in environment.yml
+- A release blocked by the Trivy scan now starts the Security autofix workflow, which opens a fix PR, or re-runs the release when the image already builds clean
+
 ## v2.99.0 (2026-10-27)
 
 ### Feat:
