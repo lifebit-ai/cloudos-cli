@@ -383,7 +383,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.clos</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cloudos</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">BadRequestException</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry_requests_post</span><span class="p">,</span> <span class="n">retry_requests_get</span><span class="p">,</span> <span class="n">retry_requests_delete</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">PurePosixPath</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
@@ -1342,6 +1342,58 @@
         <span class="k">return</span> <span class="n">r</span></div>
 
 
+<div class="viewcode-block" id="Job.setup_custom_script_command">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.setup_custom_script_command">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_custom_script_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_script_path</span><span class="p">,</span> <span class="n">ds_custom</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Builds the command payload for a bash job that runs a File Explorer custom script.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_script_path : str</span>
+<span class="sd">            File Explorer path to the custom script file (e.g. Data/scripts/run.sh).</span>
+<span class="sd">        ds_custom : object</span>
+<span class="sd">            An object providing access to folder content listing functionality.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the custom script path has no folder, or the script is not found in it.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary containing:</span>
+<span class="sd">                - "command": The custom script file name.</span>
+<span class="sd">                - "customScriptFile": Details of the custom script file.</span>
+<span class="sd">        """</span>
+        <span class="c1"># File Explorer paths are always '/'-separated, whatever the local OS</span>
+        <span class="n">command_path</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">custom_script_path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">'/'</span><span class="p">))</span>
+        <span class="n">command_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">command_path</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">command_dir</span> <span class="o">==</span> <span class="s1">'.'</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Custom script path "</span><span class="si">{</span><span class="n">custom_script_path</span><span class="si">}</span><span class="s1">" must include its folder, '</span>
+                             <span class="sa">f</span><span class="s1">'e.g. Data/</span><span class="si">{</span><span class="n">command_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.'</span><span class="p">)</span>
+        <span class="n">command_name</span> <span class="o">=</span> <span class="n">command_path</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">result_script</span> <span class="o">=</span> <span class="n">ds_custom</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">command_dir</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">result_script</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'files'</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span> <span class="o">==</span> <span class="n">command_name</span><span class="p">:</span>
+                <span class="n">custom_script_item</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"_id"</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">custom_script_item</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Custom script "</span><span class="si">{</span><span class="n">command_name</span><span class="si">}</span><span class="s1">" has no file ID.'</span><span class="p">)</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Custom script "</span><span class="si">{</span><span class="n">command_name</span><span class="si">}</span><span class="s1">" not found in the "</span><span class="si">{</span><span class="n">command_dir</span><span class="si">}</span><span class="s1">" folder.'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"command"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">command_name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="s2">"customScriptFile"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"dataItem"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"File"</span><span class="p">,</span>
+                    <span class="s2">"item"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">custom_script_item</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span></div>
+
+
 <div class="viewcode-block" id="Job.setup_params_array_file">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.jobs.job.html#cloudos_cli.jobs.job.Job.setup_params_array_file">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">setup_params_array_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_script_path</span><span class="p">,</span> <span class="n">ds_custom</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">separator</span><span class="p">):</span>
@@ -1369,24 +1421,8 @@
 <span class="sd">                - "arrayFile": Details of the array file and its separator.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">custom_script_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">command_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">custom_script_path</span><span class="p">)</span>
-            <span class="n">command_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">command_path</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
-            <span class="n">command_name</span> <span class="o">=</span> <span class="n">command_path</span><span class="o">.</span><span class="n">name</span>
-            <span class="n">result_script</span> <span class="o">=</span> <span class="n">ds_custom</span><span class="o">.</span><span class="n">list_folder_content</span><span class="p">(</span><span class="n">command_dir</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">result_script</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span> <span class="o">==</span> <span class="n">command_name</span><span class="p">:</span>
-                    <span class="n">custom_script_item</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"_id"</span><span class="p">)</span>
-                    <span class="k">break</span>
             <span class="c1"># use this in case the command is in a custom script</span>
-            <span class="n">cmd</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">"command"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">command_name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="s2">"customScriptFile"</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">"dataItem"</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"File"</span><span class="p">,</span>
-                        <span class="s2">"item"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">custom_script_item</span><span class="si">}</span><span class="s2">"</span>
-                    <span class="p">}</span>
-                <span class="p">}</span>
-            <span class="p">}</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup_custom_script_command</span><span class="p">(</span><span class="n">custom_script_path</span><span class="p">,</span> <span class="n">ds_custom</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># use this for text commands</span>
             <span class="n">cmd</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"command"</span><span class="p">:</span> <span class="n">command</span><span class="p">}</span>

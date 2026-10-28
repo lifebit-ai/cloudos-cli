@@ -1838,6 +1838,36 @@ the SSL certificate file.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.setup_custom_script_command">
+<span class="sig-name descname"><span class="pre">setup_custom_script_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">custom_script_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_custom</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job.setup_custom_script_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job.setup_custom_script_command" title="Link to this definition">¶</a></dt>
+<dd><p>Builds the command payload for a bash job that runs a File Explorer custom script.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>custom_script_path</strong> (<em>str</em>) – File Explorer path to the custom script file (e.g. Data/scripts/run.sh).</p></li>
+<li><p><strong>ds_custom</strong> (<em>object</em>) – An object providing access to folder content listing functionality.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the custom script path has no folder, or the script is not found in it.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>A dictionary containing:</dt><dd><ul class="simple">
+<li><p>”command”: The custom script file name.</p></li>
+<li><p>”customScriptFile”: Details of the custom script file.</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.jobs.job.Job.setup_params_array_file">
 <span class="sig-name descname"><span class="pre">setup_params_array_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">custom_script_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_custom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separator</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/jobs/job.html#Job.setup_params_array_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.jobs.job.Job.setup_params_array_file" title="Link to this definition">¶</a></dt>
 <dd><p>Sets up a dictionary representing command parameters, including support for custom scripts
@@ -2265,6 +2295,7 @@ want to paginate through the cached results.</p>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.retrieve_cols_from_array_file"><code class="docutils literal notranslate"><span class="pre">Job.retrieve_cols_from_array_file()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.save_job_list_to_csv"><code class="docutils literal notranslate"><span class="pre">Job.save_job_list_to_csv()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.send_job"><code class="docutils literal notranslate"><span class="pre">Job.send_job()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.setup_custom_script_command"><code class="docutils literal notranslate"><span class="pre">Job.setup_custom_script_command()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.setup_params_array_file"><code class="docutils literal notranslate"><span class="pre">Job.setup_params_array_file()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.split_array_file_params"><code class="docutils literal notranslate"><span class="pre">Job.split_array_file_params()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.jobs.job.Job.strip_inline_comment"><code class="docutils literal notranslate"><span class="pre">Job.strip_inline_comment()</span></code></a></li>

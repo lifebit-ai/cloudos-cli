@@ -2049,7 +2049,18 @@ Archived jobs remain fully accessible - archiving is purely for organizational p
 <span class="w">    </span>--resumable
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">--command</span></code> parameter is required and will setup the command for the parameters to run.</p>
+<p>Either <code class="docutils literal notranslate"><span class="pre">--command</span></code> or <code class="docutils literal notranslate"><span class="pre">--custom-script-path</span></code> is required (but not both) and will setup the command for the parameters to run.</p>
+<p>Instead of a command, a script stored in File Explorer can be run with <code class="docutils literal notranslate"><span class="pre">--custom-script-path</span></code>, which cannot be combined with <code class="docutils literal notranslate"><span class="pre">--command</span></code>. Use <code class="docutils literal notranslate"><span class="pre">--custom-script-project</span></code> if the script is placed in a project different from <code class="docutils literal notranslate"><span class="pre">--project-name</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>bash<span class="w"> </span>job<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--profile<span class="w"> </span>my_profile<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--workflow-name<span class="w"> </span>ubuntu<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--parameter<span class="w"> </span>--flag<span class="o">=</span>activate<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--job-name<span class="w"> </span><span class="nv">$JOB_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--custom-script-path<span class="w"> </span>Data/scripts/my_script.sh<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--custom-script-project<span class="w"> </span>my_scripts_project
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="#custom-script-path"><span class="xref myst">Custom Script Path</span></a> for how to make the script executable (shebang line or interpreter command).</p>
 <p>Each <code class="docutils literal notranslate"><span class="pre">--parameter</span></code> can have a different prefix, either ‘–’, ‘-’, or ‘’, depending on the use case. These can be used as many times as needed.</p>
 <blockquote>
 <div><p>[!NOTE]
@@ -2155,7 +2166,7 @@ specify a column named ‘value’ in the array file header. Adding array parame
 <section id="custom-script-path">
 <h6>Custom Script Path<a class="headerlink" href="#custom-script-path" title="Link to this heading">¶</a></h6>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">--custom-script-path</span></code></strong>: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter <code class="docutils literal notranslate"><span class="pre">--command</span></code> is ignored. To ensure the script runs successfully, you must either:</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">--custom-script-path</span></code></strong>: Specifies the path to a custom script to run in the bash array job instead of a command. It cannot be combined with <code class="docutils literal notranslate"><span class="pre">--command</span></code>. To ensure the script runs successfully, you must either:</p></li>
 </ul>
 <ol class="arabic simple">
 <li><p>Use a Shebang Line at the Top of the Script</p></li>

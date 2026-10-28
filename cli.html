@@ -433,7 +433,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-array-job-command">
 <span class="sig-name descname"><span class="pre">--command</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;command&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-array-job-command" title="Link to this definition">¶</a></dt>
-<dd><p>The command to run in the bash job.</p>
+<dd><p>The command to run in the bash job. Required unless –custom-script-path or –list-columns is set.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -661,7 +661,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-command">
 <span class="sig-name descname"><span class="pre">--command</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;command&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-command" title="Link to this definition">¶</a></dt>
-<dd><p><strong>Required</strong> The command to run in the bash job.</p>
+<dd><p>The command to run in the bash job. Required unless –custom-script-path is set.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -697,7 +697,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-p">
 <span id="cmdoption-cloudos-bash-job-parameter"></span><span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--parameter</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;parameter&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-p" title="Link to this definition">¶</a></dt>
-<dd><p>A single parameter to pass to the job call. It should be in the following form: parameter_name=parameter_value. E.g.: -p –test=value or -p -test=value or -p test=value. You can use this option as many times as parameters you want to include.</p>
+<dd><p>A single parameter to pass to the job call. It should be in the following form: parameter_name=parameter_value. E.g.: -p –test=value or -p -test=value or -p test=value. You can use this option as many times as parameters you want to include. For parameters pointing to a file, the format expected is parameter_name=&lt;project&gt;/Data/parameter_value. The parameter value must be a file located in the <cite>Data</cite> subfolder. If no &lt;project&gt; is specified, it defaults to the project specified by the profile or –project-name parameter. E.g.: -p “–file=Data/file.txt” or “–file=&lt;project&gt;/Data/folder/file.txt”</p>
 </dd></dl>
 
 <dl class="std option">
@@ -802,15 +802,27 @@
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-profile">
+<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-profile" title="Link to this definition">¶</a></dt>
+<dd><p>Profile to use from the config file</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-custom-script-path">
+<span class="sig-name descname"><span class="pre">--custom-script-path</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;custom_script_path&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-custom-script-path" title="Link to this definition">¶</a></dt>
+<dd><p>Path of a custom script to run in the bash job instead of a command.</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-debug">
 <span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-debug" title="Link to this definition">¶</a></dt>
 <dd><p>Show detailed error information and tracebacks</p>
 </dd></dl>
 
 <dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-profile">
-<span class="sig-name descname"><span class="pre">--profile</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-profile" title="Link to this definition">¶</a></dt>
-<dd><p>Profile to use from the config file</p>
+<dt class="sig sig-object std" id="cmdoption-cloudos-bash-job-custom-script-project">
+<span class="sig-name descname"><span class="pre">--custom-script-project</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;custom_script_project&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-bash-job-custom-script-project" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the project to use when running the custom command script, if different than –project-name.</p>
 </dd></dl>
 
 </section>
