@@ -286,6 +286,20 @@ class TestRedactParams:
         assert result == ["cloudos", "bash", "job", "--parameter", "password=***", "--parameter", "reads=s3://bucket/r.fq",
                           "--parameter=db_token=***", "--command", "export API_KEY=*** && echo GENOME=hg38"]
 
+    def test_redact_assignments_masks_whole_secret_values(self):
+        """Test that secrets with spaces or escaped quotes are fully masked"""
+        params = {
+            "parameter": ("password=two words", "--db_token=a b c", "reads=s3://bucket/r f.fq"),
+            "command": 'export API_KEY="a\\"b-secret" && echo done',
+        }
+
+        result = redact_params(params)
+
+        assert result["parameter"] == ("password=***", "--db_token=***", "reads=s3://bucket/r f.fq")
+        assert result["command"] == "export API_KEY=*** && echo done"
+        assert redact_argv(["cloudos", "--parameter", "password=two words", "--parameter=password=two words"]) == \
+            ["cloudos", "--parameter", "password=***", "--parameter=password=***"]
+
     def test_redact_params_masks_secret_assignments(self):
         """Test that secret name=value assignments inside parameter and command values are masked"""
         params = {

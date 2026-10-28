@@ -18,7 +18,8 @@ SECRET_PARAM_MARKERS = ("token", "secret", "password", "key")
 SECRET_SHORT_FLAGS = {"-k", "-t"}  # -k is --apikey and -t is --cromwell-token on every command
 REDACTED = "***"
 # name=value assignments inside free-form values, e.g. --parameter password=X or --command "TOKEN=X ..."
-ASSIGNMENT_RE = re.compile(r"""([A-Za-z0-9_.-]+)=("[^"]*"|'[^']*'|\S+)""")
+ASSIGNMENT_RE = re.compile(r"""([A-Za-z0-9_.-]+)=("(?:[^"\\]|\\.)*"|'[^']*'|\S+)""")
+ASSIGNMENT_NAME_RE = re.compile(r"[A-Za-z0-9_.-]+")
 
 
 def _is_secret_param(name):
@@ -29,6 +30,11 @@ def _is_secret_param(name):
 def _redact_assignments(value):
     """Mask secret-named name=value assignments inside a string, list or tuple."""
     if isinstance(value, str):
+        name, sep, rest = value.partition("=")
+        if sep and ASSIGNMENT_NAME_RE.fullmatch(name):
+            # the whole value is one assignment, so mask everything after "=",
+            # e.g. --parameter "password=two words"
+            return f"{name}={REDACTED if _is_secret_param(name) else _redact_assignments(rest)}"
         # recurse into non-secret values to catch nested ones, e.g. --parameter=password=X
         return ASSIGNMENT_RE.sub(
             lambda m: f"{m.group(1)}={REDACTED if _is_secret_param(m.group(1)) else _redact_assignments(m.group(2))}",
