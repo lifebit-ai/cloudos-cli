@@ -11,6 +11,36 @@ from cloudos_cli._version import __version__
 
 _cmd_filter_instance = None
 
+# Click params whose values must never be written to a log
+SECRET_PARAM_NAMES = {"apikey", "cromwell_token"}
+SECRET_PARAM_MARKERS = ("token", "secret", "password", "key")
+REDACTED = "***"
+
+
+def _is_secret_param(name):
+    name = str(name).lower()
+    return name in SECRET_PARAM_NAMES or any(marker in name for marker in SECRET_PARAM_MARKERS)
+
+
+def redact_params(params):
+    """Return a copy of params with secret-bearing values masked."""
+    if not isinstance(params, dict):
+        return params
+    return {
+        name: REDACTED if value is not None and _is_secret_param(name) else value
+        for name, value in params.items()
+    }
+
+
+class PrivateFileHandler(logging.FileHandler):
+    """FileHandler whose log file is only readable by its owner (0600)."""
+    def _open(self):
+        fd = os.open(self.baseFilename, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        os.close(fd)
+        # also tighten a file that already existed with looser permissions
+        os.chmod(self.baseFilename, 0o600)
+        return super()._open()
+
 
 class LogFormatter(logging.Formatter):
     def __init__(self, *, fmt_keys=None):
@@ -41,7 +71,7 @@ class LogFormatter(logging.Formatter):
 
 
 class CommandContextFilter(logging.Filter):
-    """Injects record.command and record.params everywhere."""
+    """Injects record.command and record.params (with secrets redacted) everywhere."""
     def __init__(self, command=None, params=None):
         super().__init__()
         self.command = command
@@ -59,8 +89,7 @@ class CommandContextFilter(logging.Filter):
     def filter(self, record):
         if not hasattr(record, "command"):
             record.command = self.command
-        if not hasattr(record, "params"):
-            record.params = self.params
+        record.params = redact_params(getattr(record, "params", self.params))
         return True
 
 
@@ -87,7 +116,7 @@ LOG_CONFIG = {
     },
     "handlers": {
         "file": {
-            "class": "logging.FileHandler",
+            "class": "cloudos_cli.logging.logger.PrivateFileHandler",
             "level": "DEBUG",
             "formatter": "json",
             "filters": ["cmdctx"],
@@ -130,7 +159,9 @@ def setup_logging(debug):
     # build a timestamped log filename
     ts = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     log_dir = os.path.join(Path.home(), ".cloudos/logs")
-    os.makedirs(log_dir, exist_ok=True)
+    os.makedirs(log_dir, mode=0o700, exist_ok=True)
+    # makedirs leaves an existing directory's mode untouched
+    os.chmod(log_dir, 0o700)
     config["handlers"]["file"]["filename"] = os.path.join(log_dir, f"cloudos-{ts}.jsonl")
 
     # adjust log level if requested
