@@ -14,6 +14,7 @@ _cmd_filter_instance = None
 # Click params whose values must never be written to a log
 SECRET_PARAM_NAMES = {"apikey", "cromwell_token"}
 SECRET_PARAM_MARKERS = ("token", "secret", "password", "key")
+SECRET_SHORT_FLAGS = {"-k"}  # -k is --apikey on every command
 REDACTED = "***"
 
 
@@ -32,8 +33,37 @@ def redact_params(params):
     }
 
 
+def redact_argv(argv):
+    """Return a copy of argv with the values of secret options masked."""
+    out = []
+    mask_next = False
+    for arg in argv:
+        if mask_next:
+            out.append(REDACTED)
+            mask_next = False
+            continue
+        if arg in SECRET_SHORT_FLAGS:
+            mask_next = True
+        elif arg.startswith("--"):
+            name, sep, _ = arg[2:].partition("=")
+            if _is_secret_param(name.replace("-", "_")):
+                if sep:
+                    arg = f"--{name}={REDACTED}"
+                else:
+                    mask_next = True
+        elif arg[:2] in SECRET_SHORT_FLAGS:
+            # attached value, e.g. -kVALUE
+            arg = arg[:2] + REDACTED
+        out.append(arg)
+    return out
+
+
 class PrivateFileHandler(logging.FileHandler):
-    """FileHandler whose log file is only readable by its owner (0600)."""
+    """FileHandler whose log file is only readable by its owner (0600).
+
+    On Windows, chmod only toggles the read-only flag, so access there is
+    governed by the ACL inherited from the user's profile directory.
+    """
     def _open(self):
         fd = os.open(self.baseFilename, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
         os.close(fd)
@@ -78,7 +108,7 @@ class CommandContextFilter(logging.Filter):
         self.params = params
 
     def set_seed_from_argv(self):
-        self.command = " ".join(sys.argv)
+        self.command = " ".join(redact_argv(sys.argv))
         self.params = None
 
     def set_from_click_ctx(self, ctx):

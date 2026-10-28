@@ -13,6 +13,7 @@ from cloudos_cli.logging.logger import (
     LogFormatter,
     CommandContextFilter,
     PrivateFileHandler,
+    redact_argv,
     redact_params,
     _cmd_filter_factory,
     setup_logging,
@@ -259,6 +260,24 @@ class TestRedactParams:
     def test_redact_params_non_dict(self):
         """Test that non-dict params are returned unchanged"""
         assert redact_params(None) is None
+
+    def test_redact_argv_masks_secret_option_values(self):
+        """Test that secret option values are masked in every argv form"""
+        argv = ["cloudos", "job", "run", "--apikey", "secret1", "-k", "secret2", "-ksecret3",
+                "--apikey=secret4", "--cromwell-token", "secret5", "--workspace-id", "ws123", "--debug"]
+
+        result = redact_argv(argv)
+
+        assert result == ["cloudos", "job", "run", "--apikey", "***", "-k", "***", "-k***",
+                          "--apikey=***", "--cromwell-token", "***", "--workspace-id", "ws123", "--debug"]
+
+    @patch('sys.argv', ['cloudos', 'job', 'run', '--apikey', 'my-secret-apikey-1234', '--workspace-id', 'ws123'])
+    def test_set_seed_from_argv_redacts_apikey(self):
+        """Test that the argv seed, used before Click has parsed, does not keep the apikey"""
+        filter_obj = CommandContextFilter()
+        filter_obj.set_seed_from_argv()
+
+        assert filter_obj.command == "cloudos job run --apikey *** --workspace-id ws123"
 
     def test_filter_redacts_apikey_from_click_ctx(self):
         """Test that the apikey value never reaches an emitted record's params"""

@@ -4,8 +4,8 @@
 
 ### Fix:
 
-- Log files in `~/.cloudos/logs` no longer contain secrets: `apikey`, `cromwell_token` and any parameter whose name contains `token`, `secret`, `password` or `key` is written as `***`
-- The `~/.cloudos/logs` directory is now created (or reset) with mode 0700 and each log file with mode 0600, so other local users can't read them
+- Log files in `~/.cloudos/logs` no longer contain secrets: `apikey`, `cromwell_token` and any parameter whose name contains `token`, `secret`, `password` or `key` is written as `***`, in both the logged parameters and the logged command line
+- On Linux and macOS, the `~/.cloudos/logs` directory is now created (or reset) with mode 0700 and each log file with mode 0600, so other local users can't read them
 
 ## v2.99.1 (2026-10-28)
 
