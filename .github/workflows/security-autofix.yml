@@ -192,6 +192,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          # A queued or running release already rebuilds and rescans. Its
+          # concurrency group keeps one pending run, so a dispatch would also
+          # replace a queued push run, and only a push run starts this
+          # workflow again if its scan fails.
+          active=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release.yml --branch "$BASE" \
+            --json status --jq '[.[] | select(.status != "completed")] | length')
+          if [ "$active" -gt 0 ]; then
+            echo "A release run is already queued or running on $BASE; not dispatching another."
+            exit 0
+          fi
           gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$BASE"
           echo "Started the release workflow on $BASE."
 
