@@ -237,6 +237,7 @@ def release_repo(tmp_path, monkeypatch):
     reports = argparse.Namespace(
         initial=write_json(tmp_path / "i.json", trivy_report(vuln("CVE-1", "urllib3", "2.8.0"))),
         final=write_json(tmp_path / "f.json", trivy_report()),
+        published=False,
     )
     return tmp_path, env, reports
 
@@ -264,3 +265,15 @@ def test_bump_version_before_a_release_adds_to_the_pending_one(release_repo):
     top = changelog[changelog.index("## v1.2.0"):changelog.index("## v1.1.0")]
     assert "### Feat:\n\n- Something new\n\n### Fix:\n\n- Docker image: `urllib3` updated to 2.8.0" in top
     assert "version=1.2.0\nbumped=false\n" in (repo / "github_output").read_text()
+
+
+def test_bump_version_of_an_untagged_but_published_version_starts_a_patch_release(release_repo):
+    repo, _, reports = release_repo
+    reports.published = True
+
+    autofix.cmd_bump_version(reports)
+
+    assert (repo / "cloudos_cli" / "_version.py").read_text() == "__version__ = '1.2.1'\n"
+    changelog = (repo / "CHANGELOG.md").read_text()
+    assert changelog.index("## v1.2.1 (") < changelog.index("## v1.2.0 (")
+    assert "version=1.2.1\nbumped=true\n" in (repo / "github_output").read_text()

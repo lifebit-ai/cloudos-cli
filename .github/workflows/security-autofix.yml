@@ -5,8 +5,11 @@ name: Security autofix
 # Bedrock proposes fixes to the dependency files, the image is rebuilt and
 # rescanned (up to MAX_ROUNDS times), and the result is opened as a PR. If the
 # build is clean but the released image is not, the PR is a version bump so
-# the next release replaces it. Nothing is ever merged or published from
-# here: the release workflow still does that, and still runs its own scan.
+# the next release replaces it. If main's version is still untagged (its
+# release was blocked by the scan) and the build is clean as it is, the release
+# is re-run instead. The release workflow also starts this one when its scan
+# blocks a release. Nothing is ever merged or published from here: the release
+# workflow still does that, and still runs its own scan.
 on:
   schedule:
     - cron: "0 6 * * 2"   # Tuesday 06:00 UTC
@@ -20,6 +23,7 @@ permissions:
   contents: write        # push the fix branch
   pull-requests: write   # open or update the fix PR
   id-token: write        # OIDC to AWS for Bedrock, when a role is configured
+  actions: write         # re-run a blocked release whose fresh build is now clean
 
 concurrency:
   group: security-autofix-${{ github.ref }}
@@ -134,6 +138,10 @@ jobs:
       #   whose version is that release: bumping an older branch would not
       #   replace it. Not needed while a release is pending: that release
       #   publishes a fresh build anyway.
+      # And one reason to re-run the release instead of opening a PR:
+      # - release: main's version is untagged (its release was blocked by the
+      #   scan, or never ran) and the fresh build is clean without changing
+      #   any file. Rebuilding the same commit is then all the release needs.
       - name: Decide
         id: plan
         env:
@@ -144,15 +152,31 @@ jobs:
           RELEASE: ${{ steps.release.outputs.version }}
           CURRENT: ${{ steps.release.outputs.current }}
         run: |
+          # The release pushes the image and uploads to PyPI before it tags,
+          # so a run that failed after `docker push` leaves v$CURRENT on Quay
+          # without a tag. Re-running it would only stop at the registry
+          # guard, every week: that state needs a person.
+          untagged=false
+          on_quay=false
+          if ! git rev-parse -q --verify "refs/tags/v$CURRENT" >/dev/null; then
+            untagged=true
+            if docker manifest inspect "$QUAY_REPO:v$CURRENT" >/dev/null 2>&1; then
+              on_quay=true
+            fi
+          fi
           if [ "$CHANGED" = true ]; then
             mode=fix
           elif [ "$REMAINING" -eq 0 ] && [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = false ] \
                && [ "$CURRENT" = "$RELEASE" ]; then
             mode=rebuild
+          elif [ "$REMAINING" -eq 0 ] && [ "$BASE" = main ] && [ "$untagged" = true ] \
+               && [ "$on_quay" = false ]; then
+            mode=release
           else
             mode=none
           fi
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "on_quay=$on_quay" >> "$GITHUB_OUTPUT"
           {
             echo "**$QUAY_REPO:v$RELEASE** (newest release): $PUBLISHED CRITICAL/HIGH finding(s)"
             echo ""
@@ -161,8 +185,11 @@ jobs:
             case "$mode" in
               fix)     echo "Opening a PR with the dependency fixes." ;;
               rebuild) echo "Opening a version-bump PR so the next release republishes a clean image." ;;
+              release) echo "v$CURRENT is untagged and \`$BASE\` now builds clean." ;;
               none)
-                if [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = true ]; then
+                if [ "$on_quay" = true ]; then
+                  echo "$QUAY_REPO:v$CURRENT is published but v$CURRENT has no git tag: a release failed after pushing the image, possibly before PyPI. Bump the version to release again. Don't tag it by hand: later releases would then skip v$CURRENT and its missing steps would never run."
+                elif [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = true ]; then
                   echo "The pending release in \`$BASE\` will publish a clean image."
                 elif [ "$PUBLISHED" -gt 0 ] && [ "$CURRENT" != "$RELEASE" ]; then
                   echo "\`$BASE\` is at v$CURRENT, not v$RELEASE: run this on the branch that released v$RELEASE to replace it."
@@ -171,21 +198,50 @@ jobs:
             esac
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # The release workflow rebuilds and rescans on its own, and its check
+      # job skips if the tag appeared meanwhile. The run that started this
+      # workflow has finished by now: it ends seconds after the dispatch, and
+      # the build and scans above take minutes.
+      - name: Re-run the release
+        if: steps.plan.outputs.mode == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # A queued or running release already rebuilds and rescans. Its
+          # concurrency group keeps one pending run, so a dispatch would also
+          # replace a queued push run, and only a push run starts this
+          # workflow again if its scan fails.
+          active=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release.yml --branch "$BASE" \
+            --json status --jq '[.[] | select(.status != "completed")] | length')
+          if [ "$active" -gt 0 ]; then
+            msg="A release run is already queued or running on \`$BASE\`; not dispatching another."
+          else
+            gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$BASE"
+            msg="Re-running the release on \`$BASE\`."
+          fi
+          echo "$msg"
+          echo "$msg" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Version and changelog
         id: version
-        if: steps.plan.outputs.mode != 'none'
+        if: steps.plan.outputs.mode == 'fix' || steps.plan.outputs.mode == 'rebuild'
         env:
           MODE: ${{ steps.plan.outputs.mode }}
+          ON_QUAY: ${{ steps.plan.outputs.on_quay }}
         run: |
           # What the changelog says was fixed: the fresh build's findings for
           # a fix, the published image's for a rebuild.
           if [ "$MODE" = fix ]; then before=initial.json; else before=published.json; fi
+          # An untagged version already on Quay can't be released again.
+          published=""
+          if [ "$ON_QUAY" = true ]; then published=--published; fi
           python .github/scripts/autofix.py bump-version \
-            --initial "$AUTOFIX_DIR/$before" --final "$AUTOFIX_DIR/final.json"
+            --initial "$AUTOFIX_DIR/$before" --final "$AUTOFIX_DIR/final.json" $published
           git commit -qam "Security autofix: version and changelog"
 
       - name: Open or update the PR
-        if: steps.plan.outputs.mode != 'none'
+        if: steps.plan.outputs.mode == 'fix' || steps.plan.outputs.mode == 'rebuild'
         env:
           GH_TOKEN: ${{ secrets.SECURITY_BOT_TOKEN || github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -223,19 +279,30 @@ jobs:
           fi
 
       # Clean: nothing to do. Anything left needs a person (a manual fix or an
-      # S&C exemption), so the run goes red to say so.
+      # S&C exemption, or a version bump for a release that failed after
+      # publishing its image), so the run goes red to say so.
       - name: Result
         if: always() && steps.loop.outcome == 'success'
         env:
           INITIAL: ${{ steps.loop.outputs.initial }}
           REMAINING: ${{ steps.loop.outputs.remaining }}
           ROUNDS: ${{ steps.loop.outputs.rounds }}
+          MODE: ${{ steps.plan.outputs.mode }}
+          ON_QUAY: ${{ steps.plan.outputs.on_quay }}
+          CURRENT: ${{ steps.release.outputs.current }}
         run: |
           echo "Initial findings: $INITIAL, after $ROUNDS round(s): $REMAINING"
+          failed=false
           if [ "$REMAINING" -gt 0 ]; then
             echo "::error::$REMAINING CRITICAL/HIGH finding(s) still need a person: fix by hand or request an S&C exemption."
-            exit 1
+            failed=true
           fi
+          # A fix PR bumps past it; with nothing to fix, no PR does.
+          if [ "$MODE" = none ] && [ "$ON_QUAY" = true ]; then
+            echo "::error::$QUAY_REPO:v$CURRENT is published but v$CURRENT has no git tag; bump the version to release again."
+            failed=true
+          fi
+          [ "$failed" = false ]
 
       - name: Keep reports
         if: always()

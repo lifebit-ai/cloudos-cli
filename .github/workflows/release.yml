@@ -3,6 +3,12 @@ name: Secure Release (manual Docker/PyPI; OIDC without helper actions)
 on:
   push:
     branches: [ main ]  # run on merges to main
+  # A release blocked by the scan is retried by rebuilding the same commit, for
+  # when the fix needs no file change (an Ubuntu patch reaching the archive, a
+  # withdrawn advisory). Security autofix starts it when its fresh build of
+  # main is clean and the version is still untagged. Only main releases: the
+  # check job refuses any other ref.
+  workflow_dispatch:
 
 permissions:
   contents: write   # to create/push git tags with GITHUB_TOKEN
@@ -60,7 +66,11 @@ jobs:
         run: |
           set -euo pipefail
           TAG="${{ steps.version.outputs.GIT_TAG }}"
-          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Releases are cut from main only, not $GITHUB_REF."
+            echo "RELEASE=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          elif git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
             echo "$TAG already exists: this version has shipped, nothing to do."
             echo "Bump __version__ in cloudos_cli/_version.py to cut a new release."
             echo "RELEASE=false" >> "$GITHUB_OUTPUT"
@@ -73,6 +83,8 @@ jobs:
     needs: check
     if: needs.check.outputs.release == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      scan: ${{ steps.scan.outcome }}
 
     steps:
       - name: Checkout (full history)
@@ -130,6 +142,7 @@ jobs:
       # unfixed CVEs like the Harbor gate. A Trivy error also fails the step
       # rather than silently passing the release.
       - name: Scan image with Trivy (blocks the release on CRITICAL/HIGH)
+        id: scan
         uses: ./.github/actions/trivy-scan
         with:
           image: ${{ env.QUAY_REPO }}:v${{ needs.check.outputs.version }}
@@ -239,3 +252,30 @@ jobs:
           draft: false
           prerelease: ${{ contains(needs.check.outputs.version, 'a') || contains(needs.check.outputs.version, 'b') || contains(needs.check.outputs.version, 'rc') }}
           generate_release_notes: true
+
+  # -------- RECOVERY --------
+  # The PR scan ran before approval; a CVE published between then and the
+  # merge only shows up in the release scan. Hand it to Security autofix, which
+  # rebuilds main, fixes the dependency files and opens a PR (no version bump:
+  # this version is still untagged). Merging that PR is a push to main, which
+  # runs this workflow again. If its build is already clean it starts this
+  # workflow by hand instead. Only from a push, so a manual retry that fails
+  # again stops here rather than cycling. A dispatch made with GITHUB_TOKEN
+  # does start the other workflow, unlike a push or a PR.
+  #
+  # Its own job so that actions: write reaches only this one gh call, not the
+  # check job or the third-party actions in the release job.
+  recover:
+    needs: release
+    if: failure() && needs.release.outputs.scan == 'failure' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write   # to start Security autofix
+    steps:
+      - name: Start Security autofix on the blocked release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run security-autofix.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
+          echo "::notice::Started Security autofix on $GITHUB_REF_NAME; its fix PR, once merged, re-runs this release."

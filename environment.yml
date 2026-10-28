@@ -12,3 +12,4 @@ dependencies:
     - numpy>=1.26.4
     - urllib3>=2.8.0
     - brotli>=1.2.1
+    - msgpack-python>=1.2.3

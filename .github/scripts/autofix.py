@@ -268,8 +268,10 @@ def cmd_bump_version(args):
 
     # A released version is immutable on Quay and PyPI, so the fix has to ship
     # as a new patch release. An unreleased one (a release blocked by this very
-    # scan) just takes the fix with it.
-    if git_tag_exists(f"v{current}"):
+    # scan) just takes the fix with it. A version whose image is on Quay
+    # without a tag (a release that failed after `docker push`) counts as
+    # released: the release workflow refuses to push over that image.
+    if args.published or git_tag_exists(f"v{current}"):
         version = f"{major}.{minor}.{int(patch) + 1}"
         VERSION_FILE.write_text(text.replace(match.group(0), f"__version__ = '{version}'"))
         today = datetime.date.today().isoformat()
@@ -403,6 +405,8 @@ def main():
     bump = sub.add_parser("bump-version")
     bump.add_argument("--initial", required=True)
     bump.add_argument("--final", required=True)
+    bump.add_argument("--published", action="store_true",
+                      help="the current version's image is on the registry, tagged or not")
     bump.set_defaults(func=cmd_bump_version)
 
     count = sub.add_parser("count-fixed")
