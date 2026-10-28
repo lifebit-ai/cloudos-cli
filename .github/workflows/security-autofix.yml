@@ -279,19 +279,30 @@ jobs:
           fi
 
       # Clean: nothing to do. Anything left needs a person (a manual fix or an
-      # S&C exemption), so the run goes red to say so.
+      # S&C exemption, or a version bump for a release that failed after
+      # publishing its image), so the run goes red to say so.
       - name: Result
         if: always() && steps.loop.outcome == 'success'
         env:
           INITIAL: ${{ steps.loop.outputs.initial }}
           REMAINING: ${{ steps.loop.outputs.remaining }}
           ROUNDS: ${{ steps.loop.outputs.rounds }}
+          MODE: ${{ steps.plan.outputs.mode }}
+          ON_QUAY: ${{ steps.plan.outputs.on_quay }}
+          CURRENT: ${{ steps.release.outputs.current }}
         run: |
           echo "Initial findings: $INITIAL, after $ROUNDS round(s): $REMAINING"
+          failed=false
           if [ "$REMAINING" -gt 0 ]; then
             echo "::error::$REMAINING CRITICAL/HIGH finding(s) still need a person: fix by hand or request an S&C exemption."
-            exit 1
+            failed=true
           fi
+          # A fix PR bumps past it; with nothing to fix, no PR does.
+          if [ "$MODE" = none ] && [ "$ON_QUAY" = true ]; then
+            echo "::error::$QUAY_REPO:v$CURRENT is published but v$CURRENT has no git tag; bump the version to release again."
+            failed=true
+          fi
+          [ "$failed" = false ]
 
       - name: Keep reports
         if: always()
