@@ -152,13 +152,25 @@ jobs:
           RELEASE: ${{ steps.release.outputs.version }}
           CURRENT: ${{ steps.release.outputs.current }}
         run: |
+          # The release pushes the image and uploads to PyPI before it tags,
+          # so a run that failed after `docker push` leaves v$CURRENT on Quay
+          # without a tag. Re-running it would only stop at the registry
+          # guard, every week: that state needs a person.
+          untagged=false
+          on_quay=false
+          if ! git rev-parse -q --verify "refs/tags/v$CURRENT" >/dev/null; then
+            untagged=true
+            if docker manifest inspect "$QUAY_REPO:v$CURRENT" >/dev/null 2>&1; then
+              on_quay=true
+            fi
+          fi
           if [ "$CHANGED" = true ]; then
             mode=fix
           elif [ "$REMAINING" -eq 0 ] && [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = false ] \
                && [ "$CURRENT" = "$RELEASE" ]; then
             mode=rebuild
-          elif [ "$REMAINING" -eq 0 ] && [ "$BASE" = main ] \
-               && ! git rev-parse -q --verify "refs/tags/v$CURRENT" >/dev/null; then
+          elif [ "$REMAINING" -eq 0 ] && [ "$BASE" = main ] && [ "$untagged" = true ] \
+               && [ "$on_quay" = false ]; then
             mode=release
           else
             mode=none
@@ -172,9 +184,11 @@ jobs:
             case "$mode" in
               fix)     echo "Opening a PR with the dependency fixes." ;;
               rebuild) echo "Opening a version-bump PR so the next release republishes a clean image." ;;
-              release) echo "v$CURRENT is untagged and \`$BASE\` now builds clean: re-running the release." ;;
+              release) echo "v$CURRENT is untagged and \`$BASE\` now builds clean." ;;
               none)
-                if [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = true ]; then
+                if [ "$on_quay" = true ]; then
+                  echo "$QUAY_REPO:v$CURRENT is published but v$CURRENT has no git tag: a release failed after publishing. Tag it by hand or bump the version."
+                elif [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = true ]; then
                   echo "The pending release in \`$BASE\` will publish a clean image."
                 elif [ "$PUBLISHED" -gt 0 ] && [ "$CURRENT" != "$RELEASE" ]; then
                   echo "\`$BASE\` is at v$CURRENT, not v$RELEASE: run this on the branch that released v$RELEASE to replace it."
@@ -184,8 +198,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # The release workflow rebuilds and rescans on its own, and its check
-      # job skips if the tag appeared meanwhile, so a dispatch that turns out
-      # unneeded is harmless.
+      # job skips if the tag appeared meanwhile. The run that started this
+      # workflow has finished by now: it ends seconds after the dispatch, and
+      # the build and scans above take minutes.
       - name: Re-run the release
         if: steps.plan.outputs.mode == 'release'
         env:
@@ -199,11 +214,13 @@ jobs:
           active=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release.yml --branch "$BASE" \
             --json status --jq '[.[] | select(.status != "completed")] | length')
           if [ "$active" -gt 0 ]; then
-            echo "A release run is already queued or running on $BASE; not dispatching another."
-            exit 0
+            msg="A release run is already queued or running on \`$BASE\`; not dispatching another."
+          else
+            gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$BASE"
+            msg="Re-running the release on \`$BASE\`."
           fi
-          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$BASE"
-          echo "Started the release workflow on $BASE."
+          echo "$msg"
+          echo "$msg" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Version and changelog
         id: version
