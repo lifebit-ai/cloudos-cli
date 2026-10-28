@@ -176,6 +176,7 @@ jobs:
             mode=none
           fi
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "on_quay=$on_quay" >> "$GITHUB_OUTPUT"
           {
             echo "**$QUAY_REPO:v$RELEASE** (newest release): $PUBLISHED CRITICAL/HIGH finding(s)"
             echo ""
@@ -187,7 +188,7 @@ jobs:
               release) echo "v$CURRENT is untagged and \`$BASE\` now builds clean." ;;
               none)
                 if [ "$on_quay" = true ]; then
-                  echo "$QUAY_REPO:v$CURRENT is published but v$CURRENT has no git tag: a release failed after publishing. Tag it by hand or bump the version."
+                  echo "$QUAY_REPO:v$CURRENT is published but v$CURRENT has no git tag: a release failed after pushing the image, possibly before PyPI. Bump the version to release again. Don't tag it by hand: later releases would then skip v$CURRENT and its missing steps would never run."
                 elif [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = true ]; then
                   echo "The pending release in \`$BASE\` will publish a clean image."
                 elif [ "$PUBLISHED" -gt 0 ] && [ "$CURRENT" != "$RELEASE" ]; then
@@ -227,12 +228,16 @@ jobs:
         if: steps.plan.outputs.mode == 'fix' || steps.plan.outputs.mode == 'rebuild'
         env:
           MODE: ${{ steps.plan.outputs.mode }}
+          ON_QUAY: ${{ steps.plan.outputs.on_quay }}
         run: |
           # What the changelog says was fixed: the fresh build's findings for
           # a fix, the published image's for a rebuild.
           if [ "$MODE" = fix ]; then before=initial.json; else before=published.json; fi
+          # An untagged version already on Quay can't be released again.
+          published=""
+          if [ "$ON_QUAY" = true ]; then published=--published; fi
           python .github/scripts/autofix.py bump-version \
-            --initial "$AUTOFIX_DIR/$before" --final "$AUTOFIX_DIR/final.json"
+            --initial "$AUTOFIX_DIR/$before" --final "$AUTOFIX_DIR/final.json" $published
           git commit -qam "Security autofix: version and changelog"
 
       - name: Open or update the PR
