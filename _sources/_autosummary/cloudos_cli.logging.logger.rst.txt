@@ -8,6 +8,11 @@ cloudos\_cli.logging.logger
 
    .. autosummary::
    
+      mask_secret_values
+      redact_argv
+      redact_params
+      secret_param_values
+      secure_log_dir
       setup_logging
       update_command_context_from_click
    
@@ -17,4 +22,5 @@ cloudos\_cli.logging.logger
    
       CommandContextFilter
       LogFormatter
+      PrivateFileHandler
    

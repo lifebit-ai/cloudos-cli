@@ -375,6 +375,7 @@
           <h1>Source code for cloudos_cli.logging.logger</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
@@ -385,6 +386,183 @@
 
 
 <span class="n">_cmd_filter_instance</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="c1"># Click params whose values must never be written to a log</span>
+<span class="n">SECRET_PARAM_NAMES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"apikey"</span><span class="p">,</span> <span class="s2">"cromwell_token"</span><span class="p">}</span>
+<span class="n">SECRET_PARAM_MARKERS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"token"</span><span class="p">,</span> <span class="s2">"secret"</span><span class="p">,</span> <span class="s2">"password"</span><span class="p">,</span> <span class="s2">"key"</span><span class="p">)</span>
+<span class="n">SECRET_SHORT_FLAGS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"-k"</span><span class="p">,</span> <span class="s2">"-t"</span><span class="p">}</span>  <span class="c1"># -k is --apikey and -t is --cromwell-token on every command</span>
+<span class="n">REDACTED</span> <span class="o">=</span> <span class="s2">"***"</span>
+<span class="c1"># raw secret values shorter than this are not searched for in messages, to avoid masking common words</span>
+<span class="n">MIN_SECRET_VALUE_LENGTH</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="c1"># Patterns for secrets inside free-form values such as --parameter or --command</span>
+<span class="n">_MARKERS</span> <span class="o">=</span> <span class="s2">"|"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SECRET_PARAM_MARKERS</span><span class="p">)</span>
+<span class="n">_VALUE</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"""("(?:[^"\\]|\\.)*"|'[^']*'|\S+)"""</span>
+<span class="c1"># NAME=value with a secret-looking name, e.g. password=X, --apikey=X, --parameter=db_token=X, ?api_key=X</span>
+<span class="n">SECRET_ASSIGNMENT_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">rf</span><span class="s2">"(?&lt;![A-Za-z0-9_.-])([A-Za-z0-9_.-]*(?:</span><span class="si">{</span><span class="n">_MARKERS</span><span class="si">}</span><span class="s2">)[A-Za-z0-9_.-]*)=</span><span class="si">{</span><span class="n">_VALUE</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+<span class="c1"># values shorter than this after -k/-t or Bearer/Basic are ordinary arguments, not credentials</span>
+<span class="n">MIN_CREDENTIAL_LENGTH</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="n">_CREDENTIAL_AHEAD</span> <span class="o">=</span> <span class="p">(</span><span class="sa">rf</span><span class="s2">"""(?=\s+(?:"[^"]</span><span class="se">{{</span><span class="si">{</span><span class="n">MIN_CREDENTIAL_LENGTH</span><span class="si">}</span><span class="s2">,</span><span class="se">}}</span><span class="s2">"|'[^']</span><span class="se">{{</span><span class="si">{</span><span class="n">MIN_CREDENTIAL_LENGTH</span><span class="si">}</span><span class="s2">,</span><span class="se">}}</span><span class="s2">'"""</span>
+                     <span class="sa">rf</span><span class="s2">"""|\S</span><span class="se">{{</span><span class="si">{</span><span class="n">MIN_CREDENTIAL_LENGTH</span><span class="si">}</span><span class="s2">,</span><span class="se">}}</span><span class="s2">))"""</span><span class="p">)</span>
+<span class="c1"># secret option followed by its value, e.g. "cloudos job list -k X" or "--cromwell-token X";</span>
+<span class="c1"># -k/-t only with a credential-length value, so "sort -k 2" and "cut -t ," are kept</span>
+<span class="n">SECRET_OPTION_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">rf</span><span class="s2">"(?&lt;!\S)(-[kt]</span><span class="si">{</span><span class="n">_CREDENTIAL_AHEAD</span><span class="si">}</span><span class="s2">|--[A-Za-z0-9_-]*(?:</span><span class="si">{</span><span class="n">_MARKERS</span><span class="si">}</span><span class="s2">)[A-Za-z0-9_-]*)(\s+)</span><span class="si">{</span><span class="n">_VALUE</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+<span class="c1"># HTTP credentials, e.g. "Authorization: Bearer X"; credential-length only, so "Basic variant calling" is kept</span>
+<span class="n">AUTH_SCHEME_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">rf</span><span class="s2">"\b(Bearer|Basic)(\s+)(?=[^\s'</span><span class="se">\"</span><span class="s2">]</span><span class="se">{{</span><span class="si">{</span><span class="n">MIN_CREDENTIAL_LENGTH</span><span class="si">}</span><span class="s2">,</span><span class="se">}}</span><span class="s2">)[^\s'</span><span class="se">\"</span><span class="s2">]+"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+<span class="c1"># password in a URL, e.g. postgres://user:X@host</span>
+<span class="n">URL_CREDENTIALS_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"(://[^/\s:@]+:)[^/\s@]+(@)"</span><span class="p">)</span>
+<span class="n">ASSIGNMENT_NAME_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[A-Za-z0-9_.-]+"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_secret_param</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">SECRET_PARAM_NAMES</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">marker</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">for</span> <span class="n">marker</span> <span class="ow">in</span> <span class="n">SECRET_PARAM_MARKERS</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_redact_text</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Mask secrets inside a free-form string."""</span>
+    <span class="c1"># When the value starts with a chain of assignments (e.g. --parameter "password=two words" or</span>
+    <span class="c1"># --parameter=password=X), mask everything after the first secret-named one, spaces included.</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ASSIGNMENT_NAME_RE</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="n">_is_secret_param</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">"="</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s2">"="</span> <span class="o">+</span> <span class="n">REDACTED</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">SECRET_ASSIGNMENT_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">rf</span><span class="s2">"\1=</span><span class="si">{</span><span class="n">REDACTED</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">SECRET_OPTION_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">rf</span><span class="s2">"\1\2</span><span class="si">{</span><span class="n">REDACTED</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">AUTH_SCHEME_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">rf</span><span class="s2">"\1\2</span><span class="si">{</span><span class="n">REDACTED</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">URL_CREDENTIALS_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">rf</span><span class="s2">"\1</span><span class="si">{</span><span class="n">REDACTED</span><span class="si">}</span><span class="s2">\2"</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_redact_assignments</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Mask secrets inside a string, or each string of a list or tuple."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_redact_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)(</span><span class="n">_redact_text</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<div class="viewcode-block" id="redact_params">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.redact_params">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">redact_params</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a copy of params with secret-bearing values masked."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">params</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">name</span><span class="p">:</span> <span class="n">REDACTED</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_is_secret_param</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">else</span> <span class="n">_redact_assignments</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="secret_param_values">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.secret_param_values">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">secret_param_values</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the raw values of the secret params, to mask wherever they appear."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="n">_is_secret_param</span><span class="p">(</span><span class="n">name</span><span class="p">)}</span></div>
+
+
+
+<div class="viewcode-block" id="redact_argv">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.redact_argv">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">redact_argv</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="n">secrets</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a copy of argv with the values of secret options masked.</span>
+
+<span class="sd">    If secrets is a set, the raw values that were masked are added to it.</span>
+<span class="sd">    """</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">mask_next</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">argv</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mask_next</span><span class="p">:</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">REDACTED</span><span class="p">)</span>
+            <span class="n">mask_next</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">SECRET_SHORT_FLAGS</span><span class="p">:</span>
+            <span class="n">mask_next</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">arg</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"--"</span><span class="p">):</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">arg</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">_is_secret_param</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"-"</span><span class="p">,</span> <span class="s2">"_"</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">sep</span><span class="p">:</span>
+                    <span class="n">found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                    <span class="n">arg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"--</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">REDACTED</span><span class="si">}</span><span class="s2">"</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mask_next</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">arg</span> <span class="o">=</span> <span class="n">_redact_text</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">arg</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="n">SECRET_SHORT_FLAGS</span><span class="p">:</span>
+            <span class="c1"># attached value, e.g. -kVALUE</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">arg</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="n">arg</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">REDACTED</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="n">_redact_text</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">secrets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">secrets</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">found</span> <span class="k">if</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="mask_secret_values">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.mask_secret_values">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mask_secret_values</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">secrets</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Replace each raw secret value found in text.</span>
+
+<span class="sd">    The stripped value is what's searched for, so " KEY" is masked as " ***" and "KEY" as "***".</span>
+<span class="sd">    """</span>
+    <span class="n">candidates</span> <span class="o">=</span> <span class="p">{</span><span class="n">secret</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">secret</span> <span class="ow">in</span> <span class="n">secrets</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">secret</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="n">MIN_SECRET_VALUE_LENGTH</span><span class="p">}</span>
+    <span class="c1"># longest first, so a secret that contains another is masked whole</span>
+    <span class="k">for</span> <span class="n">secret</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="n">REDACTED</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span></div>
+
+
+
+<div class="viewcode-block" id="secure_log_dir">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.secure_log_dir">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">secure_log_dir</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Create ~/.cloudos/logs if needed and restrict it, and existing log files, to the owner.</span>
+
+<span class="sd">    Never raises, so a directory we can't change does not break the CLI.</span>
+<span class="sd">    """</span>
+    <span class="n">log_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">(),</span> <span class="s2">".cloudos/logs"</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mo">0o700</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># makedirs leaves an existing directory's mode untouched</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="mo">0o700</span><span class="p">)</span>
+        <span class="c1"># files written by earlier versions were 0644</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="n">log_dir</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"cloudos-*.jsonl"</span><span class="p">):</span>
+            <span class="n">path</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="mo">0o600</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Could not restrict </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">log_dir</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">log_dir</span></div>
+
+
+
+<div class="viewcode-block" id="PrivateFileHandler">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.PrivateFileHandler">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PrivateFileHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""FileHandler whose log file is only readable by its owner (0600).</span>
+
+<span class="sd">    On Windows, chmod only toggles the read-only flag, so access there is</span>
+<span class="sd">    governed by the ACL inherited from the user's profile directory.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_WRONLY</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">O_CREAT</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">O_APPEND</span><span class="p">,</span> <span class="mo">0o600</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="c1"># also tighten a file that already existed with looser permissions</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="mo">0o600</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_open</span><span class="p">()</span></div>
+
 
 
 <div class="viewcode-block" id="LogFormatter">
@@ -408,7 +586,8 @@
             <span class="s2">"timestamp"</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">created</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">dt</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
         <span class="p">}</span>
         <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">:</span>
-            <span class="n">always</span><span class="p">[</span><span class="s2">"exc_info"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatException</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">)</span>
+            <span class="c1"># CommandContextFilter stores a traceback with secret values masked in exc_text</span>
+            <span class="n">always</span><span class="p">[</span><span class="s2">"exc_info"</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">exc_text</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatException</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">)</span>
 
         <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fmt_keys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -424,16 +603,18 @@
 <div class="viewcode-block" id="CommandContextFilter">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.CommandContextFilter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CommandContextFilter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Injects record.command and record.params everywhere."""</span>
+<span class="w">    </span><span class="sd">"""Injects record.command and record.params (with secrets redacted) everywhere."""</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">command</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="c1"># raw secret values, masked wherever they appear in a message or traceback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">secret_values</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
 <div class="viewcode-block" id="CommandContextFilter.set_seed_from_argv">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.logging.logger.html#cloudos_cli.logging.logger.CommandContextFilter.set_seed_from_argv">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_seed_from_argv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">redact_argv</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">secret_values</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
@@ -442,7 +623,8 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">set_from_click_ctx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
         <span class="c1"># Runs after Click has parsed</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">command_path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">params</span><span class="p">)</span> <span class="k">if</span> <span class="n">ctx</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">params</span><span class="p">)</span> <span class="k">if</span> <span class="n">ctx</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">secret_values</span> <span class="o">|=</span> <span class="n">secret_param_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CommandContextFilter.filter">
@@ -450,8 +632,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">"command"</span><span class="p">):</span>
             <span class="n">record</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">"params"</span><span class="p">):</span>
-            <span class="n">record</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">"params"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">redact_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="c1"># exceptions can carry a secret, e.g. requests puts a malformed API key header in its message</span>
+        <span class="n">secrets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">secret_values</span> <span class="o">|</span> <span class="n">secret_param_values</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">|</span> <span class="n">secret_param_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">secrets</span><span class="p">:</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">mask_secret_values</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">getMessage</span><span class="p">(),</span> <span class="n">secrets</span><span class="p">)</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">:</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">exc_text</span> <span class="o">=</span> <span class="n">mask_secret_values</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">()</span><span class="o">.</span><span class="n">formatException</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">),</span> <span class="n">secrets</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 </div>
 
@@ -480,7 +669,7 @@
     <span class="p">},</span>
     <span class="s2">"handlers"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"file"</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"logging.FileHandler"</span><span class="p">,</span>
+            <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"cloudos_cli.logging.logger.PrivateFileHandler"</span><span class="p">,</span>
             <span class="s2">"level"</span><span class="p">:</span> <span class="s2">"DEBUG"</span><span class="p">,</span>
             <span class="s2">"formatter"</span><span class="p">:</span> <span class="s2">"json"</span><span class="p">,</span>
             <span class="s2">"filters"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"cmdctx"</span><span class="p">],</span>
@@ -524,8 +713,7 @@
 
     <span class="c1"># build a timestamped log filename</span>
     <span class="n">ts</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">-%H%M%S"</span><span class="p">)</span>
-    <span class="n">log_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">(),</span> <span class="s2">".cloudos/logs"</span><span class="p">)</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">log_dir</span> <span class="o">=</span> <span class="n">secure_log_dir</span><span class="p">()</span>
     <span class="n">config</span><span class="p">[</span><span class="s2">"handlers"</span><span class="p">][</span><span class="s2">"file"</span><span class="p">][</span><span class="s2">"filename"</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"cloudos-</span><span class="si">{</span><span class="n">ts</span><span class="si">}</span><span class="s2">.jsonl"</span><span class="p">)</span>
 
     <span class="c1"># adjust log level if requested</span>

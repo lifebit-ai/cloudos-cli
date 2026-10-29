@@ -385,10 +385,25 @@
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.setup_logging" title="cloudos_cli.logging.logger.setup_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_logging</span></code></a>(debug)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.mask_secret_values" title="cloudos_cli.logging.logger.mask_secret_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask_secret_values</span></code></a>(text, secrets)</p></td>
+<td><p>Replace each raw secret value found in text.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.redact_argv" title="cloudos_cli.logging.logger.redact_argv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">redact_argv</span></code></a>(argv[, secrets])</p></td>
+<td><p>Return a copy of argv with the values of secret options masked.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.redact_params" title="cloudos_cli.logging.logger.redact_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">redact_params</span></code></a>(params)</p></td>
+<td><p>Return a copy of params with secret-bearing values masked.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.secret_param_values" title="cloudos_cli.logging.logger.secret_param_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">secret_param_values</span></code></a>(params)</p></td>
+<td><p>Return the raw values of the secret params, to mask wherever they appear.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.secure_log_dir" title="cloudos_cli.logging.logger.secure_log_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">secure_log_dir</span></code></a>()</p></td>
+<td><p>Create ~/.cloudos/logs if needed and restrict it, and existing log files, to the owner.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.setup_logging" title="cloudos_cli.logging.logger.setup_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_logging</span></code></a>(debug)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.update_command_context_from_click" title="cloudos_cli.logging.logger.update_command_context_from_click"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_command_context_from_click</span></code></a>(ctx)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.update_command_context_from_click" title="cloudos_cli.logging.logger.update_command_context_from_click"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_command_context_from_click</span></code></a>(ctx)</p></td>
 <td><p>Call this AFTER Click parsed args.</p></td>
 </tr>
 </tbody>
@@ -399,10 +414,13 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.CommandContextFilter" title="cloudos_cli.logging.logger.CommandContextFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommandContextFilter</span></code></a>([command, params])</p></td>
-<td><p>Injects record.command and record.params everywhere.</p></td>
+<td><p>Injects record.command and record.params (with secrets redacted) everywhere.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.LogFormatter" title="cloudos_cli.logging.logger.LogFormatter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LogFormatter</span></code></a>(*[, fmt_keys])</p></td>
 <td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler" title="cloudos_cli.logging.logger.PrivateFileHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PrivateFileHandler</span></code></a>(filename[, mode, ...])</p></td>
+<td><p>FileHandler whose log file is only readable by its owner (0600).</p></td>
 </tr>
 </tbody>
 </table>
@@ -411,7 +429,7 @@
 <dt class="sig sig-object py" id="cloudos_cli.logging.logger.CommandContextFilter">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">CommandContextFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#CommandContextFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.CommandContextFilter" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Filter</span></code></p>
-<p>Injects record.command and record.params everywhere.</p>
+<p>Injects record.command and record.params (with secrets redacted) everywhere.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="cloudos_cli.logging.logger.CommandContextFilter.filter">
 <span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#CommandContextFilter.filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.CommandContextFilter.filter" title="Link to this definition">¶</a></dt>
@@ -530,6 +548,197 @@ set the ‘converter’ attribute in the Formatter class.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">PrivateFileHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#PrivateFileHandler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">FileHandler</span></code></p>
+<p>FileHandler whose log file is only readable by its owner (0600).</p>
+<p>On Windows, chmod only toggles the read-only flag, so access there is
+governed by the ACL inherited from the user’s profile directory.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.acquire">
+<span class="sig-name descname"><span class="pre">acquire</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.acquire" title="Link to this definition">¶</a></dt>
+<dd><p>Acquire the I/O thread lock.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.addFilter">
+<span class="sig-name descname"><span class="pre">addFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.addFilter" title="Link to this definition">¶</a></dt>
+<dd><p>Add the specified filter to this handler.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.close" title="Link to this definition">¶</a></dt>
+<dd><p>Closes the stream.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.createLock">
+<span class="sig-name descname"><span class="pre">createLock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.createLock" title="Link to this definition">¶</a></dt>
+<dd><p>Acquire a thread lock for serializing access to the underlying I/O.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.emit">
+<span class="sig-name descname"><span class="pre">emit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.emit" title="Link to this definition">¶</a></dt>
+<dd><p>Emit a record.</p>
+<p>If the stream was not opened because ‘delay’ was specified in the
+constructor, open it before calling the superclass’s emit.</p>
+<p>If stream is not open, current mode is ‘w’ and <cite>_closed=True</cite>, record
+will not be emitted (see Issue #42378).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.filter">
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.filter" title="Link to this definition">¶</a></dt>
+<dd><p>Determine if a record is loggable by consulting all the filters.</p>
+<p>The default is to allow the record to be logged; any filter can veto
+this by returning a false value.
+If a filter attached to a handler returns a log record instance,
+then that instance is used in place of the original log record in
+any further processing of the event by that handler.
+If a filter returns any other true value, the original log record
+is used in any further processing of the event by that handler.</p>
+<p>If none of the filters return false values, this method returns
+a log record.
+If any of the filters return a false value, this method returns
+a false value.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.2: </span>Allow filters to be just callables.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.12: </span>Allow filters to return a LogRecord instead of
+modifying it in place.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.flush" title="Link to this definition">¶</a></dt>
+<dd><p>Flushes the stream.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.format">
+<span class="sig-name descname"><span class="pre">format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.format" title="Link to this definition">¶</a></dt>
+<dd><p>Format the specified record.</p>
+<p>If a formatter is set, use it. Otherwise, use the default formatter
+for the module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.get_name">
+<span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.get_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.handle">
+<span class="sig-name descname"><span class="pre">handle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.handle" title="Link to this definition">¶</a></dt>
+<dd><p>Conditionally emit the specified logging record.</p>
+<p>Emission depends on filters which may have been added to the handler.
+Wrap the actual emission of the record with acquisition/release of
+the I/O thread lock.</p>
+<p>Returns an instance of the log record that was emitted
+if it passed all filters, otherwise a false value is returned.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.handleError">
+<span class="sig-name descname"><span class="pre">handleError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.handleError" title="Link to this definition">¶</a></dt>
+<dd><p>Handle errors which occur during an emit() call.</p>
+<p>This method should be called from handlers when an exception is
+encountered during an emit() call. If raiseExceptions is false,
+exceptions get silently ignored. This is what is mostly wanted
+for a logging system - most users will not care about errors in
+the logging system, they are more interested in application errors.
+You could, however, replace this with a custom handler if you wish.
+The record which was being processed is passed in to this method.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.release">
+<span class="sig-name descname"><span class="pre">release</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.release" title="Link to this definition">¶</a></dt>
+<dd><p>Release the I/O thread lock.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.removeFilter">
+<span class="sig-name descname"><span class="pre">removeFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.removeFilter" title="Link to this definition">¶</a></dt>
+<dd><p>Remove the specified filter from this handler.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.setFormatter">
+<span class="sig-name descname"><span class="pre">setFormatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.setFormatter" title="Link to this definition">¶</a></dt>
+<dd><p>Set the formatter for this handler.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.setLevel">
+<span class="sig-name descname"><span class="pre">setLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.setLevel" title="Link to this definition">¶</a></dt>
+<dd><p>Set the logging level of this handler.  level must be an int or a str.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.setStream">
+<span class="sig-name descname"><span class="pre">setStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.setStream" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the StreamHandler’s stream to the specified value,
+if it is different.</p>
+<p>Returns the old stream, if the stream was changed, or None
+if it wasn’t.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.set_name">
+<span class="sig-name descname"><span class="pre">set_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.set_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.PrivateFileHandler.terminator">
+<span class="sig-name descname"><span class="pre">terminator</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\n'</span></span><a class="headerlink" href="#cloudos_cli.logging.logger.PrivateFileHandler.terminator" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.mask_secret_values">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">mask_secret_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secrets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#mask_secret_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.mask_secret_values" title="Link to this definition">¶</a></dt>
+<dd><p>Replace each raw secret value found in text.</p>
+<p>The stripped value is what’s searched for, so “ KEY” is masked as “ <strong>*” and “KEY” as “*</strong>”.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.redact_argv">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">redact_argv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secrets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#redact_argv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.redact_argv" title="Link to this definition">¶</a></dt>
+<dd><p>Return a copy of argv with the values of secret options masked.</p>
+<p>If secrets is a set, the raw values that were masked are added to it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.redact_params">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">redact_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#redact_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.redact_params" title="Link to this definition">¶</a></dt>
+<dd><p>Return a copy of params with secret-bearing values masked.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.secret_param_values">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">secret_param_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#secret_param_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.secret_param_values" title="Link to this definition">¶</a></dt>
+<dd><p>Return the raw values of the secret params, to mask wherever they appear.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.logging.logger.secure_log_dir">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">secure_log_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#secure_log_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.secure_log_dir" title="Link to this definition">¶</a></dt>
+<dd><p>Create ~/.cloudos/logs if needed and restrict it, and existing log files, to the owner.</p>
+<p>Never raises, so a directory we can’t change does not break the CLI.</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.logging.logger.setup_logging">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.logging.logger.</span></span><span class="sig-name descname"><span class="pre">setup_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/logging/logger.html#setup_logging"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.logging.logger.setup_logging" title="Link to this definition">¶</a></dt>
@@ -617,6 +826,33 @@ set the ‘converter’ attribute in the Formatter class.</p>
 <li><a class="reference internal" href="#cloudos_cli.logging.logger.LogFormatter.usesTime"><code class="docutils literal notranslate"><span class="pre">LogFormatter.usesTime()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler</span></code></a><ul>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.acquire"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.acquire()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.addFilter"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.addFilter()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.close"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.close()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.createLock"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.createLock()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.emit"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.emit()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.filter"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.filter()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.flush"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.flush()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.format"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.format()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.get_name"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.get_name()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.handle"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.handle()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.handleError"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.handleError()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.name"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.name</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.release"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.release()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.removeFilter"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.removeFilter()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.setFormatter"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.setFormatter()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.setLevel"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.setLevel()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.setStream"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.setStream()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.set_name"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.set_name()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.PrivateFileHandler.terminator"><code class="docutils literal notranslate"><span class="pre">PrivateFileHandler.terminator</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.mask_secret_values"><code class="docutils literal notranslate"><span class="pre">mask_secret_values()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.redact_argv"><code class="docutils literal notranslate"><span class="pre">redact_argv()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.redact_params"><code class="docutils literal notranslate"><span class="pre">redact_params()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.secret_param_values"><code class="docutils literal notranslate"><span class="pre">secret_param_values()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.logging.logger.secure_log_dir"><code class="docutils literal notranslate"><span class="pre">secure_log_dir()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.logging.logger.setup_logging"><code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.logging.logger.update_command_context_from_click"><code class="docutils literal notranslate"><span class="pre">update_command_context_from_click()</span></code></a></li>
 </ul>
