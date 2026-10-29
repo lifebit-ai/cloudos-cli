@@ -26,11 +26,18 @@ _VALUE = r"""("(?:[^"\\]|\\.)*"|'[^']*'|\S+)"""
 # NAME=value with a secret-looking name, e.g. password=X, --apikey=X, --parameter=db_token=X, ?api_key=X
 SECRET_ASSIGNMENT_RE = re.compile(
     rf"(?<![A-Za-z0-9_.-])([A-Za-z0-9_.-]*(?:{_MARKERS})[A-Za-z0-9_.-]*)={_VALUE}", re.IGNORECASE)
-# secret option followed by its value, e.g. "cloudos job list -k X" or "--cromwell-token X"
+# values shorter than this after -k/-t or Bearer/Basic are ordinary arguments, not credentials
+MIN_CREDENTIAL_LENGTH = 16
+_CREDENTIAL_AHEAD = (rf"""(?=\s+(?:"[^"]{{{MIN_CREDENTIAL_LENGTH},}}"|'[^']{{{MIN_CREDENTIAL_LENGTH},}}'"""
+                     rf"""|\S{{{MIN_CREDENTIAL_LENGTH},}}))""")
+# secret option followed by its value, e.g. "cloudos job list -k X" or "--cromwell-token X";
+# -k/-t only with a credential-length value, so "sort -k 2" and "cut -t ," are kept
 SECRET_OPTION_RE = re.compile(
-    rf"(?<!\S)(-[kt]|--[A-Za-z0-9_-]*(?:{_MARKERS})[A-Za-z0-9_-]*)(\s+){_VALUE}", re.IGNORECASE)
-# HTTP credentials, e.g. "Authorization: Bearer X"
-AUTH_SCHEME_RE = re.compile(r"\b(Bearer|Basic)(\s+)[^\s'\"]+", re.IGNORECASE)
+    rf"(?<!\S)(-[kt]{_CREDENTIAL_AHEAD}|--[A-Za-z0-9_-]*(?:{_MARKERS})[A-Za-z0-9_-]*)(\s+){_VALUE}",
+    re.IGNORECASE)
+# HTTP credentials, e.g. "Authorization: Bearer X"; credential-length only, so "Basic variant calling" is kept
+AUTH_SCHEME_RE = re.compile(
+    rf"\b(Bearer|Basic)(\s+)(?=[^\s'\"]{{{MIN_CREDENTIAL_LENGTH},}})[^\s'\"]+", re.IGNORECASE)
 # password in a URL, e.g. postgres://user:X@host
 URL_CREDENTIALS_RE = re.compile(r"(://[^/\s:@]+:)[^/\s@]+(@)")
 ASSIGNMENT_NAME_RE = re.compile(r"[A-Za-z0-9_.-]+")

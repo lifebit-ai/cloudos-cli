@@ -384,11 +384,15 @@ class TestRedactParams:
         """Test that secret options, auth headers and URL credentials inside free-form values are masked"""
         cases = {
             "cloudos job list --apikey S3CRET-1 --workspace-id ws": "cloudos job list --apikey *** --workspace-id ws",
-            "cloudos job list -k S3CRET-2 --workspace-id ws": "cloudos job list -k *** --workspace-id ws",
-            "cloudos cromwell status -t 'S3CRET 3'": "cloudos cromwell status -t ***",
-            "curl -H 'Authorization: Bearer S3CRET-4' https://api": "curl -H 'Authorization: Bearer ***' https://api",
+            "cloudos job list -k a1b2c3d4e5f6a7b8c9d0e1f2 --workspace-id ws": "cloudos job list -k *** --workspace-id ws",
+            "cloudos cromwell status -t 'a1b2c3d4 e5f6a7b8c9d0'": "cloudos cromwell status -t ***",
+            "curl -H 'Authorization: Bearer a1b2c3d4e5f6a7b8c9d0e1f2'": "curl -H 'Authorization: Bearer ***'",
+            "curl -H 'Authorization: Basic YWRtaW46cGFzc3dvcmQxMjM='": "curl -H 'Authorization: Basic ***'",
             "psql postgres://admin:S3CRET-5@db:5432/x": "psql postgres://admin:***@db:5432/x",
             "run --workspace-id ws123 https://host/path user@host": "run --workspace-id ws123 https://host/path user@host",
+            # ordinary -k/-t flags and words after Bearer/Basic are not credentials
+            "sort -k 2 in.txt | cut -t , -f 1": "sort -k 2 in.txt | cut -t , -f 1",
+            "Basic variant calling": "Basic variant calling",
         }
         for command, expected in cases.items():
             assert redact_params({"command": command}) == {"command": expected}
@@ -396,6 +400,10 @@ class TestRedactParams:
                 ["cloudos", "bash", "job", "--command", expected]
         assert redact_params({"parameter": ("db_url=postgres://admin:S3CRET-6@db:5432/x",)}) == \
             {"parameter": ("db_url=postgres://admin:***@db:5432/x",)}
+        params = {"job_name": "Basic variant calling", "parameter": ("mode=Basic alignment",)}
+        assert redact_params(params) == params
+        assert redact_argv(["cloudos", "bash", "job", "--job-name", "Basic variant calling"]) == \
+            ["cloudos", "bash", "job", "--job-name", "Basic variant calling"]
 
 
 class TestSecretValuesInMessages:
