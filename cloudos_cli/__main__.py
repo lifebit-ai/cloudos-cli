@@ -3,7 +3,7 @@
 import rich_click as click
 import sys
 from ._version import __version__
-from cloudos_cli.logging.logger import update_command_context_from_click
+from cloudos_cli.logging.logger import secure_log_dir, update_command_context_from_click
 from cloudos_cli.configure.configure import (
     build_default_map_for_group,
     get_shared_config
@@ -38,6 +38,8 @@ sys.excepthook = custom_exception_handler
 @click.pass_context
 def run_cloudos_cli(ctx):
     """CloudOS CLI python package: a package for interacting with Lifebit Platform."""
+    # restrict log files left readable by earlier versions, not only when a crash is logged
+    secure_log_dir()
     update_command_context_from_click(ctx)
     ctx.ensure_object(dict)
 

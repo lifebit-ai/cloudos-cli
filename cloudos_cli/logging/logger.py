@@ -17,8 +17,22 @@ SECRET_PARAM_NAMES = {"apikey", "cromwell_token"}
 SECRET_PARAM_MARKERS = ("token", "secret", "password", "key")
 SECRET_SHORT_FLAGS = {"-k", "-t"}  # -k is --apikey and -t is --cromwell-token on every command
 REDACTED = "***"
-# name=value assignments inside free-form values, e.g. --parameter password=X or --command "TOKEN=X ..."
-ASSIGNMENT_RE = re.compile(r"""([A-Za-z0-9_.-]+)=("(?:[^"\\]|\\.)*"|'[^']*'|\S+)""")
+# raw secret values shorter than this are not searched for in messages, to avoid masking common words
+MIN_SECRET_VALUE_LENGTH = 4
+
+# Patterns for secrets inside free-form values such as --parameter or --command
+_MARKERS = "|".join(SECRET_PARAM_MARKERS)
+_VALUE = r"""("(?:[^"\\]|\\.)*"|'[^']*'|\S+)"""
+# NAME=value with a secret-looking name, e.g. password=X, --apikey=X, --parameter=db_token=X, ?api_key=X
+SECRET_ASSIGNMENT_RE = re.compile(
+    rf"(?<![A-Za-z0-9_.-])([A-Za-z0-9_.-]*(?:{_MARKERS})[A-Za-z0-9_.-]*)={_VALUE}", re.IGNORECASE)
+# secret option followed by its value, e.g. "cloudos job list -k X" or "--cromwell-token X"
+SECRET_OPTION_RE = re.compile(
+    rf"(?<!\S)(-[kt]|--[A-Za-z0-9_-]*(?:{_MARKERS})[A-Za-z0-9_-]*)(\s+){_VALUE}", re.IGNORECASE)
+# HTTP credentials, e.g. "Authorization: Bearer X"
+AUTH_SCHEME_RE = re.compile(r"\b(Bearer|Basic)(\s+)[^\s'\"]+", re.IGNORECASE)
+# password in a URL, e.g. postgres://user:X@host
+URL_CREDENTIALS_RE = re.compile(r"(://[^/\s:@]+:)[^/\s@]+(@)")
 ASSIGNMENT_NAME_RE = re.compile(r"[A-Za-z0-9_.-]+")
 
 
@@ -27,21 +41,28 @@ def _is_secret_param(name):
     return name in SECRET_PARAM_NAMES or any(marker in name for marker in SECRET_PARAM_MARKERS)
 
 
+def _redact_text(value):
+    """Mask secrets inside a free-form string."""
+    # When the value starts with a chain of assignments (e.g. --parameter "password=two words" or
+    # --parameter=password=X), mask everything after the first secret-named one, spaces included.
+    parts = value.split("=")
+    for i, name in enumerate(parts[:-1]):
+        if not ASSIGNMENT_NAME_RE.fullmatch(name):
+            break
+        if _is_secret_param(name):
+            return "=".join(parts[:i + 1]) + "=" + REDACTED
+    value = SECRET_ASSIGNMENT_RE.sub(rf"\1={REDACTED}", value)
+    value = SECRET_OPTION_RE.sub(rf"\1\2{REDACTED}", value)
+    value = AUTH_SCHEME_RE.sub(rf"\1\2{REDACTED}", value)
+    return URL_CREDENTIALS_RE.sub(rf"\1{REDACTED}\2", value)
+
+
 def _redact_assignments(value):
-    """Mask secret-named name=value assignments inside a string, list or tuple."""
+    """Mask secrets inside a string, or each string of a list or tuple."""
     if isinstance(value, str):
-        name, sep, rest = value.partition("=")
-        if sep and ASSIGNMENT_NAME_RE.fullmatch(name):
-            # the whole value is one assignment, so mask everything after "=",
-            # e.g. --parameter "password=two words"
-            return f"{name}={REDACTED if _is_secret_param(name) else _redact_assignments(rest)}"
-        # recurse into non-secret values to catch nested ones, e.g. --parameter=password=X
-        return ASSIGNMENT_RE.sub(
-            lambda m: f"{m.group(1)}={REDACTED if _is_secret_param(m.group(1)) else _redact_assignments(m.group(2))}",
-            value,
-        )
+        return _redact_text(value)
     if isinstance(value, (list, tuple)):
-        return type(value)(_redact_assignments(item) for item in value)
+        return type(value)(_redact_text(item) if isinstance(item, str) else item for item in value)
     return value
 
 
@@ -55,33 +76,79 @@ def redact_params(params):
     }
 
 
-def redact_argv(argv):
-    """Return a copy of argv with the values of secret options masked."""
+def secret_param_values(params):
+    """Return the raw values of the secret params, to mask wherever they appear."""
+    if not isinstance(params, dict):
+        return set()
+    return {str(value) for name, value in params.items() if value and _is_secret_param(name)}
+
+
+def redact_argv(argv, secrets=None):
+    """Return a copy of argv with the values of secret options masked.
+
+    If secrets is a set, the raw values that were masked are added to it.
+    """
     out = []
     mask_next = False
+    found = set()
     for arg in argv:
         if mask_next:
+            found.add(arg)
             out.append(REDACTED)
             mask_next = False
             continue
         if arg in SECRET_SHORT_FLAGS:
             mask_next = True
         elif arg.startswith("--"):
-            name, sep, _ = arg[2:].partition("=")
+            name, sep, value = arg[2:].partition("=")
             if _is_secret_param(name.replace("-", "_")):
                 if sep:
+                    found.add(value)
                     arg = f"--{name}={REDACTED}"
                 else:
                     mask_next = True
             else:
-                arg = _redact_assignments(arg)
+                arg = _redact_text(arg)
         elif arg[:2] in SECRET_SHORT_FLAGS:
             # attached value, e.g. -kVALUE
+            found.add(arg[2:])
             arg = arg[:2] + REDACTED
         else:
-            arg = _redact_assignments(arg)
+            arg = _redact_text(arg)
         out.append(arg)
+    if secrets is not None:
+        secrets.update(value for value in found if value)
     return out
+
+
+def mask_secret_values(text, secrets):
+    """Replace each raw secret value found in text.
+
+    The stripped value is what's searched for, so " KEY" is masked as " ***" and "KEY" as "***".
+    """
+    candidates = {secret.strip() for secret in secrets if len(secret.strip()) >= MIN_SECRET_VALUE_LENGTH}
+    # longest first, so a secret that contains another is masked whole
+    for secret in sorted(candidates, key=len, reverse=True):
+        text = text.replace(secret, REDACTED)
+    return text
+
+
+def secure_log_dir():
+    """Create ~/.cloudos/logs if needed and restrict it, and existing log files, to the owner.
+
+    Never raises, so a directory we can't change does not break the CLI.
+    """
+    log_dir = os.path.join(Path.home(), ".cloudos/logs")
+    try:
+        os.makedirs(log_dir, mode=0o700, exist_ok=True)
+        # makedirs leaves an existing directory's mode untouched
+        os.chmod(log_dir, 0o700)
+        # files written by earlier versions were 0644
+        for path in Path(log_dir).glob("cloudos-*.jsonl"):
+            path.chmod(0o600)
+    except OSError as exc:
+        logging.getLogger(__name__).debug("Could not restrict %s: %s", log_dir, exc)
+    return log_dir
 
 
 class PrivateFileHandler(logging.FileHandler):
@@ -114,7 +181,8 @@ class LogFormatter(logging.Formatter):
             "timestamp": dt.datetime.fromtimestamp(record.created, tz=dt.timezone.utc).isoformat(),
         }
         if record.exc_info:
-            always["exc_info"] = self.formatException(record.exc_info)
+            # CommandContextFilter stores a traceback with secret values masked in exc_text
+            always["exc_info"] = record.exc_text or self.formatException(record.exc_info)
 
         out = {}
         for key, attr in self.fmt_keys.items():
@@ -132,20 +200,31 @@ class CommandContextFilter(logging.Filter):
         super().__init__()
         self.command = command
         self.params = params
+        # raw secret values, masked wherever they appear in a message or traceback
+        self.secret_values = set()
 
     def set_seed_from_argv(self):
-        self.command = " ".join(redact_argv(sys.argv))
+        self.command = " ".join(redact_argv(sys.argv, self.secret_values))
         self.params = None
 
     def set_from_click_ctx(self, ctx):
         # Runs after Click has parsed
         self.command = ctx.command_path
         self.params = dict(ctx.params) if ctx and ctx.params is not None else None
+        self.secret_values |= secret_param_values(self.params)
 
     def filter(self, record):
         if not hasattr(record, "command"):
             record.command = self.command
-        record.params = redact_params(getattr(record, "params", self.params))
+        params = getattr(record, "params", self.params)
+        record.params = redact_params(params)
+        # exceptions can carry a secret, e.g. requests puts a malformed API key header in its message
+        secrets = self.secret_values | secret_param_values(params) | secret_param_values(self.params)
+        if secrets:
+            record.msg = mask_secret_values(record.getMessage(), secrets)
+            record.args = None
+            if record.exc_info:
+                record.exc_text = mask_secret_values(logging.Formatter().formatException(record.exc_info), secrets)
         return True
 
 
@@ -214,10 +293,7 @@ def setup_logging(debug):
 
     # build a timestamped log filename
     ts = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
-    log_dir = os.path.join(Path.home(), ".cloudos/logs")
-    os.makedirs(log_dir, mode=0o700, exist_ok=True)
-    # makedirs leaves an existing directory's mode untouched
-    os.chmod(log_dir, 0o700)
+    log_dir = secure_log_dir()
     config["handlers"]["file"]["filename"] = os.path.join(log_dir, f"cloudos-{ts}.jsonl")
 
     # adjust log level if requested
