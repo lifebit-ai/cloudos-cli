@@ -1,5 +1,13 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.99.2 (2026-10-28)
+
+### Fix:
+
+- Log files in `~/.cloudos/logs` no longer contain the API key or Cromwell token: `apikey`, `cromwell_token` and any parameter whose name contains `token`, `secret`, `password` or `key` is written as `***`, in the logged parameters and the logged command line. Their values are also masked wherever they appear in a logged error message or traceback
+- Inside free-form values such as `--parameter` and `--command`, secret-named `name=value` assignments, secret options (`--apikey X`, `-k X`, `-t X`), `Bearer`/`Basic` credentials and URL passwords (`scheme://user:X@host`) are masked too. Masking free-form values is best effort: other secrets embedded in them are not detected
+- On Linux and macOS, the `~/.cloudos/logs` directory is restricted to mode 0700 and log files to mode 0600, so other local users can't read them. This runs on every command, and also tightens log files written by earlier versions
+
 ## v2.99.1 (2026-10-28)
 
 ### Fix:
