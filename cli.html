@@ -1668,25 +1668,25 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-create-storage">
 <span class="sig-name descname"><span class="pre">--storage</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;storage&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-create-storage" title="Link to this definition">¶</a></dt>
-<dd><p>Total storage in GB (500-64050). Default=500, or the sum of the three volume sizes when –libraries-volume, –results-volume and –data-volume are all given. The storage is split into libraries, session results and mounted data volumes.</p>
+<dd><p>Total storage in GB (60-64050). Default=500, or the sum of the three volume sizes when –libraries-volume, –results-volume and –data-volume are all given. The storage is split into libraries, session results and mounted data volumes. A volume that would go over its maximum gets its maximum, and one that would fall below its minimum gets its minimum; the difference goes to the other volumes not set.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-create-libraries-volume">
 <span class="sig-name descname"><span class="pre">--libraries-volume</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;libraries_volume&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-create-libraries-volume" title="Link to this definition">¶</a></dt>
-<dd><p>Libraries volume in GB (min 50). Default=50 when no volume is set; otherwise the volumes not set share the rest of –storage evenly.</p>
+<dd><p>Libraries volume in GB (min 50, max 1000). Default=50 when no volume is set; otherwise the volumes not set share the rest of –storage evenly.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-create-results-volume">
 <span class="sig-name descname"><span class="pre">--results-volume</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;results_volume&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-create-results-volume" title="Link to this definition">¶</a></dt>
-<dd><p>Session results volume in GB (min 225). Default=225 with the default storage; otherwise the volumes not set share the rest of –storage evenly.</p>
+<dd><p>Session results volume in GB (min 5, max 32000). Default=225 with the default storage; otherwise the volumes not set share the rest of –storage evenly.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-create-data-volume">
 <span class="sig-name descname"><span class="pre">--data-volume</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;data_volume&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-create-data-volume" title="Link to this definition">¶</a></dt>
-<dd><p>Mounted data volume in GB (min 35). Default=225 with the default storage; otherwise the volumes not set share the rest of –storage evenly.</p>
+<dd><p>Mounted data volume in GB (min 5, max 32000). Default=225 with the default storage; otherwise the volumes not set share the rest of –storage evenly.</p>
 </dd></dl>
 
 <dl class="std option">
@@ -2188,25 +2188,25 @@ cloudos interactive-session link s3://bucket/data/file.csv,my-project/Data/resul
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-storage">
 <span class="sig-name descname"><span class="pre">--storage</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;storage&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-storage" title="Link to this definition">¶</a></dt>
-<dd><p>Update storage size in GB (500-64050). The volume split is sent with it: by default libraries=50 GB and the rest is shared evenly by session results and mounted data.</p>
+<dd><p>Update storage size in GB (60-64050). It can’t be smaller than the session’s current storage, and no volume can be smaller than it is now. The volume split is sent with it: by default libraries keeps its current size and the extra storage is shared evenly by session results and mounted data. A volume already above its maximum keeps its current size.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-libraries-volume">
 <span class="sig-name descname"><span class="pre">--libraries-volume</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;libraries_volume&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-libraries-volume" title="Link to this definition">¶</a></dt>
-<dd><p>Update libraries volume in GB (min 50). Requires –storage unless all three volumes are given.</p>
+<dd><p>Update libraries volume in GB (min 50, max 1000). Volumes not set keep their current size plus a share of the rest of –storage. Requires –storage unless all three volumes are given.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-results-volume">
 <span class="sig-name descname"><span class="pre">--results-volume</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;results_volume&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-results-volume" title="Link to this definition">¶</a></dt>
-<dd><p>Update session results volume in GB (min 225). Requires –storage unless all three volumes are given.</p>
+<dd><p>Update session results volume in GB (min 5, max 32000). Requires –storage unless all three volumes are given.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-cloudos-interactive-session-resume-data-volume">
 <span class="sig-name descname"><span class="pre">--data-volume</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;data_volume&gt;</span></span><a class="headerlink" href="#cmdoption-cloudos-interactive-session-resume-data-volume" title="Link to this definition">¶</a></dt>
-<dd><p>Update mounted data volume in GB (min 35). Requires –storage unless all three volumes are given.</p>
+<dd><p>Update mounted data volume in GB (min 5, max 32000). Requires –storage unless all three volumes are given.</p>
 </dd></dl>
 
 <dl class="std option">

@@ -461,23 +461,35 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list" title="cloudos_cli.interactive_session.interactive_session.process_interactive_session_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_interactive_session_list</span></code></a>(sessions[, ...])</p></td>
 <td><p>Process interactive sessions data into a pandas DataFrame.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.resolve_volume_sizes" title="cloudos_cli.interactive_session.interactive_session.resolve_volume_sizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_volume_sizes</span></code></a>([storage_size, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.resolve_resume_volume_sizes" title="cloudos_cli.interactive_session.interactive_session.resolve_resume_volume_sizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_resume_volume_sizes</span></code></a>(current_volume_sizes)</p></td>
+<td><p>Work out the new storage split when resuming, starting from the current volume sizes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.resolve_volume_sizes" title="cloudos_cli.interactive_session.interactive_session.resolve_volume_sizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_volume_sizes</span></code></a>([storage_size, ...])</p></td>
 <td><p>Work out the storage size and its split into the three session volumes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv" title="cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_interactive_session_list_to_csv</span></code></a>(df, outfile)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv" title="cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_interactive_session_list_to_csv</span></code></a>(df, outfile)</p></td>
 <td><p>Save interactive session list to CSV file.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.transform_session_response" title="cloudos_cli.interactive_session.interactive_session.transform_session_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_session_response</span></code></a>(api_response)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.transform_session_response" title="cloudos_cli.interactive_session.interactive_session.transform_session_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_session_response</span></code></a>(api_response)</p></td>
 <td><p>Transform raw API response to user-friendly display format.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_instance_type" title="cloudos_cli.interactive_session.interactive_session.validate_instance_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_instance_type</span></code></a>(instance_type[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_instance_type" title="cloudos_cli.interactive_session.interactive_session.validate_instance_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_instance_type</span></code></a>(instance_type[, ...])</p></td>
 <td><p>Validate instance type format for the given execution platform.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_session_id" title="cloudos_cli.interactive_session.interactive_session.validate_session_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_session_id</span></code></a>(session_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_session_id" title="cloudos_cli.interactive_session.interactive_session.validate_session_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_session_id</span></code></a>(session_id)</p></td>
 <td><p>Validate session ID format (24-character hex string).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_storage_size" title="cloudos_cli.interactive_session.interactive_session.validate_storage_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_storage_size</span></code></a>(storage_size[, ...])</p></td>
+<td><p>Check that a storage size is within the allowed range.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_volume_sizes" title="cloudos_cli.interactive_session.interactive_session.validate_volume_sizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_volume_sizes</span></code></a>(storage_size, volume_sizes)</p></td>
 <td><p>Check that a volume split is valid for the given storage size.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_volumes_not_shrunk" title="cloudos_cli.interactive_session.interactive_session.validate_volumes_not_shrunk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_volumes_not_shrunk</span></code></a>(volume_sizes, ...)</p></td>
+<td><p>Check that no volume is smaller than it is now, since it may hold data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.volume_maximums_for" title="cloudos_cli.interactive_session.interactive_session.volume_maximums_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">volume_maximums_for</span></code></a>(current_volume_sizes)</p></td>
+<td><p>Return the maximum size of each volume when resuming a session.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.volume_size_rows" title="cloudos_cli.interactive_session.interactive_session.volume_size_rows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">volume_size_rows</span></code></a>(volume_sizes)</p></td>
 <td><p>Return (label, value) table rows for each volume, drawn as a tree under Storage.</p></td>
@@ -680,7 +692,7 @@ response dict with app sessions already removed from <code class="docutils liter
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.build_resume_payload">
-<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">build_resume_payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shutdown_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#build_resume_payload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.build_resume_payload" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">build_resume_payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shutdown_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume_maximums</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#build_resume_payload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.build_resume_payload" title="Link to this definition">¶</a></dt>
 <dd><p>Build the resume session payload for the API.</p>
 <p>Only includes fields that have been specified (all are optional).</p>
 <dl class="field-list simple">
@@ -690,6 +702,8 @@ response dict with app sessions already removed from <code class="docutils liter
 <li><p><strong>storage_size</strong> (<em>int</em><em>, </em><em>optional</em>) – New storage size in GB (if changing)</p></li>
 <li><p><strong>volume_sizes</strong> (<em>dict</em><em>, </em><em>optional</em>) – New split of the storage into ‘libraries’, ‘sessionResults’ and ‘mountedData’ (GB).
 Must add up to storage_size.</p></li>
+<li><p><strong>volume_maximums</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maximum size in GB for each volume, from volume_maximums_for. Defaults to
+VOLUME_MAXIMUMS.</p></li>
 <li><p><strong>cost_limit</strong> (<em>float</em><em>, </em><em>optional</em>) – New compute cost limit (if changing)</p></li>
 <li><p><strong>shutdown_at</strong> (<em>str</em><em>, </em><em>optional</em>) – New auto-shutdown datetime in ISO8601 format (if changing)</p></li>
 </ul>
@@ -715,7 +729,7 @@ Must add up to storage_size.</p></li>
 <li><p><strong>project_id</strong> (<em>str</em>) – Project MongoDB ObjectId</p></li>
 <li><p><strong>execution_platform</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution platform: ‘aws’ (default) or ‘azure’</p></li>
 <li><p><strong>instance_type</strong> (<em>str</em>) – Instance type (EC2 for AWS, e.g., c5.xlarge; Azure VM size, e.g., Standard_D4s_v3)</p></li>
-<li><p><strong>storage_size</strong> (<em>int</em>) – Storage in GB (default: 500, range: 500-64050)</p></li>
+<li><p><strong>storage_size</strong> (<em>int</em>) – Storage in GB (default: DEFAULT_STORAGE_SIZE, range: STORAGE_RANGE)</p></li>
 <li><p><strong>volume_sizes</strong> (<em>dict</em><em>, </em><em>optional</em>) – Split of the storage into ‘libraries’, ‘sessionResults’ and ‘mountedData’ (GB).
 Must add up to storage_size. If not given, the default split is used
 (see resolve_volume_sizes).</p></li>
@@ -1172,6 +1186,49 @@ If False, include only the most relevant fields.</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.resolve_resume_volume_sizes">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">resolve_resume_volume_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_volume_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">libraries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mounted_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#resolve_resume_volume_sizes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.resolve_resume_volume_sizes" title="Link to this definition">¶</a></dt>
+<dd><p>Work out the new storage split when resuming, starting from the current volume sizes.</p>
+<p>Volumes can’t shrink, as they may contain data. Rules:
+- No volume given: libraries keeps its current size, and sessionResults and</p>
+<blockquote>
+<div><p>mountedData keep theirs plus an even share of the extra storage.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>Some volumes given: they are used as given, and the others keep their current
+size plus an even share of what is left.</p></li>
+<li><p>All three given: the storage size is their sum, as in resolve_volume_sizes.</p></li>
+</ul>
+<p>When the extra storage can’t be split evenly, the extra GB goes to sessionResults
+(or to the first volume not given). A volume that would go over its maximum is
+capped and the excess is shared by the others. A volume already above its
+maximum may stay at its current size (see volume_maximums_for). If the current
+sizes are not known, the split from resolve_volume_sizes is used instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>current_volume_sizes</strong> (<em>dict</em><em> or </em><em>None</em>) – Current sizes in GB keyed by ‘libraries’, ‘sessionResults’ and ‘mountedData’.</p></li>
+<li><p><strong>storage_size</strong> (<em>int</em><em>, </em><em>optional</em>) – New total storage in GB. Required unless all three volumes are given.</p></li>
+<li><p><strong>libraries</strong> (<em>int</em><em>, </em><em>optional</em>) – New libraries volume in GB.</p></li>
+<li><p><strong>session_results</strong> (<em>int</em><em>, </em><em>optional</em>) – New session results volume in GB.</p></li>
+<li><p><strong>mounted_data</strong> (<em>int</em><em>, </em><em>optional</em>) – New mounted data volume in GB.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(storage_size, volume_sizes) where volume_sizes is a dict keyed by
+‘libraries’, ‘sessionResults’ and ‘mountedData’.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the split is not valid, a volume would shrink, or the storage is too
+    small to keep the current volume sizes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.resolve_volume_sizes">
 <span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">resolve_volume_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">storage_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">libraries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mounted_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#resolve_volume_sizes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.resolve_volume_sizes" title="Link to this definition">¶</a></dt>
 <dd><p>Work out the storage size and its split into the three session volumes.</p>
@@ -1187,7 +1244,10 @@ If False, include only the most relevant fields.</p></li>
 given, it must match the sum.</p></li>
 </ul>
 <p>When the remaining storage can’t be split evenly, the extra GB goes to
-sessionResults (or to mountedData if sessionResults was given).</p>
+sessionResults (or to mountedData if sessionResults was given). A volume that
+would fall below its minimum is raised to it, taking the GB from the others;
+a volume that would go over its maximum is capped and the excess is shared by
+the others.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1274,19 +1334,76 @@ sessionResults (or to mountedData if sessionResults was given).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.validate_storage_size">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">validate_storage_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">storage_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#validate_storage_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.validate_storage_size" title="Link to this definition">¶</a></dt>
+<dd><p>Check that a storage size is within the allowed range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>storage_size</strong> (<em>int</em>) – Storage in GB.</p></li>
+<li><p><strong>current_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Current storage of the session in GB, when resuming. Storage can’t shrink,
+so storage_size must be at least this.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the storage size is out of range or smaller than current_size.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.validate_volume_sizes">
-<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">validate_volume_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">storage_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume_sizes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#validate_volume_sizes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.validate_volume_sizes" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">validate_volume_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">storage_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximums</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#validate_volume_sizes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.validate_volume_sizes" title="Link to this definition">¶</a></dt>
 <dd><p>Check that a volume split is valid for the given storage size.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>storage_size</strong> (<em>int</em>) – Total storage in GB.</p></li>
 <li><p><strong>volume_sizes</strong> (<em>dict</em>) – Sizes in GB keyed by ‘libraries’, ‘sessionResults’ and ‘mountedData’.</p></li>
+<li><p><strong>maximums</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maximum size in GB for each volume. Defaults to VOLUME_MAXIMUMS; see
+volume_maximums_for for resuming a session.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If a volume is missing, below its minimum, or the volumes do not add up
-    to the storage size.</p>
+<dd class="field-even"><p><strong>ValueError</strong> – If a volume is missing, outside its minimum and maximum, or the volumes
+    do not add up to the storage size.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.validate_volumes_not_shrunk">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">validate_volumes_not_shrunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_volume_sizes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#validate_volumes_not_shrunk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.validate_volumes_not_shrunk" title="Link to this definition">¶</a></dt>
+<dd><p>Check that no volume is smaller than it is now, since it may hold data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>volume_sizes</strong> (<em>dict</em>) – New sizes in GB keyed by ‘libraries’, ‘sessionResults’ and ‘mountedData’.</p></li>
+<li><p><strong>current_volume_sizes</strong> (<em>dict</em><em> or </em><em>None</em>) – Current sizes of the session’s volumes. Volumes missing from either dict are not checked.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If any volume would be smaller than its current size.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cloudos_cli.interactive_session.interactive_session.volume_maximums_for">
+<span class="sig-prename descclassname"><span class="pre">cloudos_cli.interactive_session.interactive_session.</span></span><span class="sig-name descname"><span class="pre">volume_maximums_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_volume_sizes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cloudos_cli/interactive_session/interactive_session.html#volume_maximums_for"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cloudos_cli.interactive_session.interactive_session.volume_maximums_for" title="Link to this definition">¶</a></dt>
+<dd><p>Return the maximum size of each volume when resuming a session.</p>
+<p>A volume can’t shrink, so one that is already above its maximum (sessions created
+before the maximums existed) may stay at its current size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>current_volume_sizes</strong> (<em>dict</em><em> or </em><em>None</em>) – Current sizes in GB of the session’s volumes. Volumes missing from it get
+the usual maximum.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Maximum size in GB keyed by ‘libraries’, ‘sessionResults’ and ‘mountedData’.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1396,12 +1513,16 @@ sessionResults (or to mountedData if sessionResults was given).</p>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.parse_watch_timeout_duration"><code class="docutils literal notranslate"><span class="pre">parse_watch_timeout_duration()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.poll_session_termination"><code class="docutils literal notranslate"><span class="pre">poll_session_termination()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.process_interactive_session_list"><code class="docutils literal notranslate"><span class="pre">process_interactive_session_list()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.resolve_resume_volume_sizes"><code class="docutils literal notranslate"><span class="pre">resolve_resume_volume_sizes()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.resolve_volume_sizes"><code class="docutils literal notranslate"><span class="pre">resolve_volume_sizes()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.save_interactive_session_list_to_csv"><code class="docutils literal notranslate"><span class="pre">save_interactive_session_list_to_csv()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.transform_session_response"><code class="docutils literal notranslate"><span class="pre">transform_session_response()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_instance_type"><code class="docutils literal notranslate"><span class="pre">validate_instance_type()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_session_id"><code class="docutils literal notranslate"><span class="pre">validate_session_id()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_storage_size"><code class="docutils literal notranslate"><span class="pre">validate_storage_size()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_volume_sizes"><code class="docutils literal notranslate"><span class="pre">validate_volume_sizes()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.validate_volumes_not_shrunk"><code class="docutils literal notranslate"><span class="pre">validate_volumes_not_shrunk()</span></code></a></li>
+<li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.volume_maximums_for"><code class="docutils literal notranslate"><span class="pre">volume_maximums_for()</span></code></a></li>
 <li><a class="reference internal" href="#cloudos_cli.interactive_session.interactive_session.volume_size_rows"><code class="docutils literal notranslate"><span class="pre">volume_size_rows()</span></code></a></li>
 </ul>
 </li>

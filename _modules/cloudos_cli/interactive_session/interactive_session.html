@@ -1274,16 +1274,24 @@
 
 
 
-<span class="n">MIN_STORAGE_SIZE</span> <span class="o">=</span> <span class="mi">500</span>
-<span class="n">MAX_STORAGE_SIZE</span> <span class="o">=</span> <span class="mi">64050</span>
-<span class="n">DEFAULT_STORAGE_SIZE</span> <span class="o">=</span> <span class="mi">500</span>
-<span class="n">DEFAULT_LIBRARIES_VOLUME</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="c1"># Minimum size in GB for each volume inside the session storage</span>
 <span class="n">VOLUME_MINIMUMS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"libraries"</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
-    <span class="s2">"sessionResults"</span><span class="p">:</span> <span class="mi">225</span><span class="p">,</span>
-    <span class="s2">"mountedData"</span><span class="p">:</span> <span class="mi">35</span>
+    <span class="s2">"sessionResults"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="s2">"mountedData"</span><span class="p">:</span> <span class="mi">5</span>
 <span class="p">}</span>
+<span class="c1"># Maximum size in GB for each volume inside the session storage</span>
+<span class="n">VOLUME_MAXIMUMS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"libraries"</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+    <span class="s2">"sessionResults"</span><span class="p">:</span> <span class="mi">32000</span><span class="p">,</span>
+    <span class="s2">"mountedData"</span><span class="p">:</span> <span class="mi">32000</span>
+<span class="p">}</span>
+<span class="c1"># The volumes always add up to the storage, so its minimum is the sum of theirs</span>
+<span class="n">MIN_STORAGE_SIZE</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">VOLUME_MINIMUMS</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<span class="n">MAX_STORAGE_SIZE</span> <span class="o">=</span> <span class="mi">64050</span>
+<span class="n">STORAGE_RANGE</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">MIN_STORAGE_SIZE</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">MAX_STORAGE_SIZE</span><span class="si">}</span><span class="s2">"</span>
+<span class="n">DEFAULT_STORAGE_SIZE</span> <span class="o">=</span> <span class="mi">500</span>
+<span class="n">DEFAULT_LIBRARIES_VOLUME</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="c1"># CLI flag for each volume, used in error messages</span>
 <span class="n">VOLUME_FLAGS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"libraries"</span><span class="p">:</span> <span class="s2">"--libraries-volume"</span><span class="p">,</span>
@@ -1292,9 +1300,37 @@
 <span class="p">}</span>
 
 
+<div class="viewcode-block" id="validate_storage_size">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.validate_storage_size">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_storage_size</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">current_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Check that a storage size is within the allowed range.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    storage_size : int</span>
+<span class="sd">        Storage in GB.</span>
+<span class="sd">    current_size : int, optional</span>
+<span class="sd">        Current storage of the session in GB, when resuming. Storage can't shrink,</span>
+<span class="sd">        so storage_size must be at least this.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the storage size is out of range or smaller than current_size.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">MIN_STORAGE_SIZE</span> <span class="o">&lt;=</span> <span class="n">storage_size</span> <span class="o">&lt;=</span> <span class="n">MAX_STORAGE_SIZE</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Storage size must be between </span><span class="si">{</span><span class="n">STORAGE_RANGE</span><span class="si">}</span><span class="s2"> GB"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">current_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">storage_size</span> <span class="o">&lt;</span> <span class="n">current_size</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Storage size (</span><span class="si">{</span><span class="n">storage_size</span><span class="si">}</span><span class="s2"> GB) can't be smaller than the session's current storage "</span>
+            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">current_size</span><span class="si">}</span><span class="s2"> GB)"</span>
+        <span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="validate_volume_sizes">
 <a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.validate_volume_sizes">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">validate_volume_sizes</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_volume_sizes</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span><span class="p">,</span> <span class="n">maximums</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Check that a volume split is valid for the given storage size.</span>
 
 <span class="sd">    Parameters</span>
@@ -1303,21 +1339,22 @@
 <span class="sd">        Total storage in GB.</span>
 <span class="sd">    volume_sizes : dict</span>
 <span class="sd">        Sizes in GB keyed by 'libraries', 'sessionResults' and 'mountedData'.</span>
+<span class="sd">    maximums : dict, optional</span>
+<span class="sd">        Maximum size in GB for each volume. Defaults to VOLUME_MAXIMUMS; see</span>
+<span class="sd">        volume_maximums_for for resuming a session.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If a volume is missing, below its minimum, or the volumes do not add up</span>
-<span class="sd">        to the storage size.</span>
+<span class="sd">        If a volume is missing, outside its minimum and maximum, or the volumes</span>
+<span class="sd">        do not add up to the storage size.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">volume_sizes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="n">VOLUME_MINIMUMS</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Volume sizes must contain exactly: libraries, sessionResults, mountedData"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">volume</span><span class="p">,</span> <span class="n">minimum</span> <span class="ow">in</span> <span class="n">VOLUME_MINIMUMS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">size</span> <span class="o">=</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="n">minimum</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">volume</span><span class="si">}</span><span class="s2"> volume (</span><span class="si">{</span><span class="n">VOLUME_FLAGS</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2">) must be at least </span><span class="si">{</span><span class="n">minimum</span><span class="si">}</span><span class="s2"> GB, got </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> GB"</span>
-            <span class="p">)</span>
+    <span class="k">for</span> <span class="n">volume</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">volume_sizes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">volume</span><span class="si">}</span><span class="s2"> volume (</span><span class="si">{</span><span class="n">VOLUME_FLAGS</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2">) must be a whole number of GB, got </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">_check_volume_limits</span><span class="p">(</span><span class="n">volume_sizes</span><span class="p">,</span> <span class="n">maximums</span><span class="p">)</span>
     <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">volume_sizes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">total</span> <span class="o">!=</span> <span class="n">storage_size</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -1326,6 +1363,169 @@
             <span class="sa">f</span><span class="s2">"+ mountedData (</span><span class="si">{</span><span class="n">volume_sizes</span><span class="p">[</span><span class="s1">'mountedData'</span><span class="p">]</span><span class="si">}</span><span class="s2">) = </span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> GB"</span>
         <span class="p">)</span></div>
 
+
+
+<div class="viewcode-block" id="validate_volumes_not_shrunk">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.validate_volumes_not_shrunk">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_volumes_not_shrunk</span><span class="p">(</span><span class="n">volume_sizes</span><span class="p">,</span> <span class="n">current_volume_sizes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Check that no volume is smaller than it is now, since it may hold data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    volume_sizes : dict</span>
+<span class="sd">        New sizes in GB keyed by 'libraries', 'sessionResults' and 'mountedData'.</span>
+<span class="sd">    current_volume_sizes : dict or None</span>
+<span class="sd">        Current sizes of the session's volumes. Volumes missing from either dict are not checked.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If any volume would be smaller than its current size.</span>
+<span class="sd">    """</span>
+    <span class="n">current_volume_sizes</span> <span class="o">=</span> <span class="n">current_volume_sizes</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">shrunk</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">volume</span> <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">VOLUME_MINIMUMS</span>
+        <span class="k">if</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">volume_sizes</span> <span class="ow">and</span> <span class="n">current_volume_sizes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">current_volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">shrunk</span><span class="p">:</span>
+        <span class="n">details</span> <span class="o">=</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">volume</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">VOLUME_FLAGS</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2">) </span><span class="si">{</span><span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2"> GB &lt; current </span><span class="si">{</span><span class="n">current_volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2"> GB"</span>
+            <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">shrunk</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Volumes can't be smaller than their current size, as they may contain data: </span><span class="si">{</span><span class="n">details</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="sa">f</span><span class="s2">"Set </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">VOLUME_FLAGS</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">VOLUME_MINIMUMS</span><span class="p">)</span><span class="si">}</span><span class="s2"> to at least their current sizes."</span>
+        <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_given_volume_sizes</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">session_results</span><span class="p">,</span> <span class="n">mounted_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the volume sizes that were given, keyed by volume name."""</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">volume</span><span class="p">:</span> <span class="n">size</span> <span class="k">for</span> <span class="n">volume</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s2">"libraries"</span><span class="p">,</span> <span class="n">libraries</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">"sessionResults"</span><span class="p">,</span> <span class="n">session_results</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">"mountedData"</span><span class="p">,</span> <span class="n">mounted_data</span><span class="p">)</span>
+        <span class="p">)</span> <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_storage_size_for</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">given</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the storage size, which is the sum of the volumes when all three are given."""</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">given</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">storage_size</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">given</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">storage_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">storage_size</span> <span class="o">!=</span> <span class="n">total</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"--storage (</span><span class="si">{</span><span class="n">storage_size</span><span class="si">}</span><span class="s2"> GB) does not match the sum of the volume sizes (</span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> GB). "</span>
+            <span class="s2">"Omit --storage to use the sum, or adjust the volumes."</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">total</span>
+
+
+<div class="viewcode-block" id="volume_maximums_for">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.volume_maximums_for">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">volume_maximums_for</span><span class="p">(</span><span class="n">current_volume_sizes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the maximum size of each volume when resuming a session.</span>
+
+<span class="sd">    A volume can't shrink, so one that is already above its maximum (sessions created</span>
+<span class="sd">    before the maximums existed) may stay at its current size.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    current_volume_sizes : dict or None</span>
+<span class="sd">        Current sizes in GB of the session's volumes. Volumes missing from it get</span>
+<span class="sd">        the usual maximum.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Maximum size in GB keyed by 'libraries', 'sessionResults' and 'mountedData'.</span>
+<span class="sd">    """</span>
+    <span class="n">current</span> <span class="o">=</span> <span class="n">current_volume_sizes</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">volume</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">maximum</span><span class="p">,</span> <span class="n">current</span><span class="p">[</span><span class="n">volume</span><span class="p">])</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">current</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">volume</span><span class="p">),</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">maximum</span>
+        <span class="k">for</span> <span class="n">volume</span><span class="p">,</span> <span class="n">maximum</span> <span class="ow">in</span> <span class="n">VOLUME_MAXIMUMS</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_volume_limits</span><span class="p">(</span><span class="n">given</span><span class="p">,</span> <span class="n">maximums</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Raise ValueError if any given volume is below its minimum or above its maximum."""</span>
+    <span class="n">maximums</span> <span class="o">=</span> <span class="n">maximums</span> <span class="ow">or</span> <span class="n">VOLUME_MAXIMUMS</span>
+    <span class="k">for</span> <span class="n">volume</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">given</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">volume</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">volume</span><span class="si">}</span><span class="s2"> volume (</span><span class="si">{</span><span class="n">VOLUME_FLAGS</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2">) must be at least </span><span class="si">{</span><span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2"> GB, got </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> GB"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="n">maximums</span><span class="p">[</span><span class="n">volume</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">volume</span><span class="si">}</span><span class="s2"> volume (</span><span class="si">{</span><span class="n">VOLUME_FLAGS</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2">) must be at most </span><span class="si">{</span><span class="n">maximums</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2"> GB, got </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> GB"</span>
+            <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_raise_to_minimums</span><span class="p">(</span><span class="n">volume_sizes</span><span class="p">,</span> <span class="n">volumes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Raise the given volumes to their minimum, taking the shortfall evenly from the others.</span>
+
+<span class="sd">    The mirror of _cap_at_maximums: the shortfall is taken from the volumes in</span>
+<span class="sd">    `volumes` that are above their minimum, without taking them below it.</span>
+<span class="sd">    `volume_sizes` is updated in place.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        False if the shortfall couldn't be covered.</span>
+<span class="sd">    """</span>
+    <span class="n">shortfall</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">volume</span><span class="p">]:</span>
+            <span class="n">shortfall</span> <span class="o">+=</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">-</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span>
+            <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">=</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span>
+    <span class="n">donors</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">volumes</span> <span class="k">if</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">v</span><span class="p">]]</span>
+    <span class="k">while</span> <span class="n">shortfall</span> <span class="ow">and</span> <span class="n">donors</span><span class="p">:</span>
+        <span class="n">share</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">shortfall</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">donors</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">volume</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">donors</span><span class="p">):</span>
+            <span class="n">taken</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">share</span> <span class="o">+</span> <span class="p">(</span><span class="n">remainder</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">),</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">-</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">volume</span><span class="p">])</span>
+            <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">-=</span> <span class="n">taken</span>
+            <span class="n">shortfall</span> <span class="o">-=</span> <span class="n">taken</span>
+        <span class="n">donors</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">donors</span> <span class="k">if</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">v</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="ow">not</span> <span class="n">shortfall</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_cap_at_maximums</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span><span class="p">,</span> <span class="n">volumes</span><span class="p">,</span> <span class="n">maximums</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Cap the given volumes at their maximum, sharing the excess evenly among the others.</span>
+
+<span class="sd">    Volumes are taken from `volumes`, in order; the first one gets any GB that can't</span>
+<span class="sd">    be split evenly. `volume_sizes` is updated in place. `maximums` defaults to</span>
+<span class="sd">    VOLUME_MAXIMUMS.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the excess doesn't fit in the volumes still below their maximum.</span>
+<span class="sd">    """</span>
+    <span class="n">maximums</span> <span class="o">=</span> <span class="n">maximums</span> <span class="ow">or</span> <span class="n">VOLUME_MAXIMUMS</span>
+    <span class="n">open_volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span>
+    <span class="n">excess</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">open_volumes</span> <span class="k">if</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">maximums</span><span class="p">[</span><span class="n">v</span><span class="p">]]:</span>
+            <span class="n">excess</span> <span class="o">+=</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">-</span> <span class="n">maximums</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span>
+            <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">=</span> <span class="n">maximums</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span>
+            <span class="n">open_volumes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">excess</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">open_volumes</span><span class="p">:</span>
+            <span class="n">capped</span> <span class="o">=</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2"> (max </span><span class="si">{</span><span class="n">maximums</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="si">}</span><span class="s2"> GB)"</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Storage size (</span><span class="si">{</span><span class="n">storage_size</span><span class="si">}</span><span class="s2"> GB) is </span><span class="si">{</span><span class="n">excess</span><span class="si">}</span><span class="s2"> GB more than the volumes can hold with "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="si">}</span><span class="s2"> at their maximum. Decrease --storage or set the volumes explicitly with "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">VOLUME_FLAGS</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">VOLUME_MINIMUMS</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+            <span class="p">)</span>
+        <span class="n">share</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">excess</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">open_volumes</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">volume</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">open_volumes</span><span class="p">):</span>
+            <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">+=</span> <span class="n">share</span> <span class="o">+</span> <span class="p">(</span><span class="n">remainder</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">excess</span> <span class="o">=</span> <span class="mi">0</span>
 
 
 <div class="viewcode-block" id="resolve_volume_sizes">
@@ -1341,7 +1541,10 @@
 <span class="sd">    - All three given: the storage size is their sum. If storage_size is also</span>
 <span class="sd">      given, it must match the sum.</span>
 <span class="sd">    When the remaining storage can't be split evenly, the extra GB goes to</span>
-<span class="sd">    sessionResults (or to mountedData if sessionResults was given).</span>
+<span class="sd">    sessionResults (or to mountedData if sessionResults was given). A volume that</span>
+<span class="sd">    would fall below its minimum is raised to it, taking the GB from the others;</span>
+<span class="sd">    a volume that would go over its maximum is capped and the excess is shared by</span>
+<span class="sd">    the others.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1365,32 +1568,14 @@
 <span class="sd">    ValueError</span>
 <span class="sd">        If the storage size is out of range or the split is not valid.</span>
 <span class="sd">    """</span>
-    <span class="n">given</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">volume</span><span class="p">:</span> <span class="n">size</span> <span class="k">for</span> <span class="n">volume</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="p">(</span>
-            <span class="p">(</span><span class="s2">"libraries"</span><span class="p">,</span> <span class="n">libraries</span><span class="p">),</span>
-            <span class="p">(</span><span class="s2">"sessionResults"</span><span class="p">,</span> <span class="n">session_results</span><span class="p">),</span>
-            <span class="p">(</span><span class="s2">"mountedData"</span><span class="p">,</span> <span class="n">mounted_data</span><span class="p">)</span>
-        <span class="p">)</span> <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">given</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">given</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="k">if</span> <span class="n">storage_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">storage_size</span> <span class="o">!=</span> <span class="n">total</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"--storage (</span><span class="si">{</span><span class="n">storage_size</span><span class="si">}</span><span class="s2"> GB) does not match the sum of the volume sizes (</span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> GB). "</span>
-                <span class="s2">"Omit --storage to use the sum, or adjust the volumes."</span>
-            <span class="p">)</span>
-        <span class="n">storage_size</span> <span class="o">=</span> <span class="n">total</span>
-    <span class="k">elif</span> <span class="n">storage_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">given</span> <span class="o">=</span> <span class="n">_given_volume_sizes</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">session_results</span><span class="p">,</span> <span class="n">mounted_data</span><span class="p">)</span>
+    <span class="n">storage_size</span> <span class="o">=</span> <span class="n">_storage_size_for</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">given</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">storage_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">storage_size</span> <span class="o">=</span> <span class="n">DEFAULT_STORAGE_SIZE</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">MIN_STORAGE_SIZE</span> <span class="o">&lt;=</span> <span class="n">storage_size</span> <span class="o">&lt;=</span> <span class="n">MAX_STORAGE_SIZE</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Storage size must be between </span><span class="si">{</span><span class="n">MIN_STORAGE_SIZE</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">MAX_STORAGE_SIZE</span><span class="si">}</span><span class="s2"> GB"</span><span class="p">)</span>
+    <span class="n">validate_storage_size</span><span class="p">(</span><span class="n">storage_size</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">given</span><span class="p">:</span>
         <span class="n">given</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"libraries"</span><span class="p">:</span> <span class="n">DEFAULT_LIBRARIES_VOLUME</span><span class="p">}</span>
-    <span class="k">for</span> <span class="n">volume</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">given</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">volume</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">volume</span><span class="si">}</span><span class="s2"> volume (</span><span class="si">{</span><span class="n">VOLUME_FLAGS</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2">) must be at least </span><span class="si">{</span><span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2"> GB, got </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> GB"</span>
-            <span class="p">)</span>
+    <span class="n">_check_volume_limits</span><span class="p">(</span><span class="n">given</span><span class="p">)</span>
     <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">volume</span> <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"sessionResults"</span><span class="p">,</span> <span class="s2">"mountedData"</span><span class="p">,</span> <span class="s2">"libraries"</span><span class="p">)</span> <span class="k">if</span> <span class="n">volume</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">given</span><span class="p">]</span>
     <span class="n">remaining</span> <span class="o">=</span> <span class="n">storage_size</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">given</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="n">volume_sizes</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">given</span><span class="p">)</span>
@@ -1399,16 +1584,97 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">volume</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">missing</span><span class="p">):</span>
             <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">=</span> <span class="n">share</span> <span class="o">+</span> <span class="p">(</span><span class="n">extra</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">too_small</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">missing</span> <span class="k">if</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">v</span><span class="p">]]</span>
-        <span class="k">if</span> <span class="n">too_small</span><span class="p">:</span>
-            <span class="n">split</span> <span class="o">=</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">volume_sizes</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="si">}</span><span class="s2"> GB"</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">)</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">volume_sizes</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="si">}</span><span class="s2"> GB"</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_raise_to_minimums</span><span class="p">(</span><span class="n">volume_sizes</span><span class="p">,</span> <span class="n">missing</span><span class="p">):</span>
             <span class="n">short</span> <span class="o">=</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2"> (min </span><span class="si">{</span><span class="n">VOLUME_MINIMUMS</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="si">}</span><span class="s2"> GB)"</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">too_small</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"Storage size (</span><span class="si">{</span><span class="n">storage_size</span><span class="si">}</span><span class="s2"> GB) leaves </span><span class="si">{</span><span class="n">remaining</span><span class="si">}</span><span class="s2"> GB, split evenly as </span><span class="si">{</span><span class="n">split</span><span class="si">}</span><span class="s2">, "</span>
-                <span class="sa">f</span><span class="s2">"which is too small for </span><span class="si">{</span><span class="n">short</span><span class="si">}</span><span class="s2">. Increase --storage or set the volumes explicitly with "</span>
+                <span class="sa">f</span><span class="s2">"which is too small for </span><span class="si">{</span><span class="n">short</span><span class="si">}</span><span class="s2">, even after moving GB between them. Increase --storage or "</span>
+                <span class="sa">f</span><span class="s2">"set the volumes explicitly with "</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">VOLUME_FLAGS</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">VOLUME_MINIMUMS</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
             <span class="p">)</span>
+        <span class="n">_cap_at_maximums</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span><span class="p">,</span> <span class="n">missing</span><span class="p">)</span>
     <span class="n">volume_sizes</span> <span class="o">=</span> <span class="p">{</span><span class="n">volume</span><span class="p">:</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">}</span>
     <span class="n">validate_volume_sizes</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span></div>
+
+
+
+<div class="viewcode-block" id="resolve_resume_volume_sizes">
+<a class="viewcode-back" href="../../../_autosummary/cloudos_cli.interactive_session.interactive_session.html#cloudos_cli.interactive_session.interactive_session.resolve_resume_volume_sizes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_resume_volume_sizes</span><span class="p">(</span><span class="n">current_volume_sizes</span><span class="p">,</span> <span class="n">storage_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">libraries</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">session_results</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mounted_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Work out the new storage split when resuming, starting from the current volume sizes.</span>
+
+<span class="sd">    Volumes can't shrink, as they may contain data. Rules:</span>
+<span class="sd">    - No volume given: libraries keeps its current size, and sessionResults and</span>
+<span class="sd">      mountedData keep theirs plus an even share of the extra storage.</span>
+<span class="sd">    - Some volumes given: they are used as given, and the others keep their current</span>
+<span class="sd">      size plus an even share of what is left.</span>
+<span class="sd">    - All three given: the storage size is their sum, as in resolve_volume_sizes.</span>
+<span class="sd">    When the extra storage can't be split evenly, the extra GB goes to sessionResults</span>
+<span class="sd">    (or to the first volume not given). A volume that would go over its maximum is</span>
+<span class="sd">    capped and the excess is shared by the others. A volume already above its</span>
+<span class="sd">    maximum may stay at its current size (see volume_maximums_for). If the current</span>
+<span class="sd">    sizes are not known, the split from resolve_volume_sizes is used instead.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    current_volume_sizes : dict or None</span>
+<span class="sd">        Current sizes in GB keyed by 'libraries', 'sessionResults' and 'mountedData'.</span>
+<span class="sd">    storage_size : int, optional</span>
+<span class="sd">        New total storage in GB. Required unless all three volumes are given.</span>
+<span class="sd">    libraries : int, optional</span>
+<span class="sd">        New libraries volume in GB.</span>
+<span class="sd">    session_results : int, optional</span>
+<span class="sd">        New session results volume in GB.</span>
+<span class="sd">    mounted_data : int, optional</span>
+<span class="sd">        New mounted data volume in GB.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        (storage_size, volume_sizes) where volume_sizes is a dict keyed by</span>
+<span class="sd">        'libraries', 'sessionResults' and 'mountedData'.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the split is not valid, a volume would shrink, or the storage is too</span>
+<span class="sd">        small to keep the current volume sizes.</span>
+<span class="sd">    """</span>
+    <span class="n">current</span> <span class="o">=</span> <span class="n">current_volume_sizes</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">current</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">volume</span><span class="p">),</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">):</span>
+        <span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span> <span class="o">=</span> <span class="n">resolve_volume_sizes</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">libraries</span><span class="p">,</span> <span class="n">session_results</span><span class="p">,</span> <span class="n">mounted_data</span><span class="p">)</span>
+        <span class="n">validate_volumes_not_shrunk</span><span class="p">(</span><span class="n">volume_sizes</span><span class="p">,</span> <span class="n">current</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span>
+    <span class="n">given</span> <span class="o">=</span> <span class="n">_given_volume_sizes</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">session_results</span><span class="p">,</span> <span class="n">mounted_data</span><span class="p">)</span>
+    <span class="n">storage_size</span> <span class="o">=</span> <span class="n">_storage_size_for</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">given</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">storage_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Storage size is required unless all three volume sizes are given"</span><span class="p">)</span>
+    <span class="n">validate_storage_size</span><span class="p">(</span><span class="n">storage_size</span><span class="p">)</span>
+    <span class="n">maximums</span> <span class="o">=</span> <span class="n">volume_maximums_for</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+    <span class="n">_check_volume_limits</span><span class="p">(</span><span class="n">given</span><span class="p">,</span> <span class="n">maximums</span><span class="p">)</span>
+    <span class="n">validate_volumes_not_shrunk</span><span class="p">(</span><span class="n">given</span><span class="p">,</span> <span class="n">current</span><span class="p">)</span>
+    <span class="n">kept</span> <span class="o">=</span> <span class="p">[</span><span class="n">volume</span> <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"sessionResults"</span><span class="p">,</span> <span class="s2">"mountedData"</span><span class="p">,</span> <span class="s2">"libraries"</span><span class="p">)</span> <span class="k">if</span> <span class="n">volume</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">given</span><span class="p">]</span>
+    <span class="n">grow</span> <span class="o">=</span> <span class="p">[</span><span class="n">volume</span> <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">kept</span> <span class="k">if</span> <span class="n">volume</span> <span class="o">!=</span> <span class="s2">"libraries"</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">given</span> <span class="k">else</span> <span class="n">kept</span>
+    <span class="n">volume_sizes</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="p">{</span><span class="n">volume</span><span class="p">:</span> <span class="n">current</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">kept</span><span class="p">},</span> <span class="o">**</span><span class="n">given</span><span class="p">}</span>
+    <span class="n">extra</span> <span class="o">=</span> <span class="n">storage_size</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">volume_sizes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">extra</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">volume</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">current</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="si">}</span><span class="s2"> GB"</span> <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">kept</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Storage size (</span><span class="si">{</span><span class="n">storage_size</span><span class="si">}</span><span class="s2"> GB) is too small to keep the current volume sizes (</span><span class="si">{</span><span class="n">keep</span><span class="si">}</span><span class="s2">); "</span>
+            <span class="sa">f</span><span class="s2">"it needs at least </span><span class="si">{</span><span class="n">storage_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">extra</span><span class="si">}</span><span class="s2"> GB. Increase --storage."</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">grow</span><span class="p">:</span>
+        <span class="n">share</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">extra</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">grow</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">volume</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grow</span><span class="p">):</span>
+            <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="o">+=</span> <span class="n">share</span> <span class="o">+</span> <span class="p">(</span><span class="n">remainder</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">_cap_at_maximums</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span><span class="p">,</span> <span class="n">grow</span><span class="p">,</span> <span class="n">maximums</span><span class="p">)</span>
+    <span class="n">volume_sizes</span> <span class="o">=</span> <span class="p">{</span><span class="n">volume</span><span class="p">:</span> <span class="n">volume_sizes</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span> <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">VOLUME_MINIMUMS</span><span class="p">}</span>
+    <span class="c1"># Capping can lower a volume, so check the final split against the current sizes too</span>
+    <span class="n">validate_volumes_not_shrunk</span><span class="p">(</span><span class="n">volume_sizes</span><span class="p">,</span> <span class="n">current</span><span class="p">)</span>
+    <span class="n">validate_volume_sizes</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span><span class="p">,</span> <span class="n">maximums</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span></div>
 
 
@@ -1494,7 +1760,7 @@
 <span class="sd">    instance_type : str</span>
 <span class="sd">        Instance type (EC2 for AWS, e.g., c5.xlarge; Azure VM size, e.g., Standard_D4s_v3)</span>
 <span class="sd">    storage_size : int</span>
-<span class="sd">        Storage in GB (default: 500, range: 500-64050)</span>
+<span class="sd">        Storage in GB (default: DEFAULT_STORAGE_SIZE, range: STORAGE_RANGE)</span>
 <span class="sd">    volume_sizes : dict, optional</span>
 <span class="sd">        Split of the storage into 'libraries', 'sessionResults' and 'mountedData' (GB).</span>
 <span class="sd">        Must add up to storage_size. If not given, the default split is used</span>
@@ -1528,8 +1794,7 @@
     <span class="c1"># Validate inputs</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Session name must be 1-100 characters"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">MIN_STORAGE_SIZE</span> <span class="o">&lt;=</span> <span class="n">storage_size</span> <span class="o">&lt;=</span> <span class="n">MAX_STORAGE_SIZE</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Storage size must be between </span><span class="si">{</span><span class="n">MIN_STORAGE_SIZE</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">MAX_STORAGE_SIZE</span><span class="si">}</span><span class="s2"> GB"</span><span class="p">)</span>
+    <span class="n">validate_storage_size</span><span class="p">(</span><span class="n">storage_size</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">volume_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">volume_sizes</span> <span class="o">=</span> <span class="n">resolve_volume_sizes</span><span class="p">(</span><span class="n">storage_size</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1627,6 +1892,7 @@
     <span class="n">cost_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">shutdown_at</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">volume_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">volume_maximums</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Build the resume session payload for the API.</span>
 
@@ -1641,6 +1907,9 @@
 <span class="sd">    volume_sizes : dict, optional</span>
 <span class="sd">        New split of the storage into 'libraries', 'sessionResults' and 'mountedData' (GB).</span>
 <span class="sd">        Must add up to storage_size.</span>
+<span class="sd">    volume_maximums : dict, optional</span>
+<span class="sd">        Maximum size in GB for each volume, from volume_maximums_for. Defaults to</span>
+<span class="sd">        VOLUME_MAXIMUMS.</span>
 <span class="sd">    cost_limit : float, optional</span>
 <span class="sd">        New compute cost limit (if changing)</span>
 <span class="sd">    shutdown_at : str, optional</span>
@@ -1666,7 +1935,7 @@
     <span class="k">if</span> <span class="n">volume_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">storage_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Storage size is required when volume sizes are given"</span><span class="p">)</span>
-        <span class="n">validate_volume_sizes</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span><span class="p">)</span>
+        <span class="n">validate_volume_sizes</span><span class="p">(</span><span class="n">storage_size</span><span class="p">,</span> <span class="n">volume_sizes</span><span class="p">,</span> <span class="n">volume_maximums</span><span class="p">)</span>
         <span class="n">config_updates</span><span class="p">[</span><span class="s2">"volumeSizes"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">volume_sizes</span><span class="p">)</span>
     <span class="c1"># Build execution updates if cost_limit or shutdown_at are specified</span>
     <span class="n">execution_updates</span> <span class="o">=</span> <span class="p">{}</span>
