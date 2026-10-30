@@ -39,15 +39,16 @@ from cloudos_cli.interactive_session.interactive_session import (
     DEFAULT_LIBRARIES_VOLUME,
     VOLUME_MINIMUMS,
     VOLUME_MAXIMUMS,
+    volume_maximums_for,
     fetch_interactive_session_page,
     APP_SESSION_TYPES,
     build_app_filtered_page_fetcher
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
+from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 # Default volume split, shown in the --help text
 _, DEFAULT_VOLUME_SIZES = resolve_volume_sizes()
-from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
 _PROJECT_ROOT_FOLDERS = {'data', 'analysesresults', 'analyses_results', 'analyses-results', 'cohorts'}
@@ -333,7 +334,9 @@ def list_sessions(ctx,
               type=int,
               help=(f'Total storage in GB ({STORAGE_RANGE}). Default={DEFAULT_STORAGE_SIZE}, or the sum of the three volume '
                     'sizes when --libraries-volume, --results-volume and --data-volume are all given. '
-                    'The storage is split into libraries, session results and mounted data volumes.'),
+                    'The storage is split into libraries, session results and mounted data volumes. '
+                    'A volume that would go over its maximum gets its maximum, and one that would fall '
+                    'below its minimum gets its minimum; the difference goes to the other volumes not set.'),
               default=None)
 @click.option('--libraries-volume',
               type=int,
@@ -1204,7 +1207,8 @@ def pause_session(ctx,
               help=(f'Update storage size in GB ({STORAGE_RANGE}). It can\'t be smaller than the '
                     'session\'s current storage, and no volume can be smaller than it is now. '
                     'The volume split is sent with it: by default libraries keeps its current size '
-                    'and the extra storage is shared evenly by session results and mounted data.'),
+                    'and the extra storage is shared evenly by session results and mounted data. '
+                    'A volume already above its maximum keeps its current size.'),
               default=None)
 @click.option('--libraries-volume',
               type=int,
@@ -1266,6 +1270,7 @@ def resume_session(ctx,
         raise SystemExit(1)
     # Work out the storage size and volume split if either is being changed
     volume_sizes = None
+    volume_maximums = None
     volumes_given = [v for v in (libraries_volume, results_volume, data_volume) if v is not None]
     if storage is not None or volumes_given:
         if storage is None and len(volumes_given) < 3:
@@ -1287,6 +1292,7 @@ def resume_session(ctx,
                 team_id=workspace_id,
                 verify_ssl=verify_ssl
             )
+            volume_maximums = volume_maximums_for(get_response_volume_sizes(session))
             storage, volume_sizes = resolve_resume_volume_sizes(
                 get_response_volume_sizes(session),
                 storage_size=storage,
@@ -1330,7 +1336,8 @@ def resume_session(ctx,
             storage_size=storage,
             cost_limit=cost_limit,
             shutdown_at=shutdown_at_parsed,
-            volume_sizes=volume_sizes
+            volume_sizes=volume_sizes,
+            volume_maximums=volume_maximums
         )
         if verbose:
             print('\tResume payload constructed:')

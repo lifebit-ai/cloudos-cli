@@ -2231,7 +2231,7 @@ The session storage is split into three volumes (libraries, session results and 
 - Two volume options: the third volume gets the rest of `--storage`.
 - All three volume options: they are used as given, and `--storage` defaults to their sum.
 
-When the rest can't be split evenly, the extra GB goes to session results (or to mounted data if `--results-volume` was given). A volume that would go over its maximum gets its maximum, and the excess is shared by the other volumes that weren't set. The CLI checks the split before calling the API and stops with an error if a volume would be below its minimum or the volumes can't hold the storage. Each volume is shown as its own row under "Storage" in the output of `create` and `status`, and `status --output-format csv` adds a column for each volume.
+When the rest can't be split evenly, the extra GB goes to session results (or to mounted data if `--results-volume` was given). A volume that would go over its maximum gets its maximum, and the excess is shared by the other volumes that weren't set. In the same way, a volume that would fall below its minimum gets its minimum, and the difference is taken from the other volumes that weren't set (for example, `--storage 100 --data-volume 10` gives 50 / 40 / 10 GB). The CLI checks the split before calling the API and stops with an error if the volumes can't fit their minimums or can't hold the storage. Each volume is shown as its own row under "Storage" in the output of `create` and `status`, and `status --output-format csv` adds a column for each volume.
 
 ```bash
 # 1000 GB: libraries 50, session results 475, mounted data 475
@@ -2674,7 +2674,7 @@ cloudos interactive-session resume \
 All configuration parameters are optional. If not specified, the session resumes with its previous configuration.
 
 - `--instance <TYPE>` - Change instance type (validated by platform)
-- `--storage <GB>` - Update storage size (60-64050 GB). It can't be smaller than the session's current storage, and no volume can be smaller than it is now, as it may contain data. The volume split is sent with it, starting from the current volume sizes: with only `--storage`, libraries keeps its size and the extra storage is shared evenly by session results and mounted data; volumes that aren't set keep their size plus a share of the rest. If the current sizes aren't known, the same rules as `create` are used
+- `--storage <GB>` - Update storage size (60-64050 GB). It can't be smaller than the session's current storage, and no volume can be smaller than it is now, as it may contain data. The volume split is sent with it, starting from the current volume sizes: with only `--storage`, libraries keeps its size and the extra storage is shared evenly by session results and mounted data; volumes that aren't set keep their size plus a share of the rest. A volume that is already above its maximum (possible for sessions created before the maximums existed) keeps its current size. If the current sizes aren't known, the same rules as `create` are used
 - `--libraries-volume <GB>`, `--results-volume <GB>`, `--data-volume <GB>` - Update the volume split (minimums 50, 5 and 5 GB; maximums 1000, 32000 and 32000 GB). These require `--storage` unless all three are given, in which case the storage is their sum
 - `--cost-limit <USD>` - Update compute cost limit (-1 for unlimited)
 - `--shutdown-in <DURATION>` - Update auto-shutdown time (e.g., 8h, 2d)

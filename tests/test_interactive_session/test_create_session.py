@@ -732,6 +732,9 @@ class TestVolumeSizes:
         ({'storage_size': 1001}, (1001, {'libraries': 50, 'sessionResults': 476, 'mountedData': 475})),
         # Smallest storage, and one GB more (odd remainder)
         ({'storage_size': 60}, (60, {'libraries': 50, 'sessionResults': 5, 'mountedData': 5})),
+        # An even split below a volume's minimum is raised to it, taking the GB from the others
+        ({'storage_size': 100, 'mounted_data': 10}, (100, {'libraries': 50, 'sessionResults': 40, 'mountedData': 10})),
+        ({'storage_size': 61, 'session_results': 5}, (61, {'libraries': 50, 'sessionResults': 5, 'mountedData': 6})),
         # Largest volumes allowed
         ({'libraries': 1000, 'session_results': 32000, 'mounted_data': 31050},
          (64050, {'libraries': 1000, 'sessionResults': 32000, 'mountedData': 31050})),
@@ -777,7 +780,8 @@ class TestVolumeSizes:
         ({'mounted_data': 4}, 'mountedData volume .*at least 5 GB'),
         # Even split of the rest leaves a volume below its minimum
         ({'storage_size': 60, 'libraries': 52}, 'too small for sessionResults'),
-        ({'storage_size': 100, 'mounted_data': 50}, 'too small for libraries'),
+        # 50 GB left for two volumes whose minimums add up to 55 GB
+        ({'storage_size': 100, 'mounted_data': 50}, 'too small for libraries .*even after moving GB'),
         # Two volumes given leave too little for the third
         ({'storage_size': 60, 'libraries': 50, 'session_results': 6}, 'too small for mountedData'),
         # All three given but the sum is out of range
@@ -896,6 +900,54 @@ class TestVolumeSizes:
 
         with pytest.raises(ValueError, match=message):
             resolve_resume_volume_sizes(self.CURRENT_VOLUMES, **kwargs)
+
+    @pytest.mark.parametrize('current,expected', [
+        (None, {'libraries': 1000, 'sessionResults': 32000, 'mountedData': 32000}),
+        ({'libraries': 100, 'sessionResults': 450, 'mountedData': 450},
+         {'libraries': 1000, 'sessionResults': 32000, 'mountedData': 32000}),
+        # A volume above its maximum may stay at its current size
+        ({'libraries': 1500, 'sessionResults': 750}, {'libraries': 1500, 'sessionResults': 32000, 'mountedData': 32000}),
+    ])
+    def test_volume_maximums_for(self, current, expected):
+        from cloudos_cli.interactive_session.interactive_session import volume_maximums_for
+
+        assert volume_maximums_for(current) == expected
+
+    # A session created before the maximums existed, with libraries above 1000 GB
+    OVER_MAX_VOLUMES = {'libraries': 1500, 'sessionResults': 750, 'mountedData': 750}
+
+    @pytest.mark.parametrize('kwargs,expected', [
+        # libraries keeps its 1500 GB instead of being capped to 1000 GB
+        ({'storage_size': 3200}, (3200, {'libraries': 1500, 'sessionResults': 850, 'mountedData': 850})),
+        ({'storage_size': 3200, 'session_results': 800},
+         (3200, {'libraries': 1500, 'sessionResults': 800, 'mountedData': 900})),
+        ({'storage_size': 3200, 'libraries': 1500},
+         (3200, {'libraries': 1500, 'sessionResults': 850, 'mountedData': 850})),
+    ])
+    def test_resolve_resume_volume_sizes_keeps_volume_above_maximum(self, kwargs, expected):
+        from cloudos_cli.interactive_session.interactive_session import resolve_resume_volume_sizes
+
+        assert resolve_resume_volume_sizes(self.OVER_MAX_VOLUMES, **kwargs) == expected
+
+    @pytest.mark.parametrize('kwargs,message', [
+        ({'storage_size': 3200, 'libraries': 1000}, "can't be smaller than their current size"),
+        ({'storage_size': 3200, 'libraries': 1501}, 'libraries volume .*at most 1500 GB'),
+    ])
+    def test_resolve_resume_volume_sizes_above_maximum_errors(self, kwargs, message):
+        from cloudos_cli.interactive_session.interactive_session import resolve_resume_volume_sizes
+
+        with pytest.raises(ValueError, match=message):
+            resolve_resume_volume_sizes(self.OVER_MAX_VOLUMES, **kwargs)
+
+    def test_resume_payload_accepts_volume_above_maximum_with_volume_maximums(self):
+        from cloudos_cli.interactive_session.interactive_session import build_resume_payload, volume_maximums_for
+
+        volumes = {'libraries': 1500, 'sessionResults': 850, 'mountedData': 850}
+        with pytest.raises(ValueError, match='at most 1000 GB'):
+            build_resume_payload(storage_size=3200, volume_sizes=volumes)
+        payload = build_resume_payload(storage_size=3200, volume_sizes=volumes,
+                                       volume_maximums=volume_maximums_for(self.OVER_MAX_VOLUMES))
+        assert payload['newInteractiveSessionConfiguration']['volumeSizes'] == volumes
 
     @pytest.mark.parametrize('current', [None, {}, {'libraries': 50}])
     def test_resolve_resume_volume_sizes_without_current_uses_create_split(self, current):
@@ -1063,6 +1115,10 @@ class TestCreateSessionVolumeFlags:
         assert f'({STORAGE_RANGE})' in output
         for volume, minimum in VOLUME_MINIMUMS.items():
             assert f'(min {minimum}, max {VOLUME_MAXIMUMS[volume]})' in output
+        if command == 'create':
+            assert 'A volume that would go over its maximum gets its maximum' in output
+        else:
+            assert 'A volume already above its maximum keeps its current size' in output
 
     @pytest.mark.parametrize('extra,storage,volumes', [
         ([], 500, {'libraries': 50, 'sessionResults': 225, 'mountedData': 225}),
@@ -1188,6 +1244,18 @@ class TestCreateSessionVolumeFlags:
         config = cl.resume_interactive_session.call_args[0][2]['newInteractiveSessionConfiguration']
         assert config['storageSizeInGb'] == 1200
         assert config['volumeSizes'] == {'libraries': 100, 'sessionResults': 550, 'mountedData': 550}
+
+    @patch('cloudos_cli.interactive_session.cli.Cloudos')
+    @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
+    def test_resume_keeps_volume_above_maximum(self, mock_config, mock_cloudos):
+        # Checked against a real session on ADAPT-prod: the platform accepts libraries at 1500 GB
+        result, cl = self._invoke(mock_config, mock_cloudos, self.RESUME_ARGS + ['--storage', '3200'],
+                                  current_storage=3000,
+                                  current_volumes={'libraries': 1500, 'sessionResults': 750, 'mountedData': 750})
+
+        assert result.exit_code == 0, result.output
+        config = cl.resume_interactive_session.call_args[0][2]['newInteractiveSessionConfiguration']
+        assert config['volumeSizes'] == {'libraries': 1500, 'sessionResults': 850, 'mountedData': 850}
 
     @patch('cloudos_cli.interactive_session.cli.Cloudos')
     @patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data')
