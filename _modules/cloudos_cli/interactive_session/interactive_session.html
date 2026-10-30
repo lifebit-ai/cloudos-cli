@@ -381,6 +381,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">rich.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">rich.console</span><span class="w"> </span><span class="kn">import</span> <span class="n">Console</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">rich.panel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Panel</span>
@@ -1203,7 +1204,12 @@
 <span class="sd">        For Lifebit Platform: {"project_name": "...", "folder_path": "..."}</span>
 <span class="sd">    """</span>
     <span class="c1"># Check for Azure blob storage paths and provide helpful error</span>
-    <span class="k">if</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'az://'</span><span class="p">)</span> <span class="ow">or</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'https://'</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">'.blob.core.windows.net'</span> <span class="ow">in</span> <span class="n">link_path_str</span><span class="p">:</span>
+    <span class="n">_parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">link_path_str</span><span class="p">)</span>
+    <span class="n">_is_azure_https</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">_parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">'https'</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="n">_parsed_url</span><span class="o">.</span><span class="n">hostname</span> <span class="ow">or</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">'.blob.core.windows.net'</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">link_path_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'az://'</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_is_azure_https</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"Azure blob storage paths are not supported for linking. "</span>
             <span class="sa">f</span><span class="s2">"Folder linking is not supported on Azure execution platforms. "</span>
