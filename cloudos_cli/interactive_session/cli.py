@@ -38,6 +38,7 @@ from cloudos_cli.interactive_session.interactive_session import (
     DEFAULT_STORAGE_SIZE,
     DEFAULT_LIBRARIES_VOLUME,
     VOLUME_MINIMUMS,
+    VOLUME_MAXIMUMS,
     fetch_interactive_session_page,
     APP_SESSION_TYPES,
     build_app_filtered_page_fetcher
@@ -336,19 +337,19 @@ def list_sessions(ctx,
               default=None)
 @click.option('--libraries-volume',
               type=int,
-              help=(f'Libraries volume in GB (min {VOLUME_MINIMUMS["libraries"]}). '
+              help=(f'Libraries volume in GB (min {VOLUME_MINIMUMS["libraries"]}, max {VOLUME_MAXIMUMS["libraries"]}). '
                     f'Default={DEFAULT_LIBRARIES_VOLUME} when no volume is set; otherwise '
                     'the volumes not set share the rest of --storage evenly.'),
               default=None)
 @click.option('--results-volume',
               type=int,
-              help=(f'Session results volume in GB (min {VOLUME_MINIMUMS["sessionResults"]}). '
+              help=(f'Session results volume in GB (min {VOLUME_MINIMUMS["sessionResults"]}, max {VOLUME_MAXIMUMS["sessionResults"]}). '
                     f'Default={DEFAULT_VOLUME_SIZES["sessionResults"]} with the default storage; '
                     'otherwise the volumes not set share the rest of --storage evenly.'),
               default=None)
 @click.option('--data-volume',
               type=int,
-              help=(f'Mounted data volume in GB (min {VOLUME_MINIMUMS["mountedData"]}). '
+              help=(f'Mounted data volume in GB (min {VOLUME_MINIMUMS["mountedData"]}, max {VOLUME_MAXIMUMS["mountedData"]}). '
                     f'Default={DEFAULT_VOLUME_SIZES["mountedData"]} with the default storage; '
                     'otherwise the volumes not set share the rest of --storage evenly.'),
               default=None)
@@ -1207,18 +1208,18 @@ def pause_session(ctx,
               default=None)
 @click.option('--libraries-volume',
               type=int,
-              help=(f'Update libraries volume in GB (min {VOLUME_MINIMUMS["libraries"]}). '
+              help=(f'Update libraries volume in GB (min {VOLUME_MINIMUMS["libraries"]}, max {VOLUME_MAXIMUMS["libraries"]}). '
                     'Volumes not set keep their current size plus a share of the rest of --storage. '
                     'Requires --storage unless all three volumes are given.'),
               default=None)
 @click.option('--results-volume',
               type=int,
-              help=(f'Update session results volume in GB (min {VOLUME_MINIMUMS["sessionResults"]}). '
+              help=(f'Update session results volume in GB (min {VOLUME_MINIMUMS["sessionResults"]}, max {VOLUME_MAXIMUMS["sessionResults"]}). '
                     'Requires --storage unless all three volumes are given.'),
               default=None)
 @click.option('--data-volume',
               type=int,
-              help=(f'Update mounted data volume in GB (min {VOLUME_MINIMUMS["mountedData"]}). '
+              help=(f'Update mounted data volume in GB (min {VOLUME_MINIMUMS["mountedData"]}, max {VOLUME_MAXIMUMS["mountedData"]}). '
                     'Requires --storage unless all three volumes are given.'),
               default=None)
 @click.option('--cost-limit',

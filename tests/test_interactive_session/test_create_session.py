@@ -732,6 +732,13 @@ class TestVolumeSizes:
         ({'storage_size': 1001}, (1001, {'libraries': 50, 'sessionResults': 476, 'mountedData': 475})),
         # Smallest storage, and one GB more (odd remainder)
         ({'storage_size': 60}, (60, {'libraries': 50, 'sessionResults': 5, 'mountedData': 5})),
+        # Largest volumes allowed
+        ({'libraries': 1000, 'session_results': 32000, 'mounted_data': 31050},
+         (64050, {'libraries': 1000, 'sessionResults': 32000, 'mountedData': 31050})),
+        # An even split over a volume's maximum is capped, and the excess goes to the others
+        # (20000 GB left would give libraries 10000; it gets 1000 and sessionResults the other 9000)
+        ({'storage_size': 40000, 'mounted_data': 20000},
+         (40000, {'libraries': 1000, 'sessionResults': 19000, 'mountedData': 20000})),
         ({'storage_size': 61}, (61, {'libraries': 50, 'sessionResults': 6, 'mountedData': 5})),
         ({'storage_size': 64050}, (64050, {'libraries': 50, 'sessionResults': 32000, 'mountedData': 32000})),
         # One volume given: the other two share the rest
@@ -760,6 +767,12 @@ class TestVolumeSizes:
         ({'storage_size': 59}, '60-64050'),
         ({'storage_size': 64051}, '60-64050'),
         ({'libraries': 49}, 'libraries volume .*at least 50 GB'),
+        ({'storage_size': 2000, 'libraries': 1001}, 'libraries volume .*at most 1000 GB'),
+        ({'storage_size': 40000, 'session_results': 32001}, 'sessionResults volume .*at most 32000 GB'),
+        ({'storage_size': 40000, 'mounted_data': 32001}, 'mountedData volume .*at most 32000 GB'),
+        # The rest is more than the volumes not set can hold at their maximum
+        ({'storage_size': 64050, 'mounted_data': 100}, '30950 GB more than the volumes can hold'),
+        ({'storage_size': 2000, 'session_results': 500, 'mounted_data': 450}, '50 GB more than the volumes can hold'),
         ({'session_results': 4}, 'sessionResults volume .*at least 5 GB'),
         ({'mounted_data': 4}, 'mountedData volume .*at least 5 GB'),
         # Even split of the rest leaves a volume below its minimum
@@ -777,6 +790,24 @@ class TestVolumeSizes:
 
         with pytest.raises(ValueError, match=message):
             resolve_volume_sizes(**kwargs)
+
+    def test_volume_maximums_fit_within_max_storage(self):
+        from cloudos_cli.interactive_session.interactive_session import (
+            MIN_STORAGE_SIZE, MAX_STORAGE_SIZE, VOLUME_MAXIMUMS)
+
+        assert VOLUME_MAXIMUMS == {'libraries': 1000, 'sessionResults': 32000, 'mountedData': 32000}
+        assert MAX_STORAGE_SIZE == 64050
+        assert MIN_STORAGE_SIZE <= MAX_STORAGE_SIZE <= sum(VOLUME_MAXIMUMS.values())
+
+    @pytest.mark.parametrize('volumes,message', [
+        ({'libraries': 1001, 'sessionResults': 500, 'mountedData': 499}, 'libraries volume .*at most 1000 GB'),
+        ({'libraries': 50, 'sessionResults': 32001, 'mountedData': 5}, 'sessionResults volume .*at most 32000 GB'),
+    ])
+    def test_validate_volume_sizes_rejects_over_maximum(self, volumes, message):
+        from cloudos_cli.interactive_session.interactive_session import validate_volume_sizes
+
+        with pytest.raises(ValueError, match=message):
+            validate_volume_sizes(sum(volumes.values()), volumes)
 
     def test_min_storage_is_sum_of_volume_minimums(self):
         from cloudos_cli.interactive_session.interactive_session import MIN_STORAGE_SIZE, VOLUME_MINIMUMS
@@ -840,6 +871,9 @@ class TestVolumeSizes:
         # All three given: storage is their sum
         ({'libraries': 100, 'session_results': 500, 'mounted_data': 600},
          (1200, {'libraries': 100, 'sessionResults': 500, 'mountedData': 600})),
+        # libraries' share would take it past 1000 GB, so the excess goes to sessionResults
+        ({'storage_size': 4000, 'mounted_data': 450},
+         (4000, {'libraries': 1000, 'sessionResults': 2550, 'mountedData': 450})),
     ])
     def test_resolve_resume_volume_sizes(self, kwargs, expected):
         from cloudos_cli.interactive_session.interactive_session import resolve_resume_volume_sizes
@@ -852,6 +886,8 @@ class TestVolumeSizes:
         # Given volumes leave less than the current size of the others
         ({'storage_size': 1000, 'libraries': 200}, 'too small to keep the current volume sizes .*needs at least 1100 GB'),
         ({'storage_size': 1200, 'libraries': 4}, 'at least 50 GB'),
+        ({'storage_size': 2000, 'libraries': 1001}, 'at most 1000 GB'),
+        ({'storage_size': 64050, 'session_results': 500}, 'more than the volumes can hold'),
         ({'storage_size': 59}, '60-64050'),
         ({'libraries': 100}, 'Storage size is required'),
     ])
@@ -1018,14 +1054,15 @@ class TestCreateSessionVolumeFlags:
 
     @pytest.mark.parametrize('command', ['create', 'resume'])
     def test_help_shows_limits_from_constants(self, command):
-        from cloudos_cli.interactive_session.interactive_session import STORAGE_RANGE, VOLUME_MINIMUMS
+        from cloudos_cli.interactive_session.interactive_session import (
+            STORAGE_RANGE, VOLUME_MINIMUMS, VOLUME_MAXIMUMS)
 
         result = CliRunner().invoke(run_cloudos_cli, ['interactive-session', command, '--help'])
         assert result.exit_code == 0
         output = ' '.join(result.output.replace('│', ' ').split())
         assert f'({STORAGE_RANGE})' in output
-        for minimum in VOLUME_MINIMUMS.values():
-            assert f'(min {minimum})' in output
+        for volume, minimum in VOLUME_MINIMUMS.items():
+            assert f'(min {minimum}, max {VOLUME_MAXIMUMS[volume]})' in output
 
     @pytest.mark.parametrize('extra,storage,volumes', [
         ([], 500, {'libraries': 50, 'sessionResults': 225, 'mountedData': 225}),

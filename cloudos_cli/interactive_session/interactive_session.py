@@ -881,6 +881,12 @@ VOLUME_MINIMUMS = {
     "sessionResults": 5,
     "mountedData": 5
 }
+# Maximum size in GB for each volume inside the session storage
+VOLUME_MAXIMUMS = {
+    "libraries": 1000,
+    "sessionResults": 32000,
+    "mountedData": 32000
+}
 # The volumes always add up to the storage, so its minimum is the sum of theirs
 MIN_STORAGE_SIZE = sum(VOLUME_MINIMUMS.values())
 MAX_STORAGE_SIZE = 64050
@@ -933,17 +939,15 @@ def validate_volume_sizes(storage_size, volume_sizes):
     Raises
     ------
     ValueError
-        If a volume is missing, below its minimum, or the volumes do not add up
-        to the storage size.
+        If a volume is missing, outside its minimum and maximum, or the volumes
+        do not add up to the storage size.
     """
     if set(volume_sizes) != set(VOLUME_MINIMUMS):
         raise ValueError("Volume sizes must contain exactly: libraries, sessionResults, mountedData")
-    for volume, minimum in VOLUME_MINIMUMS.items():
-        size = volume_sizes[volume]
-        if not isinstance(size, int) or size < minimum:
-            raise ValueError(
-                f"{volume} volume ({VOLUME_FLAGS[volume]}) must be at least {minimum} GB, got {size} GB"
-            )
+    for volume, size in volume_sizes.items():
+        if not isinstance(size, int):
+            raise ValueError(f"{volume} volume ({VOLUME_FLAGS[volume]}) must be a whole number of GB, got {size}")
+    _check_volume_limits(volume_sizes)
     total = sum(volume_sizes.values())
     if total != storage_size:
         raise ValueError(
@@ -1009,13 +1013,50 @@ def _storage_size_for(storage_size, given):
     return total
 
 
-def _check_volume_minimums(given):
-    """Raise ValueError if any given volume is below its minimum."""
+def _check_volume_limits(given):
+    """Raise ValueError if any given volume is below its minimum or above its maximum."""
     for volume, size in given.items():
         if size < VOLUME_MINIMUMS[volume]:
             raise ValueError(
                 f"{volume} volume ({VOLUME_FLAGS[volume]}) must be at least {VOLUME_MINIMUMS[volume]} GB, got {size} GB"
             )
+        if size > VOLUME_MAXIMUMS[volume]:
+            raise ValueError(
+                f"{volume} volume ({VOLUME_FLAGS[volume]}) must be at most {VOLUME_MAXIMUMS[volume]} GB, got {size} GB"
+            )
+
+
+def _cap_at_maximums(storage_size, volume_sizes, volumes):
+    """Cap the given volumes at their maximum, sharing the excess evenly among the others.
+
+    Volumes are taken from `volumes`, in order; the first one gets any GB that can't
+    be split evenly. `volume_sizes` is updated in place.
+
+    Raises
+    ------
+    ValueError
+        If the excess doesn't fit in the volumes still below their maximum.
+    """
+    open_volumes = list(volumes)
+    excess = 0
+    while True:
+        for volume in [v for v in open_volumes if volume_sizes[v] > VOLUME_MAXIMUMS[v]]:
+            excess += volume_sizes[volume] - VOLUME_MAXIMUMS[volume]
+            volume_sizes[volume] = VOLUME_MAXIMUMS[volume]
+            open_volumes.remove(volume)
+        if not excess:
+            return
+        if not open_volumes:
+            capped = ', '.join(f"{v} (max {VOLUME_MAXIMUMS[v]} GB)" for v in volumes)
+            raise ValueError(
+                f"Storage size ({storage_size} GB) is {excess} GB more than the volumes can hold with "
+                f"{capped} at their maximum. Decrease --storage or set the volumes explicitly with "
+                f"{', '.join(VOLUME_FLAGS[v] for v in VOLUME_MINIMUMS)}."
+            )
+        share, remainder = divmod(excess, len(open_volumes))
+        for i, volume in enumerate(open_volumes):
+            volume_sizes[volume] += share + (remainder if i == 0 else 0)
+        excess = 0
 
 
 def resolve_volume_sizes(storage_size=None, libraries=None, session_results=None, mounted_data=None):
@@ -1029,7 +1070,8 @@ def resolve_volume_sizes(storage_size=None, libraries=None, session_results=None
     - All three given: the storage size is their sum. If storage_size is also
       given, it must match the sum.
     When the remaining storage can't be split evenly, the extra GB goes to
-    sessionResults (or to mountedData if sessionResults was given).
+    sessionResults (or to mountedData if sessionResults was given). A volume that
+    would go over its maximum is capped and the excess is shared by the others.
 
     Parameters
     ----------
@@ -1060,7 +1102,7 @@ def resolve_volume_sizes(storage_size=None, libraries=None, session_results=None
     validate_storage_size(storage_size)
     if not given:
         given = {"libraries": DEFAULT_LIBRARIES_VOLUME}
-    _check_volume_minimums(given)
+    _check_volume_limits(given)
     missing = [volume for volume in ("sessionResults", "mountedData", "libraries") if volume not in given]
     remaining = storage_size - sum(given.values())
     volume_sizes = dict(given)
@@ -1077,6 +1119,7 @@ def resolve_volume_sizes(storage_size=None, libraries=None, session_results=None
                 f"which is too small for {short}. Increase --storage or set the volumes explicitly with "
                 f"{', '.join(VOLUME_FLAGS[v] for v in VOLUME_MINIMUMS)}."
             )
+        _cap_at_maximums(storage_size, volume_sizes, missing)
     volume_sizes = {volume: volume_sizes[volume] for volume in VOLUME_MINIMUMS}
     validate_volume_sizes(storage_size, volume_sizes)
     return storage_size, volume_sizes
@@ -1093,8 +1136,9 @@ def resolve_resume_volume_sizes(current_volume_sizes, storage_size=None, librari
       size plus an even share of what is left.
     - All three given: the storage size is their sum, as in resolve_volume_sizes.
     When the extra storage can't be split evenly, the extra GB goes to sessionResults
-    (or to the first volume not given). If the current sizes are not known, the
-    split from resolve_volume_sizes is used instead.
+    (or to the first volume not given). A volume that would go over its maximum is
+    capped and the excess is shared by the others. If the current sizes are not
+    known, the split from resolve_volume_sizes is used instead.
 
     Parameters
     ----------
@@ -1131,7 +1175,7 @@ def resolve_resume_volume_sizes(current_volume_sizes, storage_size=None, librari
     if storage_size is None:
         raise ValueError("Storage size is required unless all three volume sizes are given")
     validate_storage_size(storage_size)
-    _check_volume_minimums(given)
+    _check_volume_limits(given)
     validate_volumes_not_shrunk(given, current)
     kept = [volume for volume in ("sessionResults", "mountedData", "libraries") if volume not in given]
     grow = [volume for volume in kept if volume != "libraries"] if not given else kept
@@ -1147,6 +1191,7 @@ def resolve_resume_volume_sizes(current_volume_sizes, storage_size=None, librari
         share, remainder = divmod(extra, len(grow))
         for i, volume in enumerate(grow):
             volume_sizes[volume] += share + (remainder if i == 0 else 0)
+        _cap_at_maximums(storage_size, volume_sizes, grow)
     volume_sizes = {volume: volume_sizes[volume] for volume in VOLUME_MINIMUMS}
     validate_volume_sizes(storage_size, volume_sizes)
     return storage_size, volume_sizes
