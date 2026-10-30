@@ -1,5 +1,6 @@
 """pytest is added for checking Job.workflow_id"""
 from io import StringIO
+import json
 import sys
 import mock
 import responses
@@ -41,12 +42,19 @@ cmd_w_array_file = custom_cmd | {
 
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
+@mock.patch('cloudos_cli.utils.array_job.generate_datasets_for_project')
 @responses.activate
-def test_send_bash_array_job():
+def test_send_bash_array_job(datasets):
     """
     Test 'send_bash_job' to work as intended
     API request is mocked and replicated with json files
     """
+    datasets.return_value.list_folder_content.return_value = {
+        "files": [
+            {"name": "testValue2", "_id": "file-2"},
+            {"name": "testValue4", "_id": "file-4"},
+        ]
+    }
     create_json_project = load_json_file(INPUT_PROJECT)
     create_json_workflow = load_json_file(INPUT_WORKFLOW)
     create_json = load_json_file(INPUT)
@@ -114,3 +122,14 @@ def test_send_bash_array_job():
 
     assert isinstance(job_json, str)
     assert "Job successfully launched to Lifebit Platform, please check the following link:" in result_string
+    payload = json.loads(responses.calls[-1].request.body)
+    assert payload["parameters"][-2:] == [
+        {"name": "test2", "prefix": "-", "parameterKind": "dataItem",
+         "dataItem": {"kind": "File", "item": "file-2"}},
+        {"name": "test3", "prefix": "", "parameterKind": "dataItem",
+         "dataItem": {"kind": "File", "item": "file-4"}},
+    ]
+    assert datasets.call_args_list == [
+        mock.call(CLOUDOS_URL, APIKEY, WORKSPACE_ID, "PROJECT3", True),
+        mock.call(CLOUDOS_URL, APIKEY, WORKSPACE_ID, "PROJECT3", True),
+    ]

@@ -574,7 +574,7 @@ First, configure your local environment to ease parameter input. We will try to 
 cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos_cli/examples/rnatoy.config --resumable
 ```
 
-As you can see, a file with the job parameters is used to configure the job. This file could be a regular `nextflow.config` file or any file with the following structure:
+As you can see, a file with the job parameters is used to configure the job. This file is a list of the parameters to pass to your job, and nothing else. It has the following structure:
 
 ```
 params {
@@ -582,6 +582,24 @@ params {
         annot   = s3://lifebit-featured-datasets/pipelines/rnatoy-data/ggal_1_48850000_49020000.bed.gff
 }
 ```
+
+`--job-config` is shorthand for repeating `--parameter` on the command line: the CLI reads the file line by line, splits each line on the first `=`, and sends each result as one named parameter.
+
+Every value is passed through as text, exactly as it would be when launching Nextflow from the command line.
+
+> **IMPORTANT: `[ ]` is not expanded into a Nextflow list.** In a real `nextflow.config`, `my_param = ['a', 'b']` gives the pipeline a list of two items. Through `--job-config` it gives the pipeline the *string* `[a,b]`. The line is accepted and the job is submitted, so this fails silently at the point where your pipeline tries to iterate over the value. The CLI prints a warning when it sees a value that looks like a list, showing exactly what the pipeline will receive.
+
+To pass a genuine list, define it in the pipeline's own `nextflow.config` in the git repository, or use `--params-file` with a JSON or YAML file (see below), which preserves types.
+
+What a `--job-config` file cannot contain, because it is **not** a `nextflow.config` file:
+
+- values spanning several lines
+- nested blocks (e.g. `genomes { ... }`)
+- `process`, `profiles`, `docker` or other config sections
+
+Comments are supported, both on their own line and after a value, using `//` or `#`.
+
+If a parameter needs a genuinely structured value rather than a string, either define it in the pipeline's own `nextflow.config` in the git repository and expose the parts you want to change as individual parameters, or pass it with `--params-file` (see below), which supports JSON and YAML with full type fidelity.
 
 In addition, parameters can also be specified using the command-line `-p` or `--parameter`. For instance:
 
@@ -1833,12 +1851,26 @@ cloudos bash job \
     --resumable
 ```
 
-The `--command` parameter is required and will setup the command for the parameters to run.
+Either `--command` or `--custom-script-path` is required (but not both) and will setup the command for the parameters to run.
+
+Instead of a command, a script stored in File Explorer can be run with `--custom-script-path`, which cannot be combined with `--command`. Use `--custom-script-project` if the script is placed in a project different from `--project-name`:
+
+```bash
+cloudos bash job \
+    --profile my_profile \
+    --workflow-name ubuntu \
+    --parameter --flag=activate \
+    --job-name $JOB_NAME \
+    --custom-script-path Data/scripts/my_script.sh \
+    --custom-script-project my_scripts_project
+```
+
+See [Custom Script Path](#custom-script-path) for how to make the script executable (shebang line or interpreter command).
 
 Each `--parameter` can have a different prefix, either '--', '-', or '', depending on the use case. These can be used as many times as needed.
 
 > [!NOTE]
-> At the moment only string values are allowed to the `--parameter` options, adding a filepath at the moment does not upload/download the file. This feature will be available in a future implementation.
+> `--parameter` supports text values, File Explorer paths under `Data/`, and glob patterns. Files must already exist in the platform; local files are not uploaded. Filenames do not need an extension: `--parameter "--f1=Data/no_extension_file"` resolves the file for staging into the job's working directory. See [using files from multiple projects](#use-multiple-projects-for-files-in---parameter-option) for path formats.
 
 If everything went well, you should see something like:
 
@@ -1922,7 +1954,7 @@ id,bgen,csv
 and in the command there is need to go over the `bgen` column, this can be specified as `--array-parameter file=bgen`, refering to the column in the header.
 
 ###### Custom Script Path
-- **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. When adding this command, parameter `--command` is ignored. To ensure the script runs successfully, you must either:
+- **`--custom-script-path`**: Specifies the path to a custom script to run in the bash array job instead of a command. It cannot be combined with `--command`. To ensure the script runs successfully, you must either:
 
 1. Use a Shebang Line at the Top of the Script
 
@@ -1971,6 +2003,8 @@ The option `--parameter` could specify a file input located in a different proje
 - `-p/--parameter "--file=<project>/Data/*.txt"`
 - `-p/--parameter "--file=Data/*.txt"` (the same project as `--project-name`)
 
+These file paths also support filenames without extensions, such as `Data/no_extension_file` or `<project>/Data/subfolder/no_extension_file`, for both Bash jobs and Bash array jobs. If a referenced file does not exist, the CLI reports an error before submitting the job.
+
 The project should be specified at the beginning of the file path. For example:
 
 ```bash
@@ -2010,7 +2044,7 @@ will take all `csv` file extensions in the specified folder.
 
 ### Interactive Sessions
 
-Interactive sessions allow you to work within the platform using different virtual environments (Jupyter Notebooks, RStudio, VS Code, etc.). You can list, monitor, and manage your interactive sessions using the CLI.
+Interactive sessions allow you to work within the platform using different virtual environments (Jupyter Notebooks, RStudio, VS Code, Windows and Linux desktops, etc.). You can list, monitor, and manage your interactive sessions using the CLI.
 
 #### List Interactive Sessions
 
@@ -2147,6 +2181,16 @@ cloudos interactive-session create \
   --spark-workers 3
 ```
 
+Create a Windows or Linux desktop session (AWS only):
+
+```bash
+cloudos interactive-session create \
+  --profile my_profile \
+  --name "Windows Desktop" \
+  --session-type windows \
+  --instance c6a.xlarge
+```
+
 **Configuration Options**
 
 You can customize your session with various options:
@@ -2166,15 +2210,40 @@ cloudos interactive-session create \
 
 **Required for Each Session:**
 - `--name`: Session name (1-100 characters)
-- `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, or `spark` (platform dependent)
+- `--session-type`: Type of backend - `jupyter`, `vscode`, `rstudio`, `spark`, `windows`, or `linux` (`spark`, `windows` and `linux` are AWS only)
 
 **Optional Configuration:**
-- `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_F1s` for Azure)
-- `--storage`: Storage in GB (default: 500, range: 100-5000)
+- `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_D4s_v3` for Azure)
+- `--storage`: Total storage in GB (default: 500, range: 60-64050). If all three volume options below are given, `--storage` defaults to their sum; if it is also given, it must match the sum.
+- `--libraries-volume`: Libraries volume in GB (min 50, max 1000)
+- `--results-volume`: Session results volume in GB (min 5, max 32000)
+- `--data-volume`: Mounted data volume in GB (min 5, max 32000)
 - `--spot`: Use spot instances (AWS only, cost-saving)
 - `--shared`: Make session accessible to workspace members
 - `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
 - `--shutdown-in`: Auto-shutdown duration (e.g., `8h`, `2d`, `30m`, default: `12h`)
+
+**Storage Volume Split:**
+
+The session storage is split into three volumes (libraries, session results and mounted data), which always add up to `--storage`:
+- No volume option: libraries gets 50 GB and the rest is split evenly between session results and mounted data. The default 500 GB gives 50 / 225 / 225 GB.
+- One volume option: the other two volumes split the rest of `--storage` evenly.
+- Two volume options: the third volume gets the rest of `--storage`.
+- All three volume options: they are used as given, and `--storage` defaults to their sum.
+
+When the rest can't be split evenly, the extra GB goes to session results (or to mounted data if `--results-volume` was given). A volume that would go over its maximum gets its maximum, and the excess is shared by the other volumes that weren't set. In the same way, a volume that would fall below its minimum gets its minimum, and the difference is taken from the other volumes that weren't set (for example, `--storage 100 --data-volume 10` gives 50 / 40 / 10 GB). The CLI checks the split before calling the API and stops with an error if the volumes can't fit their minimums or can't hold the storage. Each volume is shown as its own row under "Storage" in the output of `create` and `status`, and `status --output-format csv` adds a column for each volume.
+
+```bash
+# 1000 GB: libraries 50, session results 475, mounted data 475
+cloudos interactive-session create --profile my_profile --name "Big" --session-type jupyter --storage 1000
+
+# 1000 GB with 100 GB mounted data: libraries 450, session results 450, mounted data 100
+cloudos interactive-session create --profile my_profile --name "Custom" --session-type jupyter --storage 1000 --data-volume 100
+
+# 1000 GB set volume by volume (--storage is the sum)
+cloudos interactive-session create --profile my_profile --name "Exact" --session-type jupyter \
+  --libraries-volume 100 --results-volume 300 --data-volume 600
+```
 
 **Data & Storage Management:**
 - `--link`: Link a file or folder into the session for read access (AWS only). Supports S3 files/folders (e.g., `s3://my-bucket/data/file.csv`, `s3://my-bucket/data/`) and File Explorer files/folders (e.g., `my-project/Data/file.csv`, `my-project/Data/results`). S3 paths whose last segment contains a `.` are treated as files; paths ending with `/` or without an extension are treated as folders. Multiple items can be specified using multiple `--link` flags or as comma-separated paths in a single `--link` argument. Use `--copy` to copy data into the session instead.
@@ -2263,7 +2332,7 @@ This will show progress updates like:
 ┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━┩
 │ Session ID  │ 69aee0dba197abc123  │
 │ Name        │ Ready Session       │
-│ Backend     │ awsJupyterNotebook  │
+│ Backend     │ Jupyter             │
 │ Status      │ initialising        │
 └─────────────┴─────────────────────┘
 ```
@@ -2283,7 +2352,7 @@ cloudos interactive-session create \
 The output shows the session details including:
 - Session ID
 - Session name
-- Backend type (jupyter, vscode, rstudio, spark)
+- Backend type (jupyter, vscode, rstudio, spark, windows, linux)
 - Current status (scheduled, initialising, setup, running, paused)
 
 
@@ -2605,7 +2674,8 @@ cloudos interactive-session resume \
 All configuration parameters are optional. If not specified, the session resumes with its previous configuration.
 
 - `--instance <TYPE>` - Change instance type (validated by platform)
-- `--storage <GB>` - Update storage size (100-5000 GB)
+- `--storage <GB>` - Update storage size (60-64050 GB). It can't be smaller than the session's current storage, and no volume can be smaller than it is now, as it may contain data. The volume split is sent with it, starting from the current volume sizes: with only `--storage`, libraries keeps its size and the extra storage is shared evenly by session results and mounted data; volumes that aren't set keep their size plus a share of the rest. A volume that is already above its maximum (possible for sessions created before the maximums existed) keeps its current size. If the current sizes aren't known, the same rules as `create` are used
+- `--libraries-volume <GB>`, `--results-volume <GB>`, `--data-volume <GB>` - Update the volume split (minimums 50, 5 and 5 GB; maximums 1000, 32000 and 32000 GB). These require `--storage` unless all three are given, in which case the storage is their sum
 - `--cost-limit <USD>` - Update compute cost limit (-1 for unlimited)
 - `--shutdown-in <DURATION>` - Update auto-shutdown time (e.g., 8h, 2d)
 

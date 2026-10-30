@@ -1,0 +1,313 @@
+name: Security autofix
+
+# Weekly: scan the newest released image, and build + scan what the next
+# release would ship. If the build fails the scan, an open model on AWS
+# Bedrock proposes fixes to the dependency files, the image is rebuilt and
+# rescanned (up to MAX_ROUNDS times), and the result is opened as a PR. If the
+# build is clean but the released image is not, the PR is a version bump so
+# the next release replaces it. If main's version is still untagged (its
+# release was blocked by the scan) and the build is clean as it is, the release
+# is re-run instead. The release workflow also starts this one when its scan
+# blocks a release. Nothing is ever merged or published from here: the release
+# workflow still does that, and still runs its own scan.
+on:
+  schedule:
+    - cron: "0 6 * * 2"   # Tuesday 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      max_rounds:
+        description: Fix rounds before giving up
+        default: "3"
+
+permissions:
+  contents: write        # push the fix branch
+  pull-requests: write   # open or update the fix PR
+  id-token: write        # OIDC to AWS for Bedrock, when a role is configured
+  actions: write         # re-run a blocked release whose fresh build is now clean
+
+concurrency:
+  group: security-autofix-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  QUAY_REPO: quay.io/lifebitaiorg/cloudos-cli
+  # Any Bedrock model that supports the Converse API works; switching is a
+  # repo variable, not a code change.
+  BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID || 'openai.gpt-oss-120b-1:0' }}
+  AWS_REGION: ${{ vars.BEDROCK_REGION || 'us-west-2' }}
+
+jobs:
+  fix:
+    name: Scan, fix and open PR
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: cloudos-cli:autofix
+      MAX_ROUNDS: ${{ inputs.max_rounds || '3' }}
+      BASE: ${{ github.ref_name }}
+      FIX_BRANCH: security/autofix-${{ github.ref_name }}
+      # The secrets context isn't available in a step's `if`, so expose
+      # whether the role is configured (not the ARN itself) here.
+      HAS_BEDROCK_ROLE: ${{ secrets.AWS_BEDROCK_ROLE_ARN != '' }}
+    steps:
+      # Reports and history live outside the checkout so they can't be committed.
+      - name: Working directory
+        run: echo "AUTOFIX_DIR=$RUNNER_TEMP/autofix" >> "$GITHUB_ENV"
+
+      # A GitHub App or PAT token, when there is one, makes the fix PR run
+      # the repo's CI; PRs opened with GITHUB_TOKEN don't trigger workflows.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # tags too: the newest release and the version bump come from them
+          token: ${{ secrets.SECURITY_BOT_TOKEN || github.token }}
+
+      # The newest final release, from git tags rather than :latest, so the
+      # versioned image pipelines pin is the one checked. Moves with every
+      # release. Only plain vX.Y.Z tags count: anything with a suffix
+      # (rc1, b2, -alpha.1, ...) is a pre-release, as it is for :latest.
+      - name: Find the newest release
+        id: release
+        run: |
+          set -euo pipefail
+          final='^[0-9]+\.[0-9]+\.[0-9]+$'
+          # Empty when there is no final release yet: the published scan is
+          # then skipped and only the fresh build is checked.
+          version=$(git tag --list 'v*' | sed 's/^v//' | { grep -E "$final" || true; } | sort -V | tail -1)
+          current=$(grep -Po "__version__\s*=\s*['\"]v?\K[^'\"]+" cloudos_cli/_version.py)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          # The code's version counts as released only when it is a final
+          # X.Y.Z with its tag. Anything else (not tagged yet, possibly
+          # because this scan blocked it, or a pre-release) is a final release
+          # still to come, which will publish a fresh build anyway.
+          if [[ "$current" =~ $final ]] && git rev-parse -q --verify "refs/tags/v$current" >/dev/null; then
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Newest release: ${version:+v$version}${version:-none}; version in $BASE: v$current"
+
+      - name: Scan the newest release (${{ env.QUAY_REPO }}:v${{ steps.release.outputs.version }})
+        id: published
+        if: steps.release.outputs.version != ''
+        uses: ./.github/actions/trivy-scan
+        with:
+          image: ${{ env.QUAY_REPO }}:v${{ steps.release.outputs.version }}
+          image-src: remote
+          report: ${{ env.AUTOFIX_DIR }}/published.json
+          fail-on-findings: "false"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Bedrock client
+        run: python -m pip install "boto3>=1.40"
+
+      # Bedrock credentials, either way round: an IAM role through OIDC
+      # (preferred: its trust policy only accepts this repo's main and PoC
+      # branches, and there is nothing long-lived to leak or rotate) when the
+      # AWS_BEDROCK_ROLE_ARN secret is set, otherwise the
+      # AWS_BEARER_TOKEN_BEDROCK API key secret below. The ARN is a secret
+      # only to keep it and the account ID out of this public repo's logs.
+      - name: Assume the Bedrock role
+        if: env.HAS_BEDROCK_ROLE == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_BEDROCK_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build, scan, fix, rescan
+        id: loop
+        env:
+          AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
+        run: |
+          # An unset secret still arrives as an empty variable, and boto3
+          # switches to API-key auth whenever the variable exists, even
+          # empty, ignoring the role's credentials.
+          [ -n "$AWS_BEARER_TOKEN_BEDROCK" ] || unset AWS_BEARER_TOKEN_BEDROCK
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          .github/scripts/autofix_loop.sh
+
+      # Two reasons to open a PR:
+      # - fix: the model changed dependency files to fix the fresh build.
+      # - rebuild: the fresh build is already clean but the newest release
+      #   is not (typically OS packages patched since it was built, which the
+      #   build's apt-get upgrade picks up). Only a new release replaces the
+      #   versioned image, so the PR is a version bump. Only on the branch
+      #   whose version is that release: bumping an older branch would not
+      #   replace it. Not needed while a release is pending: that release
+      #   publishes a fresh build anyway.
+      # And one reason to re-run the release instead of opening a PR:
+      # - release: main's version is untagged (its release was blocked by the
+      #   scan, or never ran) and the fresh build is clean without changing
+      #   any file. Rebuilding the same commit is then all the release needs.
+      - name: Decide
+        id: plan
+        env:
+          CHANGED: ${{ steps.loop.outputs.changed }}
+          REMAINING: ${{ steps.loop.outputs.remaining }}
+          PUBLISHED: ${{ steps.published.outputs.findings || '0' }}
+          PENDING: ${{ steps.release.outputs.pending }}
+          RELEASE: ${{ steps.release.outputs.version }}
+          CURRENT: ${{ steps.release.outputs.current }}
+        run: |
+          # The release pushes the image and uploads to PyPI before it tags,
+          # so a run that failed after `docker push` leaves v$CURRENT on Quay
+          # without a tag. Re-running it would only stop at the registry
+          # guard, every week: that state needs a person.
+          untagged=false
+          on_quay=false
+          if ! git rev-parse -q --verify "refs/tags/v$CURRENT" >/dev/null; then
+            untagged=true
+            if docker manifest inspect "$QUAY_REPO:v$CURRENT" >/dev/null 2>&1; then
+              on_quay=true
+            fi
+          fi
+          if [ "$CHANGED" = true ]; then
+            mode=fix
+          elif [ "$REMAINING" -eq 0 ] && [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = false ] \
+               && [ "$CURRENT" = "$RELEASE" ]; then
+            mode=rebuild
+          elif [ "$REMAINING" -eq 0 ] && [ "$BASE" = main ] && [ "$untagged" = true ] \
+               && [ "$on_quay" = false ]; then
+            mode=release
+          else
+            mode=none
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "on_quay=$on_quay" >> "$GITHUB_OUTPUT"
+          {
+            echo "**$QUAY_REPO:v$RELEASE** (newest release): $PUBLISHED CRITICAL/HIGH finding(s)"
+            echo ""
+            echo "**Fresh build of \`$BASE\`**: ${{ steps.loop.outputs.initial }} finding(s), $REMAINING after fixes"
+            echo ""
+            case "$mode" in
+              fix)     echo "Opening a PR with the dependency fixes." ;;
+              rebuild) echo "Opening a version-bump PR so the next release republishes a clean image." ;;
+              release) echo "v$CURRENT is untagged and \`$BASE\` now builds clean." ;;
+              none)
+                if [ "$on_quay" = true ]; then
+                  echo "$QUAY_REPO:v$CURRENT is published but v$CURRENT has no git tag: a release failed after pushing the image, possibly before PyPI. Bump the version to release again. Don't tag it by hand: later releases would then skip v$CURRENT and its missing steps would never run."
+                elif [ "$PUBLISHED" -gt 0 ] && [ "$PENDING" = true ]; then
+                  echo "The pending release in \`$BASE\` will publish a clean image."
+                elif [ "$PUBLISHED" -gt 0 ] && [ "$CURRENT" != "$RELEASE" ]; then
+                  echo "\`$BASE\` is at v$CURRENT, not v$RELEASE: run this on the branch that released v$RELEASE to replace it."
+                fi
+                ;;
+            esac
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The release workflow rebuilds and rescans on its own, and its check
+      # job skips if the tag appeared meanwhile. The run that started this
+      # workflow has finished by now: it ends seconds after the dispatch, and
+      # the build and scans above take minutes.
+      - name: Re-run the release
+        if: steps.plan.outputs.mode == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # A queued or running release already rebuilds and rescans. Its
+          # concurrency group keeps one pending run, so a dispatch would also
+          # replace a queued push run, and only a push run starts this
+          # workflow again if its scan fails.
+          active=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release.yml --branch "$BASE" \
+            --json status --jq '[.[] | select(.status != "completed")] | length')
+          if [ "$active" -gt 0 ]; then
+            msg="A release run is already queued or running on \`$BASE\`; not dispatching another."
+          else
+            gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$BASE"
+            msg="Re-running the release on \`$BASE\`."
+          fi
+          echo "$msg"
+          echo "$msg" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Version and changelog
+        id: version
+        if: steps.plan.outputs.mode == 'fix' || steps.plan.outputs.mode == 'rebuild'
+        env:
+          MODE: ${{ steps.plan.outputs.mode }}
+          ON_QUAY: ${{ steps.plan.outputs.on_quay }}
+        run: |
+          # What the changelog says was fixed: the fresh build's findings for
+          # a fix, the published image's for a rebuild.
+          if [ "$MODE" = fix ]; then before=initial.json; else before=published.json; fi
+          # An untagged version already on Quay can't be released again.
+          published=""
+          if [ "$ON_QUAY" = true ]; then published=--published; fi
+          python .github/scripts/autofix.py bump-version \
+            --initial "$AUTOFIX_DIR/$before" --final "$AUTOFIX_DIR/final.json" $published
+          git commit -qam "Security autofix: version and changelog"
+
+      - name: Open or update the PR
+        if: steps.plan.outputs.mode == 'fix' || steps.plan.outputs.mode == 'rebuild'
+        env:
+          GH_TOKEN: ${{ secrets.SECURITY_BOT_TOKEN || github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          MODE: ${{ steps.plan.outputs.mode }}
+          RELEASE: ${{ steps.release.outputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUMPED: ${{ steps.version.outputs.bumped }}
+        run: |
+          set -euo pipefail
+          if [ "$MODE" = fix ]; then before=initial.json; else before=published.json; fi
+          python .github/scripts/autofix.py pr-body --mode "$MODE" \
+            --initial "$AUTOFIX_DIR/$before" --final "$AUTOFIX_DIR/final.json" \
+            --history "$AUTOFIX_DIR/history.json" --base "$BASE" --model "$BEDROCK_MODEL_ID" \
+            --release "$RELEASE" --version "$VERSION" --bumped "$BUMPED" \
+            --run-url "$RUN_URL" --output "$AUTOFIX_DIR/pr-body.md"
+          cat "$AUTOFIX_DIR/pr-body.md" >> "$GITHUB_STEP_SUMMARY"
+
+          fixed=$(python .github/scripts/autofix.py count-fixed \
+            --initial "$AUTOFIX_DIR/$before" --final "$AUTOFIX_DIR/final.json")
+          if [ "$MODE" = fix ]; then
+            title="Security: fix $fixed CRITICAL/HIGH image finding(s)"
+          else
+            title="Security: release v$VERSION to replace v$RELEASE ($fixed CRITICAL/HIGH finding(s))"
+          fi
+
+          # One open PR per base branch: a later run replaces its contents.
+          git push --force origin "HEAD:refs/heads/$FIX_BRANCH"
+          pr=$(gh pr list --head "$FIX_BRANCH" --base "$BASE" --state open --json number --jq '.[].number')
+          if [ -n "$pr" ]; then
+            gh pr edit "$pr" --title "$title" --body-file "$AUTOFIX_DIR/pr-body.md"
+            echo "Updated PR #$pr"
+          else
+            gh pr create --head "$FIX_BRANCH" --base "$BASE" \
+              --title "$title" --body-file "$AUTOFIX_DIR/pr-body.md"
+          fi
+
+      # Clean: nothing to do. Anything left needs a person (a manual fix or an
+      # S&C exemption, or a version bump for a release that failed after
+      # publishing its image), so the run goes red to say so.
+      - name: Result
+        if: always() && steps.loop.outcome == 'success'
+        env:
+          INITIAL: ${{ steps.loop.outputs.initial }}
+          REMAINING: ${{ steps.loop.outputs.remaining }}
+          ROUNDS: ${{ steps.loop.outputs.rounds }}
+          MODE: ${{ steps.plan.outputs.mode }}
+          ON_QUAY: ${{ steps.plan.outputs.on_quay }}
+          CURRENT: ${{ steps.release.outputs.current }}
+        run: |
+          echo "Initial findings: $INITIAL, after $ROUNDS round(s): $REMAINING"
+          failed=false
+          if [ "$REMAINING" -gt 0 ]; then
+            echo "::error::$REMAINING CRITICAL/HIGH finding(s) still need a person: fix by hand or request an S&C exemption."
+            failed=true
+          fi
+          # A fix PR bumps past it; with nothing to fix, no PR does.
+          if [ "$MODE" = none ] && [ "$ON_QUAY" = true ]; then
+            echo "::error::$QUAY_REPO:v$CURRENT is published but v$CURRENT has no git tag; bump the version to release again."
+            failed=true
+          fi
+          [ "$failed" = false ]
+
+      - name: Keep reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autofix-reports
+          path: ${{ env.AUTOFIX_DIR }}
+          if-no-files-found: ignore

@@ -62,8 +62,13 @@ def job():
               help=('When the workflows are duplicated, use the latest imported workflow (by date).'),
               is_flag=True)
 @click.option('--job-config',
-              help=('A config file similar to a nextflow.config file, ' +
-                    'but only with the parameters to use with your job.'))
+              help=('A file listing the parameters to use with your job, as ' +
+                    '\'name = value\' pairs inside a \'params\' block. It is ' +
+                    'equivalent to repeating --parameter, so only flat ' +
+                    'parameters are supported: it is not a nextflow.config ' +
+                    'and cannot contain multi-line parameters, nested blocks or sections ' +
+                    'such as \'process\' and \'profiles\'. Use --params-file ' +
+                    'for parameters that need a structured value.'))
 @click.option('--params-file',
               help=('A file containing the parameters to pass to the job call. ' +
                     'It should be a .json or .yaml file with a dictionary structure ' +

@@ -1,5 +1,98 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.99.3 (2026-10-30)
+
+### Fix:
+
+- `interactive-session create` and `resume` volume minimums changed to match the platform: libraries 50 GB, session results 5 GB (was 225 GB), mounted data 5 GB (was 35 GB)
+- `--storage` minimum for `interactive-session create` and `resume` lowered from 500 GB to 60 GB (range is now 60-64050 GB). The default stays 500 GB
+- Volumes now have maximums: libraries 1000 GB, session results 32000 GB, mounted data 32000 GB. When the even split would take a volume over its maximum, it gets its maximum and the excess goes to the other volumes that weren't set; if they can't hold it, the CLI stops with an error. Likewise, a volume that would fall below its minimum gets its minimum and the difference comes from the other volumes that weren't set, so `--storage 100 --data-volume 10` gives 50 / 40 / 10 GB instead of an error
+- `interactive-session resume --storage` can't be smaller than the session's current storage, and no volume (libraries, session results, mounted data) can be smaller than it is now, as it may contain data. The CLI checks the current sizes before calling the API and stops with an error if any would shrink
+- `interactive-session resume --storage` now starts the volume split from the session's current volume sizes instead of the `create` default. With only `--storage`, libraries keeps its size and the extra storage is shared evenly by session results and mounted data; volumes that aren't set keep their size plus a share of the rest
+- `interactive-session resume` keeps a volume that is already above its maximum (sessions created before the maximums existed) at its current size instead of failing or shrinking it
+
+## v2.99.2 (2026-10-28)
+
+### Fix:
+
+- Log files in `~/.cloudos/logs` no longer contain the API key or Cromwell token: `apikey`, `cromwell_token` and any parameter whose name contains `token`, `secret`, `password` or `key` is written as `***`, in the logged parameters and the logged command line. Their values are also masked wherever they appear in a logged error message or traceback
+- Inside free-form values such as `--parameter` and `--command`, secret-named `name=value` assignments, secret options (`--apikey X`, `-k X`, `-t X`), `Bearer`/`Basic` credentials and URL passwords (`scheme://user:X@host`) are masked too. Masking free-form values is best effort: other secrets embedded in them are not detected
+- On Linux and macOS, the `~/.cloudos/logs` directory is restricted to mode 0700 and log files to mode 0600, so other local users can't read them. This runs on every command, and also tightens log files written by earlier versions
+
+## v2.99.1 (2026-10-28)
+
+### Fix:
+
+- Docker image: `msgpack` raised to 1.2.3 (`msgpack-python>=1.2.3` in environment.yml) to fix CVE-2026-114613
+- A release blocked by the Trivy scan now starts the Security autofix workflow, which opens a fix PR, or re-runs the release when the image already builds clean
+
+## v2.99.0 (2026-10-27)
+
+### Feat:
+
+- `bash job` supports `--custom-script-path` and `--custom-script-project` to run a File Explorer script instead of `--command`
+- `bash job` `--parameter` help now documents File Explorer file paths, matching `bash array-job`
+
+### Fix:
+
+- `bash array-job` raises a clear error when the `--custom-script-path` file is not found
+
+## v2.98.1 (2026-10-26)
+
+### Fix:
+
+- Docker image: `urllib3` raised to 2.8.0 to fix CVE-2026-97687, CVE-2026-97689, and `Brotli` to 1.2.1 to fix GHSA-9v8h-qqgm-4m35
+
+## v2.98.0 (2026-10-15)
+
+### Feat:
+
+- `interactive-session create` now sends a `volumeSizes` split (`libraries`, `sessionResults`, `mountedData`) with the session storage for all backends. By default libraries gets 50 GB and the rest is split evenly, so the default 500 GB gives 50 / 225 / 225 GB
+- New `--libraries-volume`, `--results-volume` and `--data-volume` options for `interactive-session create` and `resume` set the volumes explicitly. Volumes that aren't set share the rest of `--storage` evenly, and when all three are set `--storage` defaults to their sum
+- The volume split is checked before any API call (minimums: libraries 50 GB, session results 225 GB, mounted data 35 GB; volumes must add up to `--storage`)
+- `interactive-session create` and `status` show each volume (libraries, session results, mounted data) as its own row under Storage, and `status --output-format csv` adds a column for each volume
+- `--storage` range for `interactive-session create` and `resume` changed from 100-5000 GB to 500-64050 GB
+- Default Azure instance type for `interactive-session create` changed from `Standard_F1s` to `Standard_D4s_v3`
+
+## v2.97.0 (2026-10-15)
+
+### Feat:
+
+- `interactive-session create` supports `--session-type windows` and `--session-type linux` (AWS only)
+
+
+## v2.96.1 (2026-09-17)
+
+### Fix:
+
+- Bash job and Bash array job `--parameter` values now resolve File Explorer paths without filename extensions as file references instead of literal text (HSM-8316)
+- Nested `Data/` paths now correctly use the current project instead of treating `Data` as a project name
+
+## v2.96.0 (2026-09-09)
+
+### Feat:
+
+- Changed dockerfile and release.yml to address harbor issues
+- The release workflow asks the registry, not git, whether a version image is already published, and creates the Git tag after the immutable artefacts (version image tag, PyPI) and before the mutable one (`:latest`)
+- CI unit tests now also run on Python 3.14, the version shipped by the container's base image
+- Adds a `.dockerignore`, keeping `.git` (and its full history), `tests/`, `docs/` and build artefacts out of the published image
+- The image cleanup now also removes the `conda_rattler_solver` plugin and the `conda-meta` entries for the rattler packages, so the scanner's inventory matches what is actually installed
+
+## v2.95.1 (2026-08-20)
+
+### Fix:
+
+- `--job-config` parse errors now report the line number and the offending line, instead of only naming the file
+- `--job-config` no longer absorbs an end-of-line comment into a parameter value, which silently sent values such as `0.5//colocwindowsizeinMBp`
+- `--job-config` gives a specific error for a value spanning several lines, pointing to `--params-file` for structured values
+- `--job-config` no longer silently drops parameters whose name contains `params`, such as `input_params` or `extra_params_file`
+- `--job-config` raises an error for a parameter with no value, instead of sending an empty one to the pipeline
+- `--job-config` reports a file with no `params { ... }` block, and names the unsupported `params.name = value` form, instead of failing with `did not contain any valid parameter`
+- `--job-config` reports a `params` block opened and closed on the same line, instead of silently parsing no parameters
+- `--job-config` warns when a value looks like a list, showing the element count and the exact string the pipeline will receive, since `[ ]` is not expanded into a Nextflow list
+- `--job-config` skips block comment continuation lines (`*`, `*/`) instead of failing on them
+- Documents that `--job-config` takes only flat `name = value` parameters and is not a `nextflow.config` file
+
 ## v2.95.0 (2026-06-30)
 
 ### Breaking:

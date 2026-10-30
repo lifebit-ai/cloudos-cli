@@ -12,6 +12,11 @@ import pytest
 from cloudos_cli.logging.logger import (
     LogFormatter,
     CommandContextFilter,
+    PrivateFileHandler,
+    mask_secret_values,
+    redact_argv,
+    redact_params,
+    secure_log_dir,
     _cmd_filter_factory,
     setup_logging,
     update_command_context_from_click,
@@ -225,6 +230,377 @@ class TestCommandContextFilter:
         assert record.params == {"existing": True}
 
 
+class TestRedactParams:
+    """Test cases for redacting secret-bearing params"""
+
+    def test_redact_params_masks_secrets(self):
+        """Test that apikey, tokens, secrets, passwords and keys are masked"""
+        params = {
+            "apikey": "my-secret-apikey-1234",
+            "cromwell_token": "cromwell-secret",
+            "Github_Token": "gh-secret",
+            "client_secret": "client-secret",
+            "db_password": "pw-secret",
+            "ssh_key": "key-secret",
+            "project_name": "my-project",
+            "debug": True,
+        }
+
+        result = redact_params(params)
+
+        for name in ["apikey", "cromwell_token", "Github_Token", "client_secret", "db_password", "ssh_key"]:
+            assert result[name] == "***"
+        assert result["project_name"] == "my-project"
+        assert result["debug"] is True
+        # the original dict is left untouched
+        assert params["apikey"] == "my-secret-apikey-1234"
+
+    def test_redact_params_keeps_unset_secrets(self):
+        """Test that unset (None) secret params stay None"""
+        assert redact_params({"apikey": None}) == {"apikey": None}
+
+    def test_redact_params_non_dict(self):
+        """Test that non-dict params are returned unchanged"""
+        assert redact_params(None) is None
+
+    def test_redact_argv_masks_secret_option_values(self):
+        """Test that secret option values are masked in every argv form"""
+        argv = ["cloudos", "job", "run", "--apikey", "secret1", "-k", "secret2", "-ksecret3",
+                "--apikey=secret4", "--cromwell-token", "secret5", "--workspace-id", "ws123", "--debug"]
+
+        result = redact_argv(argv)
+
+        assert result == ["cloudos", "job", "run", "--apikey", "***", "-k", "***", "-k***",
+                          "--apikey=***", "--cromwell-token", "***", "--workspace-id", "ws123", "--debug"]
+
+    def test_redact_argv_masks_cromwell_token_short_flag(self):
+        """Test that -t (--cromwell-token) values are masked"""
+        assert redact_argv(["cloudos", "cromwell", "status", "-t", "secret1", "-tsecret2"]) == \
+            ["cloudos", "cromwell", "status", "-t", "***", "-t***"]
+
+    def test_redact_argv_masks_secret_assignments(self):
+        """Test that secret name=value assignments inside free-form args are masked"""
+        argv = ["cloudos", "bash", "job", "--parameter", "password=secret1", "--parameter", "reads=s3://bucket/r.fq",
+                "--parameter=db_token=secret2", "--command", "export API_KEY='secret 3' && echo GENOME=hg38"]
+
+        result = redact_argv(argv)
+
+        assert result == ["cloudos", "bash", "job", "--parameter", "password=***", "--parameter", "reads=s3://bucket/r.fq",
+                          "--parameter=db_token=***", "--command", "export API_KEY=*** && echo GENOME=hg38"]
+
+    def test_redact_assignments_masks_whole_secret_values(self):
+        """Test that secrets with spaces or escaped quotes are fully masked"""
+        params = {
+            "parameter": ("password=two words", "--db_token=a b c", "reads=s3://bucket/r f.fq"),
+            "command": 'export API_KEY="a\\"b-secret" && echo done',
+        }
+
+        result = redact_params(params)
+
+        assert result["parameter"] == ("password=***", "--db_token=***", "reads=s3://bucket/r f.fq")
+        assert result["command"] == "export API_KEY=*** && echo done"
+        assert redact_argv(["cloudos", "--parameter", "password=two words", "--parameter=password=two words"]) == \
+            ["cloudos", "--parameter", "password=***", "--parameter=password=***"]
+
+    def test_redact_params_masks_secret_assignments(self):
+        """Test that secret name=value assignments inside parameter and command values are masked"""
+        params = {
+            "parameter": ("password=secret1", "reads=s3://bucket/r.fq", "-db_token=secret2"),
+            "command": 'export TOKEN="secret 3"; run --genome=hg38',
+            "workspace_id": "ws123",
+        }
+
+        result = redact_params(params)
+
+        assert result["parameter"] == ("password=***", "reads=s3://bucket/r.fq", "-db_token=***")
+        assert result["command"] == "export TOKEN=***; run --genome=hg38"
+        assert result["workspace_id"] == "ws123"
+
+    @patch('sys.argv', ['cloudos', 'job', 'run', '--apikey', 'my-secret-apikey-1234', '--workspace-id', 'ws123'])
+    def test_set_seed_from_argv_redacts_apikey(self):
+        """Test that the argv seed, used before Click has parsed, does not keep the apikey"""
+        filter_obj = CommandContextFilter()
+        filter_obj.set_seed_from_argv()
+
+        assert filter_obj.command == "cloudos job run --apikey *** --workspace-id ws123"
+
+    def test_filter_redacts_apikey_from_click_ctx(self):
+        """Test that the apikey value never reaches an emitted record's params"""
+        ctx = Mock()
+        ctx.command_path = "cloudos-cli job run"
+        ctx.params = {"apikey": "my-secret-apikey-1234", "cromwell_token": "cromwell-secret",
+                      "workspace_id": "ws123"}
+        filter_obj = CommandContextFilter()
+        filter_obj.set_from_click_ctx(ctx)
+        record = logging.LogRecord(
+            name="test_logger",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=1,
+            msg="Test message",
+            args=(),
+            exc_info=None
+        )
+
+        filter_obj.filter(record)
+
+        assert record.params["apikey"] == "***"
+        assert record.params["cromwell_token"] == "***"
+        assert record.params["workspace_id"] == "ws123"
+        formatted = LogFormatter(fmt_keys={"params": "params"}).format(record)
+        assert "my-secret-apikey-1234" not in formatted
+        assert "cromwell-secret" not in formatted
+
+    def test_filter_redacts_existing_record_params(self):
+        """Test that params passed on the record itself are redacted too"""
+        filter_obj = CommandContextFilter()
+        record = logging.LogRecord(
+            name="test_logger",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=1,
+            msg="Test message",
+            args=(),
+            exc_info=None
+        )
+        record.params = {"apikey": "my-secret-apikey-1234"}
+
+        filter_obj.filter(record)
+
+        assert record.params == {"apikey": "***"}
+
+    def test_redact_long_assignment_chain_does_not_raise(self):
+        """Test that a long name=value chain in one value is handled without recursion"""
+        value = "sample_map=" + ",".join(f"S{i}=s3://b/S{i}.fq" for i in range(2000))
+
+        assert redact_argv(["cloudos", "--parameter", value]) == ["cloudos", "--parameter", value]
+        assert redact_params({"parameter": (value,)}) == {"parameter": (value,)}
+        assert redact_params({"parameter": (value + ",password=secret1",)}) == \
+            {"parameter": (value + ",password=***",)}
+        with patch('sys.argv', ['cloudos', 'job', 'run', '--parameter', value]):
+            CommandContextFilter().set_seed_from_argv()
+
+    def test_redact_free_form_secret_forms(self):
+        """Test that secret options, auth headers and URL credentials inside free-form values are masked"""
+        cases = {
+            "cloudos job list --apikey S3CRET-1 --workspace-id ws": "cloudos job list --apikey *** --workspace-id ws",
+            "cloudos job list -k a1b2c3d4e5f6a7b8c9d0e1f2 --workspace-id ws": "cloudos job list -k *** --workspace-id ws",
+            "cloudos cromwell status -t 'a1b2c3d4 e5f6a7b8c9d0'": "cloudos cromwell status -t ***",
+            "curl -H 'Authorization: Bearer a1b2c3d4e5f6a7b8c9d0e1f2'": "curl -H 'Authorization: Bearer ***'",
+            "curl -H 'Authorization: Basic YWRtaW46cGFzc3dvcmQxMjM='": "curl -H 'Authorization: Basic ***'",
+            "psql postgres://admin:S3CRET-5@db:5432/x": "psql postgres://admin:***@db:5432/x",
+            "run --workspace-id ws123 https://host/path user@host": "run --workspace-id ws123 https://host/path user@host",
+            # ordinary -k/-t flags and words after Bearer/Basic are not credentials
+            "sort -k 2 in.txt | cut -t , -f 1": "sort -k 2 in.txt | cut -t , -f 1",
+            "Basic variant calling": "Basic variant calling",
+        }
+        for command, expected in cases.items():
+            assert redact_params({"command": command}) == {"command": expected}
+            assert redact_argv(["cloudos", "bash", "job", "--command", command]) == \
+                ["cloudos", "bash", "job", "--command", expected]
+        assert redact_params({"parameter": ("db_url=postgres://admin:S3CRET-6@db:5432/x",)}) == \
+            {"parameter": ("db_url=postgres://admin:***@db:5432/x",)}
+        params = {"job_name": "Basic variant calling", "parameter": ("mode=Basic alignment",)}
+        assert redact_params(params) == params
+        assert redact_argv(["cloudos", "bash", "job", "--job-name", "Basic variant calling"]) == \
+            ["cloudos", "bash", "job", "--job-name", "Basic variant calling"]
+
+
+class TestSecretValuesInMessages:
+    """Test cases for masking raw secret values in log messages and tracebacks"""
+
+    @staticmethod
+    def _record(msg, exc_info=None):
+        return logging.LogRecord(
+            name="test_logger",
+            level=logging.ERROR,
+            pathname="test.py",
+            lineno=1,
+            msg=msg,
+            args=(),
+            exc_info=exc_info
+        )
+
+    def test_mask_secret_values(self):
+        """Test that raw and stripped secret values are masked and short values are ignored"""
+        text = "header value: ' my-secret' and my-secret and abc"
+        assert mask_secret_values(text, {" my-secret", "abc"}) == "header value: ' ***' and *** and abc"
+
+    def test_filter_masks_secret_in_message(self):
+        """Test that an exception message carrying the apikey is masked"""
+        filter_obj = CommandContextFilter(params={"apikey": " my-secret", "workspace_id": "ws1"})
+        record = self._record(ValueError("Invalid header value: ' my-secret'"))
+
+        filter_obj.filter(record)
+
+        assert record.getMessage() == "Invalid header value: ' ***'"
+        assert record.params["apikey"] == "***"
+
+    def test_filter_masks_secret_in_exc_info(self):
+        """Test that a traceback carrying the apikey is masked in the formatted record"""
+        try:
+            raise ValueError("Invalid header value: ' my-secret'")
+        except ValueError:
+            record = self._record("Error occurred", exc_info=sys.exc_info())
+        filter_obj = CommandContextFilter(params={"apikey": " my-secret"})
+
+        filter_obj.filter(record)
+        formatted = LogFormatter(fmt_keys={"exc_info": "exc_info"}).format(record)
+
+        assert "my-secret" not in formatted
+        assert "Invalid header value: ' ***'" in json.loads(formatted)["exc_info"]
+
+    @patch('sys.argv', ['cloudos', 'job', 'list', '-k', 'argv-secret-1234', '--workspace-id', 'ws1'])
+    def test_filter_masks_argv_secret_before_click(self):
+        """Test that a secret only seen in argv (before Click parsed) is masked in messages"""
+        filter_obj = CommandContextFilter()
+        filter_obj.set_seed_from_argv()
+        record = self._record("failed with key argv-secret-1234")
+
+        filter_obj.filter(record)
+
+        assert record.getMessage() == "failed with key ***"
+
+    @patch('sys.argv', ['cloudos', 'job', 'list'])
+    def test_setup_logging_masks_secret_in_log_file(self, tmp_path):
+        """Test end to end that an exception carrying the apikey is masked in the log file"""
+        import cloudos_cli.logging.logger as logger_module
+        logger_module._cmd_filter_instance = None
+        try:
+            with patch.object(Path, "home", return_value=tmp_path):
+                setup_logging(debug=True)
+                ctx = Mock()
+                ctx.command_path = "cloudos job list"
+                ctx.params = {"apikey": " MY-SECRET-KEY-123", "workspace_id": "ws1"}
+                update_command_context_from_click(ctx)
+                try:
+                    raise ValueError("header value: ' MY-SECRET-KEY-123'")
+                except ValueError as exc:
+                    logging.getLogger("CloudOS").error(exc, exc_info=exc)
+
+            log_file = next((tmp_path / ".cloudos" / "logs").glob("cloudos-*.jsonl"))
+            log_content = log_file.read_text()
+            assert "MY-SECRET-KEY-123" not in log_content
+            assert "header value: ' ***'" in log_content
+        finally:
+            root = logging.getLogger()
+            for handler in root.handlers:
+                handler.close()
+            root.handlers.clear()
+            logger_module._cmd_filter_instance = None
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX file modes only")
+class TestLogFilePermissions:
+    """Test cases for log file and directory permissions"""
+
+    def teardown_method(self):
+        """Close and clear handlers so the temporary log file is released"""
+        root = logging.getLogger()
+        for handler in root.handlers:
+            handler.close()
+        root.handlers.clear()
+
+    def test_private_file_handler_creates_file_0600(self, tmp_path):
+        """Test that PrivateFileHandler creates its file with mode 0600"""
+        log_file = tmp_path / "test.jsonl"
+        handler = PrivateFileHandler(str(log_file))
+        handler.close()
+
+        assert log_file.stat().st_mode & 0o777 == 0o600
+
+    def test_private_file_handler_tightens_existing_file(self, tmp_path):
+        """Test that an existing world-readable log file is reset to 0600"""
+        log_file = tmp_path / "test.jsonl"
+        log_file.write_text("")
+        log_file.chmod(0o644)
+
+        handler = PrivateFileHandler(str(log_file))
+        handler.close()
+
+        assert log_file.stat().st_mode & 0o777 == 0o600
+
+    @patch('sys.argv', ['cloudos-cli', 'job', 'run'])
+    def test_setup_logging_private_dir_and_file(self, tmp_path):
+        """Test that setup_logging creates a 0700 log dir and a 0600 log file without the apikey"""
+        import cloudos_cli.logging.logger as logger_module
+        logger_module._cmd_filter_instance = None
+
+        with patch.object(Path, "home", return_value=tmp_path):
+            setup_logging(debug=True)
+            ctx = Mock()
+            ctx.command_path = "cloudos-cli job run"
+            ctx.params = {"apikey": "my-secret-apikey-1234", "workspace_id": "ws123"}
+            update_command_context_from_click(ctx)
+            logging.getLogger("test_logger").info("Test info message")
+
+        log_dir = tmp_path / ".cloudos" / "logs"
+        log_files = list(log_dir.glob("cloudos-*.jsonl"))
+        assert len(log_files) == 1
+        assert log_dir.stat().st_mode & 0o777 == 0o700
+        assert log_files[0].stat().st_mode & 0o777 == 0o600
+
+        log_content = log_files[0].read_text()
+        assert "Test info message" in log_content
+        assert "my-secret-apikey-1234" not in log_content
+        assert json.loads(log_content.strip().splitlines()[-1])["params"]["apikey"] == "***"
+
+        logger_module._cmd_filter_instance = None
+
+    def test_setup_logging_tightens_existing_dir(self, tmp_path):
+        """Test that an existing world-readable log dir is reset to 0700"""
+        log_dir = tmp_path / ".cloudos" / "logs"
+        log_dir.mkdir(parents=True)
+        log_dir.chmod(0o755)
+
+        with patch.object(Path, "home", return_value=tmp_path):
+            setup_logging(debug=False)
+
+        assert log_dir.stat().st_mode & 0o777 == 0o700
+
+    def test_secure_log_dir_tightens_existing_dir_and_files(self, tmp_path):
+        """Test that a 0755 log dir and 0644 log files from earlier versions become 0700 and 0600"""
+        log_dir = tmp_path / ".cloudos" / "logs"
+        log_dir.mkdir(parents=True)
+        log_dir.chmod(0o755)
+        old_file = log_dir / "cloudos-20260101-000000.jsonl"
+        old_file.write_text("{}\n")
+        old_file.chmod(0o644)
+
+        with patch.object(Path, "home", return_value=tmp_path):
+            assert secure_log_dir() == str(log_dir)
+
+        assert log_dir.stat().st_mode & 0o777 == 0o700
+        assert old_file.stat().st_mode & 0o777 == 0o600
+        assert old_file.read_text() == "{}\n"
+
+    def test_secure_log_dir_does_not_raise(self, tmp_path):
+        """Test that a log dir that can't be changed does not break the CLI"""
+        with patch.object(Path, "home", return_value=tmp_path), \
+                patch("cloudos_cli.logging.logger.os.chmod", side_effect=PermissionError("denied")):
+            secure_log_dir()
+
+    def test_cli_start_up_secures_log_dir(self, tmp_path, monkeypatch):
+        """Test that a normal (non-crashing) CLI run tightens the log dir and old log files"""
+        from click.testing import CliRunner
+        from cloudos_cli.__main__ import run_cloudos_cli
+
+        monkeypatch.setenv("HOME", str(tmp_path))
+        log_dir = tmp_path / ".cloudos" / "logs"
+        log_dir.mkdir(parents=True)
+        log_dir.chmod(0o755)
+        old_file = log_dir / "cloudos-20260101-000000.jsonl"
+        old_file.write_text("{}\n")
+        old_file.chmod(0o644)
+
+        with patch.object(Path, "home", return_value=tmp_path):
+            result = CliRunner().invoke(run_cloudos_cli, ["job", "--help"])
+
+        assert result.exit_code == 0
+        assert log_dir.stat().st_mode & 0o777 == 0o700
+        assert old_file.stat().st_mode & 0o777 == 0o600
+
+
 class TestCmdFilterFactory:
     """Test cases for _cmd_filter_factory function"""
 
@@ -407,7 +783,7 @@ class TestLogConfig:
     def test_log_config_handlers_configuration(self):
         """Test handlers configuration in LOG_CONFIG"""
         file_handler = LOG_CONFIG["handlers"]["file"]
-        assert file_handler["class"] == "logging.FileHandler"
+        assert file_handler["class"] == "cloudos_cli.logging.logger.PrivateFileHandler"
         assert file_handler["level"] == "DEBUG"
         assert file_handler["formatter"] == "json"
         assert "cmdctx" in file_handler["filters"]

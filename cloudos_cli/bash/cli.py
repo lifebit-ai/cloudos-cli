@@ -24,8 +24,7 @@ def bash():
               help='Your Lifebit Platform API key',
               required=True)
 @click.option('--command',
-              help='The command to run in the bash job.',
-              required=True)
+              help='The command to run in the bash job. Required unless --custom-script-path is set.')
 @click.option('-c',
               '--cloudos-url',
               help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
@@ -49,7 +48,12 @@ def bash():
               help=('A single parameter to pass to the job call. It should be in the ' +
                     'following form: parameter_name=parameter_value. E.g.: ' +
                     '-p --test=value or -p -test=value or -p test=value. You can use this option as many ' +
-                    'times as parameters you want to include.'))
+                    'times as parameters you want to include. ' +
+                    'For parameters pointing to a file, the format expected is ' +
+                    'parameter_name=<project>/Data/parameter_value. The parameter value must be a ' +
+                    'file located in the `Data` subfolder. If no <project> is specified, it defaults to ' +
+                    'the project specified by the profile or --project-name parameter. ' +
+                    'E.g.: -p "--file=Data/file.txt" or "--file=<project>/Data/folder/file.txt"'))
 @click.option('--job-name',
               help='The name of the job. Default=new_job.',
               default='new_job')
@@ -110,6 +114,13 @@ def bash():
 @click.option('--ssl-cert',
               help='Path to your SSL certificate file.')
 @click.option('--profile', help='Profile to use from the config file', default=None)
+@click.option('--custom-script-path',
+              help=('Path of a custom script to run in the bash job instead of a command.'),
+              default=None)
+@click.option('--custom-script-project',
+              help=('Name of the project to use when running the custom command script, if ' +
+                    'different than --project-name.'),
+              default=None)
 @click.pass_context
 @with_profile_config(required_params=['apikey', 'workspace_id', 'workflow_name', 'project_name'])
 def run_bash_job(ctx,
@@ -137,10 +148,21 @@ def run_bash_job(ctx,
                  request_interval,
                  disable_ssl_verification,
                  ssl_cert,
-                 profile):
+                 profile,
+                 custom_script_path,
+                 custom_script_project):
     """Run a bash job in Lifebit Platform."""
     # apikey, cloudos_url, and workspace_id are now automatically resolved by the decorator
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
+
+    if not (command or custom_script_path):
+        raise click.UsageError("Must provide --command or --custom-script-path.")
+    if command and custom_script_path:
+        raise click.UsageError("Use either --command or --custom-script-path, not both.")
+
+    # this needs to be in another call to datasets, by default it uses the global project name
+    if custom_script_project is None:
+        custom_script_project = project_name
 
     if instance_type == 'NONE_SELECTED':
         if execution_platform == 'aws':
@@ -158,6 +180,14 @@ def run_bash_job(ctx,
     j = jb.Job(cloudos_url, apikey, None, workspace_id, project_name, workflow_name,
                mainfile=None, importsfile=None,
                repository_platform=repository_platform, verify=verify_ssl, last=last)
+
+    if custom_script_path is not None:
+        cmd = j.setup_custom_script_command(
+            custom_script_path,
+            generate_datasets_for_project(cloudos_url, apikey, workspace_id, custom_script_project, verify_ssl)
+        )
+    else:
+        cmd = {"command": command}
 
     if job_queue is not None:
         batch = True
@@ -189,7 +219,7 @@ def run_bash_job(ctx,
                       cost_limit=cost_limit,
                       accelerate_saving_results=accelerate_saving_results,
                       verify=verify_ssl,
-                      command={"command": command},
+                      command=cmd,
                       cpus=cpus,
                       memory=memory)
 
@@ -229,7 +259,8 @@ def run_bash_job(ctx,
               help='Your Lifebit Platform API key',
               required=True)
 @click.option('--command',
-              help='The command to run in the bash job.')
+              help=('The command to run in the bash job. Required unless --custom-script-path ' +
+                    'or --list-columns is set.'))
 @click.option('-c',
               '--cloudos-url',
               help=(f'The Lifebit Platform url you are trying to access to. Default={CLOUDOS_URL}.'),
@@ -394,6 +425,8 @@ def run_bash_array_job(ctx,
 
     if not list_columns and not (command or custom_script_path):
         raise click.UsageError("Must provide --command or --custom-script-path if --list-columns is not set.")
+    if command and custom_script_path:
+        raise click.UsageError("Use either --command or --custom-script-path, not both.")
 
     # when not set, use the global project name
     if array_file_project is None:

@@ -148,10 +148,122 @@ def test_convert_nextflow_to_json_badly_formed_config():
             memory=param_dict["memory"]
             )
         print(str(excinfo.value))
-    assert "Please, specify your parameters in\
-            tests/test_data/wrong_params.config\
-            using the \'=\' as spacer.\
-            E.g: name = my_name".replace("           ", "") in str(excinfo.value)
+    assert "Could not parse line 2 of tests/test_data/wrong_params.config" in str(excinfo.value)
+    assert "reads    s3://lifebit-featured-datasets/pipelines/rnatoy-data" in str(excinfo.value)
+
+
+def test_parse_job_config_params_reports_offending_line():
+    """A line that is not 'name = value' names the line number and its content."""
+    with pytest.raises(ValueError) as excinfo:
+        Job.parse_job_config_params("tests/test_data/wrong_params.config")
+    message = str(excinfo.value)
+    assert "line 2" in message
+    assert "tests/test_data/wrong_params.config" in message
+    assert "reads    s3://lifebit-featured-datasets/pipelines/rnatoy-data" in message
+
+
+def test_parse_job_config_params_rejects_multiline_value():
+    """A value spanning several lines fails with a message naming the cause."""
+    with pytest.raises(ValueError) as excinfo:
+        Job.parse_job_config_params("tests/test_data/multiline_params.config")
+    message = str(excinfo.value)
+    assert "line 2" in message
+    assert "acceleratedFileSystems=[" in message
+    assert "several lines" in message
+    assert "single line" in message
+
+
+def test_parse_job_config_params_strips_inline_comments():
+    """Trailing comments are removed instead of being absorbed into the value."""
+    parsed = Job.parse_job_config_params("tests/test_data/inline_comment_params.config")
+    assert parsed == [("reads", "s3://my-bucket/reads"),
+                      ("coloc_window", "0.5"),
+                      ("genome", "s3://my-bucket/genome.fa")]
+
+
+def test_strip_inline_comment_preserves_urls():
+    """The '//' of a URL scheme is not mistaken for a comment."""
+    assert Job.strip_inline_comment("reads = s3://bucket/key") == "reads = s3://bucket/key"
+    assert Job.strip_inline_comment("reads = s3://bucket/key  // note") == "reads = s3://bucket/key"
+    assert Job.strip_inline_comment("reads = s3://bucket/key  # note") == "reads = s3://bucket/key"
+
+
+def test_parse_job_config_params_keeps_names_containing_params():
+    """A parameter whose name contains 'params' is not dropped."""
+    assert Job.parse_job_config_params("tests/test_data/params_in_name.config") == [
+        ("input_params", "s3://bucket/a"),
+        ("reads", "s3://bucket/b"),
+        ("extra_params_file", "foo.json")]
+
+
+def test_parse_job_config_params_rejects_empty_value():
+    """A parameter with no value fails instead of being sent as empty."""
+    with pytest.raises(ValueError) as excinfo:
+        Job.parse_job_config_params("tests/test_data/no_value_params.config")
+    message = str(excinfo.value)
+    assert "line 3" in message
+    assert "'empty' has no value" in message
+
+
+def test_parse_job_config_params_requires_a_params_block():
+    """A file with no 'params' block says so, instead of parsing nothing."""
+    with pytest.raises(ValueError) as excinfo:
+        Job.parse_job_config_params("tests/test_data/no_params_block.config")
+    message = str(excinfo.value)
+    assert "No 'params' block was found" in message
+    assert "tests/test_data/no_params_block.config" in message
+    assert "'params.name = value' form is not supported" in message
+
+
+def test_parse_job_config_params_rejects_one_line_params_block():
+    """A block opened and closed on one line is reported, not silently empty."""
+    with pytest.raises(ValueError) as excinfo:
+        Job.parse_job_config_params("tests/test_data/oneline_params.config")
+    message = str(excinfo.value)
+    assert "line 1" in message
+    assert "must span several lines" in message
+
+
+def test_parse_job_config_params_keeps_single_line_lists():
+    """A single-line list literal is passed through as text."""
+    parsed = dict(Job.parse_job_config_params("tests/test_data/inline_comment_params.config"))
+    assert parsed["coloc_window"] == "0.5"
+
+
+def test_list_literal_warning_reports_count_and_received_value():
+    """A list literal warns, naming the elements and the string actually sent."""
+    warning = Job.list_literal_warning("tools", "[fastqc,multiqc,star]")
+    assert "3 elements" in warning
+    assert "'fastqc', 'multiqc', 'star'" in warning
+    assert "--tools '[fastqc,multiqc,star]'" in warning
+    assert "--params-file" in warning
+
+
+def test_list_literal_warning_singular_element():
+    """A single-element list is described in the singular."""
+    warning = Job.list_literal_warning("coloc_prior", "[1e-5]")
+    assert "1 element ('1e-5')" in warning
+
+
+def test_list_literal_warning_none_for_scalars():
+    """Plain values, including paths and numbers, are not warned about."""
+    assert Job.list_literal_warning("reads", "s3://bucket/key") is None
+    assert Job.list_literal_warning("chunk_size", "50") is None
+    assert Job.list_literal_warning("pattern", "sample[1].txt") is None
+
+
+def test_parse_job_config_params_examples_unchanged():
+    """The shipped example configs keep parsing exactly as before."""
+    assert Job.parse_job_config_params("cloudos_cli/examples/rnatoy.config") == [
+        ("reads", "s3://lifebit-featured-datasets/pipelines/rnatoy-data"),
+        ("genome", "s3://lifebit-featured-datasets/pipelines/rnatoy-data/"
+                   "ggal_1_48850000_49020000.Ggal71.500bpflank.fa"),
+        ("annot", "s3://lifebit-featured-datasets/pipelines/rnatoy-data/"
+                  "ggal_1_48850000_49020000.bed.gff")]
+    # WDL keeps quotes, so arrays and maps survive as text
+    wdl = dict(Job.parse_job_config_params("cloudos_cli/examples/wdl.config", "wdl"))
+    assert wdl["test.arrayTest"] == '["lala"]'
+    assert wdl["test.mapTest"] == '{"some":"props"}'
 
 
 def test_params_file_payload_s3():
