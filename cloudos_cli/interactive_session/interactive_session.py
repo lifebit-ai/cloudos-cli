@@ -875,15 +875,15 @@ def parse_link_path(link_path_str):
 
 
 
-MIN_STORAGE_SIZE = 500
+MIN_STORAGE_SIZE = 60
 MAX_STORAGE_SIZE = 64050
 DEFAULT_STORAGE_SIZE = 500
 DEFAULT_LIBRARIES_VOLUME = 50
 # Minimum size in GB for each volume inside the session storage
 VOLUME_MINIMUMS = {
     "libraries": 50,
-    "sessionResults": 225,
-    "mountedData": 35
+    "sessionResults": 5,
+    "mountedData": 5
 }
 # CLI flag for each volume, used in error messages
 VOLUME_FLAGS = {
@@ -1078,7 +1078,7 @@ def build_session_payload(
     instance_type : str
         Instance type (EC2 for AWS, e.g., c5.xlarge; Azure VM size, e.g., Standard_D4s_v3)
     storage_size : int
-        Storage in GB (default: 500, range: 500-64050)
+        Storage in GB (default: 500, range: 60-64050)
     volume_sizes : dict, optional
         Split of the storage into 'libraries', 'sessionResults' and 'mountedData' (GB).
         Must add up to storage_size. If not given, the default split is used

@@ -320,7 +320,7 @@ def list_sessions(ctx,
               default=None)
 @click.option('--storage',
               type=int,
-              help=('Total storage in GB (500-64050). Default=500, or the sum of the three volume '
+              help=('Total storage in GB (60-64050). Default=500, or the sum of the three volume '
                     'sizes when --libraries-volume, --results-volume and --data-volume are all given. '
                     'The storage is split into libraries, session results and mounted data volumes.'),
               default=None)
@@ -331,12 +331,12 @@ def list_sessions(ctx,
               default=None)
 @click.option('--results-volume',
               type=int,
-              help=('Session results volume in GB (min 225). Default=225 with the default storage; '
+              help=('Session results volume in GB (min 5). Default=225 with the default storage; '
                     'otherwise the volumes not set share the rest of --storage evenly.'),
               default=None)
 @click.option('--data-volume',
               type=int,
-              help=('Mounted data volume in GB (min 35). Default=225 with the default storage; '
+              help=('Mounted data volume in GB (min 5). Default=225 with the default storage; '
                     'otherwise the volumes not set share the rest of --storage evenly.'),
               default=None)
 @click.option('--spot',
@@ -1187,7 +1187,7 @@ def pause_session(ctx,
               default=None)
 @click.option('--storage',
               type=int,
-              help=('Update storage size in GB (500-64050). The volume split is sent with it: '
+              help=('Update storage size in GB (60-64050). The volume split is sent with it: '
                     'by default libraries=50 GB and the rest is shared evenly by session results '
                     'and mounted data.'),
               default=None)
@@ -1197,11 +1197,11 @@ def pause_session(ctx,
               default=None)
 @click.option('--results-volume',
               type=int,
-              help='Update session results volume in GB (min 225). Requires --storage unless all three volumes are given.',
+              help='Update session results volume in GB (min 5). Requires --storage unless all three volumes are given.',
               default=None)
 @click.option('--data-volume',
               type=int,
-              help='Update mounted data volume in GB (min 35). Requires --storage unless all three volumes are given.',
+              help='Update mounted data volume in GB (min 5). Requires --storage unless all three volumes are given.',
               default=None)
 @click.option('--cost-limit',
               type=float,

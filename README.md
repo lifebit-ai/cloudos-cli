@@ -2214,10 +2214,10 @@ cloudos interactive-session create \
 
 **Optional Configuration:**
 - `--instance`: Instance type (default depends on execution platform: `c5.xlarge` for AWS, `Standard_D4s_v3` for Azure)
-- `--storage`: Total storage in GB (default: 500, range: 500-64050). If all three volume options below are given, `--storage` defaults to their sum; if it is also given, it must match the sum.
+- `--storage`: Total storage in GB (default: 500, range: 60-64050). If all three volume options below are given, `--storage` defaults to their sum; if it is also given, it must match the sum.
 - `--libraries-volume`: Libraries volume in GB (min 50)
-- `--results-volume`: Session results volume in GB (min 225)
-- `--data-volume`: Mounted data volume in GB (min 35)
+- `--results-volume`: Session results volume in GB (min 5)
+- `--data-volume`: Mounted data volume in GB (min 5)
 - `--spot`: Use spot instances (AWS only, cost-saving)
 - `--shared`: Make session accessible to workspace members
 - `--cost-limit`: Compute cost limit in USD (default: -1 for unlimited)
@@ -2674,8 +2674,8 @@ cloudos interactive-session resume \
 All configuration parameters are optional. If not specified, the session resumes with its previous configuration.
 
 - `--instance <TYPE>` - Change instance type (validated by platform)
-- `--storage <GB>` - Update storage size (500-64050 GB). The volume split is sent with it, using the same rules as `create`
-- `--libraries-volume <GB>`, `--results-volume <GB>`, `--data-volume <GB>` - Update the volume split (minimums 50, 225 and 35 GB). These require `--storage` unless all three are given, in which case the storage is their sum
+- `--storage <GB>` - Update storage size (60-64050 GB). The volume split is sent with it, using the same rules as `create`
+- `--libraries-volume <GB>`, `--results-volume <GB>`, `--data-volume <GB>` - Update the volume split (minimums 50, 5 and 5 GB). These require `--storage` unless all three are given, in which case the storage is their sum
 - `--cost-limit <USD>` - Update compute cost limit (-1 for unlimited)
 - `--shutdown-in <DURATION>` - Update auto-shutdown time (e.g., 8h, 2d)
 

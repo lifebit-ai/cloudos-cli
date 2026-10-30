@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.99.3 (2026-10-30)
+
+### Fix:
+
+- `interactive-session create` and `resume` volume minimums changed to match the platform: libraries 50 GB, session results 5 GB (was 225 GB), mounted data 5 GB (was 35 GB)
+- `--storage` minimum for `interactive-session create` and `resume` lowered from 500 GB to 60 GB (range is now 60-64050 GB). The default stays 500 GB
+
 ## v2.99.2 (2026-10-28)
 
 ### Fix:

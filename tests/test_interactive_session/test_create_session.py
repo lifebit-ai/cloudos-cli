@@ -718,11 +718,11 @@ class TestVolumeSizes:
             build_session_payload(name='s', backend='regular', project_id='p', storage_size=1000,
                                   volume_sizes={'libraries': 50, 'sessionResults': 225, 'mountedData': 225})
 
-    @pytest.mark.parametrize('storage', [499, 64051])
+    @pytest.mark.parametrize('storage', [59, 64051])
     def test_payload_rejects_storage_out_of_range(self, storage):
         from cloudos_cli.interactive_session.interactive_session import build_session_payload
 
-        with pytest.raises(ValueError, match='500-64050'):
+        with pytest.raises(ValueError, match='60-64050'):
             build_session_payload(name='s', backend='regular', project_id='p', storage_size=storage)
 
     @pytest.mark.parametrize('kwargs,expected', [
@@ -741,6 +741,8 @@ class TestVolumeSizes:
         ({'storage_size': 1000, 'libraries': 60, 'session_results': 300},
          (1000, {'libraries': 60, 'sessionResults': 300, 'mountedData': 640})),
         # All three given: storage is their sum
+        ({'libraries': 50, 'session_results': 5, 'mounted_data': 5},
+         (60, {'libraries': 50, 'sessionResults': 5, 'mountedData': 5})),
         ({'libraries': 60, 'session_results': 400, 'mounted_data': 40},
          (500, {'libraries': 60, 'sessionResults': 400, 'mountedData': 40})),
         ({'storage_size': 500, 'libraries': 60, 'session_results': 400, 'mounted_data': 40},
@@ -752,18 +754,18 @@ class TestVolumeSizes:
         assert resolve_volume_sizes(**kwargs) == expected
 
     @pytest.mark.parametrize('kwargs,message', [
-        ({'storage_size': 499}, '500-64050'),
-        ({'storage_size': 64051}, '500-64050'),
+        ({'storage_size': 59}, '60-64050'),
+        ({'storage_size': 64051}, '60-64050'),
         ({'libraries': 49}, 'libraries volume .*at least 50 GB'),
-        ({'session_results': 224}, 'sessionResults volume .*at least 225 GB'),
-        ({'mounted_data': 34}, 'mountedData volume .*at least 35 GB'),
-        # Even split of the rest leaves sessionResults below its minimum
-        ({'storage_size': 500, 'mounted_data': 100}, 'too small for sessionResults'),
-        ({'storage_size': 500, 'libraries': 100}, 'too small for sessionResults'),
+        ({'session_results': 4}, 'sessionResults volume .*at least 5 GB'),
+        ({'mounted_data': 4}, 'mountedData volume .*at least 5 GB'),
+        # Even split of the rest leaves a volume below its minimum
+        ({'storage_size': 60, 'libraries': 52}, 'too small for sessionResults'),
+        ({'storage_size': 100, 'mounted_data': 50}, 'too small for libraries'),
         # Two volumes given leave too little for the third
-        ({'storage_size': 500, 'libraries': 50, 'session_results': 430}, 'too small for mountedData'),
+        ({'storage_size': 60, 'libraries': 50, 'session_results': 6}, 'too small for mountedData'),
         # All three given but the sum is out of range
-        ({'libraries': 50, 'session_results': 225, 'mounted_data': 35}, '500-64050'),
+        ({'libraries': 50, 'session_results': 32000, 'mounted_data': 32001}, '60-64050'),
         # All three given and --storage does not match
         ({'storage_size': 600, 'libraries': 50, 'session_results': 225, 'mounted_data': 225}, 'does not match'),
     ])
@@ -928,7 +930,7 @@ class TestCreateSessionVolumeFlags:
         assert f"{volumes['mountedData']} GB" in result.output
 
     @pytest.mark.parametrize('extra,message', [
-        (['--storage', '100'], '500-64050'),
+        (['--storage', '59'], '60-64050'),
         (['--libraries-volume', '10'], 'at least 50 GB'),
         (['--storage', '600', '--libraries-volume', '50', '--results-volume', '225', '--data-volume', '225'],
          'does not match'),
