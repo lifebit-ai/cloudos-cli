@@ -1,5 +1,16 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.99.3 (2026-10-30)
+
+### Fix:
+
+- `interactive-session create` and `resume` volume minimums changed to match the platform: libraries 50 GB, session results 5 GB (was 225 GB), mounted data 5 GB (was 35 GB)
+- `--storage` minimum for `interactive-session create` and `resume` lowered from 500 GB to 60 GB (range is now 60-64050 GB). The default stays 500 GB
+- Volumes now have maximums: libraries 1000 GB, session results 32000 GB, mounted data 32000 GB. When the even split would take a volume over its maximum, it gets its maximum and the excess goes to the other volumes that weren't set; if they can't hold it, the CLI stops with an error. Likewise, a volume that would fall below its minimum gets its minimum and the difference comes from the other volumes that weren't set, so `--storage 100 --data-volume 10` gives 50 / 40 / 10 GB instead of an error
+- `interactive-session resume --storage` can't be smaller than the session's current storage, and no volume (libraries, session results, mounted data) can be smaller than it is now, as it may contain data. The CLI checks the current sizes before calling the API and stops with an error if any would shrink
+- `interactive-session resume --storage` now starts the volume split from the session's current volume sizes instead of the `create` default. With only `--storage`, libraries keeps its size and the extra storage is shared evenly by session results and mounted data; volumes that aren't set keep their size plus a share of the rest
+- `interactive-session resume` keeps a volume that is already above its maximum (sessions created before the maximums existed) at its current size instead of failing or shrinking it
+
 ## v2.99.2 (2026-10-28)
 
 ### Fix:
