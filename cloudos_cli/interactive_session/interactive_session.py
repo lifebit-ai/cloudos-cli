@@ -875,22 +875,49 @@ def parse_link_path(link_path_str):
 
 
 
-MIN_STORAGE_SIZE = 60
-MAX_STORAGE_SIZE = 64050
-DEFAULT_STORAGE_SIZE = 500
-DEFAULT_LIBRARIES_VOLUME = 50
 # Minimum size in GB for each volume inside the session storage
 VOLUME_MINIMUMS = {
     "libraries": 50,
     "sessionResults": 5,
     "mountedData": 5
 }
+# The volumes always add up to the storage, so its minimum is the sum of theirs
+MIN_STORAGE_SIZE = sum(VOLUME_MINIMUMS.values())
+MAX_STORAGE_SIZE = 64050
+STORAGE_RANGE = f"{MIN_STORAGE_SIZE}-{MAX_STORAGE_SIZE}"
+DEFAULT_STORAGE_SIZE = 500
+DEFAULT_LIBRARIES_VOLUME = 50
 # CLI flag for each volume, used in error messages
 VOLUME_FLAGS = {
     "libraries": "--libraries-volume",
     "sessionResults": "--results-volume",
     "mountedData": "--data-volume"
 }
+
+
+def validate_storage_size(storage_size, current_size=None):
+    """Check that a storage size is within the allowed range.
+
+    Parameters
+    ----------
+    storage_size : int
+        Storage in GB.
+    current_size : int, optional
+        Current storage of the session in GB, when resuming. Storage can't shrink,
+        so storage_size must be at least this.
+
+    Raises
+    ------
+    ValueError
+        If the storage size is out of range or smaller than current_size.
+    """
+    if not MIN_STORAGE_SIZE <= storage_size <= MAX_STORAGE_SIZE:
+        raise ValueError(f"Storage size must be between {STORAGE_RANGE} GB")
+    if current_size is not None and storage_size < current_size:
+        raise ValueError(
+            f"Storage size ({storage_size} GB) can't be smaller than the session's current storage "
+            f"({current_size} GB)"
+        )
 
 
 def validate_volume_sizes(storage_size, volume_sizes):
@@ -924,6 +951,71 @@ def validate_volume_sizes(storage_size, volume_sizes):
             f"but libraries ({volume_sizes['libraries']}) + sessionResults ({volume_sizes['sessionResults']}) "
             f"+ mountedData ({volume_sizes['mountedData']}) = {total} GB"
         )
+
+
+def validate_volumes_not_shrunk(volume_sizes, current_volume_sizes):
+    """Check that no volume is smaller than it is now, since it may hold data.
+
+    Parameters
+    ----------
+    volume_sizes : dict
+        New sizes in GB keyed by 'libraries', 'sessionResults' and 'mountedData'.
+    current_volume_sizes : dict or None
+        Current sizes of the session's volumes. Volumes missing from either dict are not checked.
+
+    Raises
+    ------
+    ValueError
+        If any volume would be smaller than its current size.
+    """
+    current_volume_sizes = current_volume_sizes or {}
+    shrunk = [
+        volume for volume in VOLUME_MINIMUMS
+        if volume in volume_sizes and current_volume_sizes.get(volume) is not None
+        and volume_sizes[volume] < current_volume_sizes[volume]
+    ]
+    if shrunk:
+        details = ', '.join(
+            f"{volume} ({VOLUME_FLAGS[volume]}) {volume_sizes[volume]} GB < current {current_volume_sizes[volume]} GB"
+            for volume in shrunk
+        )
+        raise ValueError(
+            f"Volumes can't be smaller than their current size, as they may contain data: {details}. "
+            f"Set {', '.join(VOLUME_FLAGS[v] for v in VOLUME_MINIMUMS)} to at least their current sizes."
+        )
+
+
+def _given_volume_sizes(libraries, session_results, mounted_data):
+    """Return the volume sizes that were given, keyed by volume name."""
+    return {
+        volume: size for volume, size in (
+            ("libraries", libraries),
+            ("sessionResults", session_results),
+            ("mountedData", mounted_data)
+        ) if size is not None
+    }
+
+
+def _storage_size_for(storage_size, given):
+    """Return the storage size, which is the sum of the volumes when all three are given."""
+    if len(given) < 3:
+        return storage_size
+    total = sum(given.values())
+    if storage_size is not None and storage_size != total:
+        raise ValueError(
+            f"--storage ({storage_size} GB) does not match the sum of the volume sizes ({total} GB). "
+            "Omit --storage to use the sum, or adjust the volumes."
+        )
+    return total
+
+
+def _check_volume_minimums(given):
+    """Raise ValueError if any given volume is below its minimum."""
+    for volume, size in given.items():
+        if size < VOLUME_MINIMUMS[volume]:
+            raise ValueError(
+                f"{volume} volume ({VOLUME_FLAGS[volume]}) must be at least {VOLUME_MINIMUMS[volume]} GB, got {size} GB"
+            )
 
 
 def resolve_volume_sizes(storage_size=None, libraries=None, session_results=None, mounted_data=None):
@@ -961,32 +1053,14 @@ def resolve_volume_sizes(storage_size=None, libraries=None, session_results=None
     ValueError
         If the storage size is out of range or the split is not valid.
     """
-    given = {
-        volume: size for volume, size in (
-            ("libraries", libraries),
-            ("sessionResults", session_results),
-            ("mountedData", mounted_data)
-        ) if size is not None
-    }
-    if len(given) == 3:
-        total = sum(given.values())
-        if storage_size is not None and storage_size != total:
-            raise ValueError(
-                f"--storage ({storage_size} GB) does not match the sum of the volume sizes ({total} GB). "
-                "Omit --storage to use the sum, or adjust the volumes."
-            )
-        storage_size = total
-    elif storage_size is None:
+    given = _given_volume_sizes(libraries, session_results, mounted_data)
+    storage_size = _storage_size_for(storage_size, given)
+    if storage_size is None:
         storage_size = DEFAULT_STORAGE_SIZE
-    if not MIN_STORAGE_SIZE <= storage_size <= MAX_STORAGE_SIZE:
-        raise ValueError(f"Storage size must be between {MIN_STORAGE_SIZE}-{MAX_STORAGE_SIZE} GB")
+    validate_storage_size(storage_size)
     if not given:
         given = {"libraries": DEFAULT_LIBRARIES_VOLUME}
-    for volume, size in given.items():
-        if size < VOLUME_MINIMUMS[volume]:
-            raise ValueError(
-                f"{volume} volume ({VOLUME_FLAGS[volume]}) must be at least {VOLUME_MINIMUMS[volume]} GB, got {size} GB"
-            )
+    _check_volume_minimums(given)
     missing = [volume for volume in ("sessionResults", "mountedData", "libraries") if volume not in given]
     remaining = storage_size - sum(given.values())
     volume_sizes = dict(given)
@@ -1003,6 +1077,76 @@ def resolve_volume_sizes(storage_size=None, libraries=None, session_results=None
                 f"which is too small for {short}. Increase --storage or set the volumes explicitly with "
                 f"{', '.join(VOLUME_FLAGS[v] for v in VOLUME_MINIMUMS)}."
             )
+    volume_sizes = {volume: volume_sizes[volume] for volume in VOLUME_MINIMUMS}
+    validate_volume_sizes(storage_size, volume_sizes)
+    return storage_size, volume_sizes
+
+
+def resolve_resume_volume_sizes(current_volume_sizes, storage_size=None, libraries=None,
+                                session_results=None, mounted_data=None):
+    """Work out the new storage split when resuming, starting from the current volume sizes.
+
+    Volumes can't shrink, as they may contain data. Rules:
+    - No volume given: libraries keeps its current size, and sessionResults and
+      mountedData keep theirs plus an even share of the extra storage.
+    - Some volumes given: they are used as given, and the others keep their current
+      size plus an even share of what is left.
+    - All three given: the storage size is their sum, as in resolve_volume_sizes.
+    When the extra storage can't be split evenly, the extra GB goes to sessionResults
+    (or to the first volume not given). If the current sizes are not known, the
+    split from resolve_volume_sizes is used instead.
+
+    Parameters
+    ----------
+    current_volume_sizes : dict or None
+        Current sizes in GB keyed by 'libraries', 'sessionResults' and 'mountedData'.
+    storage_size : int, optional
+        New total storage in GB. Required unless all three volumes are given.
+    libraries : int, optional
+        New libraries volume in GB.
+    session_results : int, optional
+        New session results volume in GB.
+    mounted_data : int, optional
+        New mounted data volume in GB.
+
+    Returns
+    -------
+    tuple
+        (storage_size, volume_sizes) where volume_sizes is a dict keyed by
+        'libraries', 'sessionResults' and 'mountedData'.
+
+    Raises
+    ------
+    ValueError
+        If the split is not valid, a volume would shrink, or the storage is too
+        small to keep the current volume sizes.
+    """
+    current = current_volume_sizes or {}
+    if not all(isinstance(current.get(volume), int) for volume in VOLUME_MINIMUMS):
+        storage_size, volume_sizes = resolve_volume_sizes(storage_size, libraries, session_results, mounted_data)
+        validate_volumes_not_shrunk(volume_sizes, current)
+        return storage_size, volume_sizes
+    given = _given_volume_sizes(libraries, session_results, mounted_data)
+    storage_size = _storage_size_for(storage_size, given)
+    if storage_size is None:
+        raise ValueError("Storage size is required unless all three volume sizes are given")
+    validate_storage_size(storage_size)
+    _check_volume_minimums(given)
+    validate_volumes_not_shrunk(given, current)
+    kept = [volume for volume in ("sessionResults", "mountedData", "libraries") if volume not in given]
+    grow = [volume for volume in kept if volume != "libraries"] if not given else kept
+    volume_sizes = {**{volume: current[volume] for volume in kept}, **given}
+    extra = storage_size - sum(volume_sizes.values())
+    if extra < 0:
+        keep = ', '.join(f"{volume}={current[volume]} GB" for volume in kept)
+        raise ValueError(
+            f"Storage size ({storage_size} GB) is too small to keep the current volume sizes ({keep}); "
+            f"it needs at least {storage_size - extra} GB. Increase --storage."
+        )
+    if grow:
+        share, remainder = divmod(extra, len(grow))
+        for i, volume in enumerate(grow):
+            volume_sizes[volume] += share + (remainder if i == 0 else 0)
     volume_sizes = {volume: volume_sizes[volume] for volume in VOLUME_MINIMUMS}
     validate_volume_sizes(storage_size, volume_sizes)
     return storage_size, volume_sizes
@@ -1078,7 +1222,7 @@ def build_session_payload(
     instance_type : str
         Instance type (EC2 for AWS, e.g., c5.xlarge; Azure VM size, e.g., Standard_D4s_v3)
     storage_size : int
-        Storage in GB (default: 500, range: 60-64050)
+        Storage in GB (default: DEFAULT_STORAGE_SIZE, range: STORAGE_RANGE)
     volume_sizes : dict, optional
         Split of the storage into 'libraries', 'sessionResults' and 'mountedData' (GB).
         Must add up to storage_size. If not given, the default split is used
@@ -1112,8 +1256,7 @@ def build_session_payload(
     # Validate inputs
     if not 1 <= len(name) <= 100:
         raise ValueError("Session name must be 1-100 characters")
-    if not MIN_STORAGE_SIZE <= storage_size <= MAX_STORAGE_SIZE:
-        raise ValueError(f"Storage size must be between {MIN_STORAGE_SIZE}-{MAX_STORAGE_SIZE} GB")
+    validate_storage_size(storage_size)
     if volume_sizes is None:
         _, volume_sizes = resolve_volume_sizes(storage_size)
     else:

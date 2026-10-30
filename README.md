@@ -2674,7 +2674,7 @@ cloudos interactive-session resume \
 All configuration parameters are optional. If not specified, the session resumes with its previous configuration.
 
 - `--instance <TYPE>` - Change instance type (validated by platform)
-- `--storage <GB>` - Update storage size (60-64050 GB). The volume split is sent with it, using the same rules as `create`
+- `--storage <GB>` - Update storage size (60-64050 GB). It can't be smaller than the session's current storage, and no volume can be smaller than it is now, as it may contain data. The volume split is sent with it, starting from the current volume sizes: with only `--storage`, libraries keeps its size and the extra storage is shared evenly by session results and mounted data; volumes that aren't set keep their size plus a share of the rest. If the current sizes aren't known, the same rules as `create` are used
 - `--libraries-volume <GB>`, `--results-volume <GB>`, `--data-volume <GB>` - Update the volume split (minimums 50, 5 and 5 GB). These require `--storage` unless all three are given, in which case the storage is their sum
 - `--cost-limit <USD>` - Update compute cost limit (-1 for unlimited)
 - `--shutdown-in <DURATION>` - Update auto-shutdown time (e.g., 8h, 2d)

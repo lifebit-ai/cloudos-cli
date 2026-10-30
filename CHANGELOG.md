@@ -6,6 +6,8 @@
 
 - `interactive-session create` and `resume` volume minimums changed to match the platform: libraries 50 GB, session results 5 GB (was 225 GB), mounted data 5 GB (was 35 GB)
 - `--storage` minimum for `interactive-session create` and `resume` lowered from 500 GB to 60 GB (range is now 60-64050 GB). The default stays 500 GB
+- `interactive-session resume --storage` can't be smaller than the session's current storage, and no volume (libraries, session results, mounted data) can be smaller than it is now, as it may contain data. The CLI checks the current sizes before calling the API and stops with an error if any would shrink
+- `interactive-session resume --storage` now starts the volume split from the session's current volume sizes instead of the `create` default. With only `--storage`, libraries keeps its size and the extra storage is shared evenly by session results and mounted data; volumes that aren't set keep their size plus a share of the rest
 
 ## v2.99.2 (2026-10-28)
 

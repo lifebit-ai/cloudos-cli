@@ -30,12 +30,22 @@ from cloudos_cli.interactive_session.interactive_session import (
     poll_session_termination,
     build_resume_payload,
     resolve_volume_sizes,
+    resolve_resume_volume_sizes,
+    validate_storage_size,
+    get_response_volume_sizes,
     format_volume_sizes,
+    STORAGE_RANGE,
+    DEFAULT_STORAGE_SIZE,
+    DEFAULT_LIBRARIES_VOLUME,
+    VOLUME_MINIMUMS,
     fetch_interactive_session_page,
     APP_SESSION_TYPES,
     build_app_filtered_page_fetcher
 )
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
+
+# Default volume split, shown in the --help text
+_, DEFAULT_VOLUME_SIZES = resolve_volume_sizes()
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
 
 
@@ -320,23 +330,26 @@ def list_sessions(ctx,
               default=None)
 @click.option('--storage',
               type=int,
-              help=('Total storage in GB (60-64050). Default=500, or the sum of the three volume '
+              help=(f'Total storage in GB ({STORAGE_RANGE}). Default={DEFAULT_STORAGE_SIZE}, or the sum of the three volume '
                     'sizes when --libraries-volume, --results-volume and --data-volume are all given. '
                     'The storage is split into libraries, session results and mounted data volumes.'),
               default=None)
 @click.option('--libraries-volume',
               type=int,
-              help=('Libraries volume in GB (min 50). Default=50 when no volume is set; otherwise '
+              help=(f'Libraries volume in GB (min {VOLUME_MINIMUMS["libraries"]}). '
+                    f'Default={DEFAULT_LIBRARIES_VOLUME} when no volume is set; otherwise '
                     'the volumes not set share the rest of --storage evenly.'),
               default=None)
 @click.option('--results-volume',
               type=int,
-              help=('Session results volume in GB (min 5). Default=225 with the default storage; '
+              help=(f'Session results volume in GB (min {VOLUME_MINIMUMS["sessionResults"]}). '
+                    f'Default={DEFAULT_VOLUME_SIZES["sessionResults"]} with the default storage; '
                     'otherwise the volumes not set share the rest of --storage evenly.'),
               default=None)
 @click.option('--data-volume',
               type=int,
-              help=('Mounted data volume in GB (min 5). Default=225 with the default storage; '
+              help=(f'Mounted data volume in GB (min {VOLUME_MINIMUMS["mountedData"]}). '
+                    f'Default={DEFAULT_VOLUME_SIZES["mountedData"]} with the default storage; '
                     'otherwise the volumes not set share the rest of --storage evenly.'),
               default=None)
 @click.option('--spot',
@@ -1187,21 +1200,26 @@ def pause_session(ctx,
               default=None)
 @click.option('--storage',
               type=int,
-              help=('Update storage size in GB (60-64050). The volume split is sent with it: '
-                    'by default libraries=50 GB and the rest is shared evenly by session results '
-                    'and mounted data.'),
+              help=(f'Update storage size in GB ({STORAGE_RANGE}). It can\'t be smaller than the '
+                    'session\'s current storage, and no volume can be smaller than it is now. '
+                    'The volume split is sent with it: by default libraries keeps its current size '
+                    'and the extra storage is shared evenly by session results and mounted data.'),
               default=None)
 @click.option('--libraries-volume',
               type=int,
-              help='Update libraries volume in GB (min 50). Requires --storage unless all three volumes are given.',
+              help=(f'Update libraries volume in GB (min {VOLUME_MINIMUMS["libraries"]}). '
+                    'Volumes not set keep their current size plus a share of the rest of --storage. '
+                    'Requires --storage unless all three volumes are given.'),
               default=None)
 @click.option('--results-volume',
               type=int,
-              help='Update session results volume in GB (min 5). Requires --storage unless all three volumes are given.',
+              help=(f'Update session results volume in GB (min {VOLUME_MINIMUMS["sessionResults"]}). '
+                    'Requires --storage unless all three volumes are given.'),
               default=None)
 @click.option('--data-volume',
               type=int,
-              help='Update mounted data volume in GB (min 5). Requires --storage unless all three volumes are given.',
+              help=(f'Update mounted data volume in GB (min {VOLUME_MINIMUMS["mountedData"]}). '
+                    'Requires --storage unless all three volumes are given.'),
               default=None)
 @click.option('--cost-limit',
               type=float,
@@ -1254,14 +1272,34 @@ def resume_session(ctx,
                         '(--libraries-volume, --results-volume, --data-volume)', fg='red', err=True)
             raise SystemExit(1)
         try:
-            storage, volume_sizes = resolve_volume_sizes(
+            if storage is not None:
+                validate_storage_size(storage)
+        except ValueError as e:
+            click.secho(f'Error: {e}', fg='red', err=True)
+            raise SystemExit(1)
+        # Storage and volumes can't shrink, so the split starts from the session's current sizes
+        try:
+            session = get_interactive_session_status(
+                cloudos_url=cloudos_url,
+                apikey=apikey,
+                session_id=session_id,
+                team_id=workspace_id,
+                verify_ssl=verify_ssl
+            )
+            storage, volume_sizes = resolve_resume_volume_sizes(
+                get_response_volume_sizes(session),
                 storage_size=storage,
                 libraries=libraries_volume,
                 session_results=results_volume,
                 mounted_data=data_volume
             )
+            current_storage = session.get('resources', {}).get('storageSizeInGb')
+            validate_storage_size(storage, current_size=current_storage)
         except ValueError as e:
             click.secho(f'Error: {e}', fg='red', err=True)
+            raise SystemExit(1)
+        except (PermissionError, RuntimeError) as e:
+            click.secho(f'Error: Could not get the current storage of session {session_id}: {e}', fg='red', err=True)
             raise SystemExit(1)
     if verbose:
         print('Executing resume interactive session...')
