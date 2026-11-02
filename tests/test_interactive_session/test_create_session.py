@@ -1,5 +1,6 @@
 """Tests for interactive session create command."""
 
+import re
 import pytest
 import json
 from click.testing import CliRunner
@@ -1111,7 +1112,9 @@ class TestCreateSessionVolumeFlags:
 
         result = CliRunner().invoke(run_cloudos_cli, ['interactive-session', command, '--help'])
         assert result.exit_code == 0
-        output = ' '.join(result.output.replace('│', ' ').split())
+        # Rich colours help text under GitHub Actions; the escape codes split the sentences.
+        plain = re.sub(r'\x1b\[[0-9;]*m', '', result.output)
+        output = ' '.join(plain.replace('│', ' ').split())
         assert f'({STORAGE_RANGE})' in output
         for volume, minimum in VOLUME_MINIMUMS.items():
             assert f'(min {minimum}, max {VOLUME_MAXIMUMS[volume]})' in output

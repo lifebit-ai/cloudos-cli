@@ -165,7 +165,7 @@ def test_cli_download_refuses_overwrite_without_flag(tmp_path):
         'datasets', 'download', 'Data/flowchart.png', str(existing_file), *CLI_AUTH])
 
     assert result.exit_code != 0
-    assert "already exists" in (result.output or str(result.exception))
+    assert "already exists" in str(result.exception)
     assert existing_file.read_bytes() == b"old content"
 
 
@@ -178,7 +178,7 @@ def test_cli_download_to_missing_folder_with_trailing_slash(tmp_path, monkeypatc
         'datasets', 'download', 'Data/flowchart.png', 'downloads/', *CLI_AUTH])
 
     assert result.exit_code != 0
-    assert "Local folder 'downloads/' does not exist" in (result.output or str(result.exception))
+    assert "Local folder 'downloads/' does not exist" in str(result.exception)
     # Refused before any download was attempted.
     assert not any("signed-object-url" in c.request.url for c in responses.calls)
     assert list(tmp_path.iterdir()) == []
