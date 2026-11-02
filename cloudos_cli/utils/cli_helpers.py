@@ -3,11 +3,21 @@
 import rich_click as click
 import sys
 import logging
+import re
 from rich.console import Console
+from rich.markup import escape
 from cloudos_cli.logging.logger import setup_logging
 
 # Global debug state
 _global_debug = False
+
+# C0 (except tab and newline), DEL and C1 control characters, e.g. ESC sequences that drive the terminal
+CONTROL_CHARS_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
+
+
+def strip_control_chars(text):
+    """Remove control characters from remote-provided text before it is printed to a terminal."""
+    return CONTROL_CHARS_RE.sub("", str(text))
 
 
 def custom_exception_handler(exc_type, exc_value, exc_traceback):
@@ -30,7 +40,8 @@ def custom_exception_handler(exc_type, exc_value, exc_traceback):
         else:
             error_msg = f"{exc_type.__name__}"
         logger.error(exc_value)
-        console.print(f"[bold red]Error: {error_msg}[/bold red]")
+        # error_msg can hold server- or file-name-derived text, which must not be read as rich markup
+        console.print(f"[bold red]Error: {escape(strip_control_chars(error_msg))}[/bold red]")
 
         # For network errors, give helpful context
         if 'HTTPSConnectionPool' in str(exc_value) or 'Max retries exceeded' in str(exc_value):

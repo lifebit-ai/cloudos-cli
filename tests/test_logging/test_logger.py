@@ -491,6 +491,51 @@ class TestSecretValuesInMessages:
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX file modes only")
+class TestUrllib3QueryRedaction:
+    """Test cases for masking URL query strings in urllib3 records"""
+
+    @staticmethod
+    def _record(name, msg, args):
+        return logging.LogRecord(
+            name=name,
+            level=logging.DEBUG,
+            pathname="test.py",
+            lineno=1,
+            msg=msg,
+            args=args,
+            exc_info=None
+        )
+
+    @pytest.mark.parametrize("name, msg, args, expected", [
+        ("urllib3.connectionpool", '%s://%s:%s "%s %s %s" %s %s',
+         ("https", "bucket.s3.amazonaws.com", 443, "GET",
+          "/key.bam?X-Amz-Signature=abc123&X-Amz-Security-Token=tok456", "HTTP/1.1", 200, 10),
+         'https://bucket.s3.amazonaws.com:443 "GET /key.bam?*** HTTP/1.1" 200 10'),
+        ("urllib3.connectionpool", "Retry: %s", ("/a?sig=abc123",), "Retry: /a?***"),
+        ("urllib3.util.retry", "Incremented Retry for (url='%s'): %r",
+         ("/a?sig=abc123&se=2026", "Retry(total=2)"), "Incremented Retry for (url='/a?***'): 'Retry(total=2)'"),
+        ("urllib3.connectionpool", "Redirecting %s -> %s",
+         ("https://a/x?token=abc123", "https://b/y?sig=def456"), "Redirecting https://a/x?*** -> https://b/y?***"),
+        ("urllib3.connectionpool", "Starting new HTTPS connection (%d): %s:%s",
+         (1, "cloudos.lifebit.ai", 443), "Starting new HTTPS connection (1): cloudos.lifebit.ai:443"),
+    ])
+    def test_filter_masks_urllib3_query(self, name, msg, args, expected):
+        """Test that query strings in urllib3 records are masked, and the rest of the message kept"""
+        record = self._record(name, msg, args)
+
+        CommandContextFilter().filter(record)
+
+        assert record.getMessage() == expected
+
+    def test_filter_keeps_query_in_other_loggers(self):
+        """Test that records from other loggers are not touched by the urllib3 masking"""
+        record = self._record("CloudOS", "Is %s ready?", ("job1",))
+
+        CommandContextFilter().filter(record)
+
+        assert record.getMessage() == "Is job1 ready?"
+
+
 class TestLogFilePermissions:
     """Test cases for log file and directory permissions"""
 
