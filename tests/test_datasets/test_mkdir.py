@@ -121,3 +121,18 @@ def test_create_virtual_folder_for_new_path():
     assert response_json["name"] == NEW_FOLDER_NAME
     assert response_json["parent"]["id"] == parent_id
     assert response_json["parent"]["kind"] == parent_kind
+
+
+def test_mkdir_path_outside_data_suggests_fix():
+    from click.testing import CliRunner
+    from cloudos_cli.__main__ import run_cloudos_cli
+
+    result = CliRunner().invoke(run_cloudos_cli, [
+        'datasets', 'mkdir', 'cli-test-2',
+        '-k', APIKEY, '-c', CLOUDOS_URL, '--workspace-id', WORKSPACE_ID, '--project-name', PROJECT_NAME,
+    ])
+
+    assert result.exit_code != 0
+    message = str(result.exception)
+    assert "all user-uploaded data lives" in message
+    assert "Did you mean 'Data/cli-test-2'?" in message

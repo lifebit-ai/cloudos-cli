@@ -2,8 +2,10 @@
 
 import rich_click as click
 import csv
+import os
 import sys
 from cloudos_cli.datasets import Datasets
+from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector, format_bytes
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
 from cloudos_cli.logging.logger import update_command_context_from_click
@@ -11,6 +13,56 @@ from rich.console import Console
 from rich.table import Table
 from rich.style import Style
 from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
+
+
+def _airlock_hint(exc):
+    """Error text for a BadRequestException, noting Airlock as a likely cause of a 401/403."""
+    msg = str(exc)
+    rv = getattr(exc, "rv", None)
+    status = getattr(rv, "status_code", None)
+    if status not in (401, 403):
+        return msg
+    # Airlock denials come back as short plain text, which BadRequestException drops.
+    body = (getattr(rv, "text", "") or "").strip()
+    if body and len(body) <= 300 and not body.startswith(("{", "<")):
+        msg = f"{msg} ({body})"
+    if "airlock" in body.lower():
+        return msg
+    return f"{msg}. This may be caused by this workspace's Airlock data-governance policy."
+
+
+def _require_data_path(path, arg_name, allow_root=False):
+    """Return PATH without surrounding slashes, or raise unless it is inside 'Data'."""
+    clean = path.strip("/")
+    if clean.startswith("Data/") or (allow_root and clean == "Data"):
+        return clean
+    if clean and clean != "Data":
+        hint = f"Did you mean 'Data/{clean}'?"
+    else:
+        hint = "E.g.: 'Data/my-folder'."
+    raise ValueError(
+        f"{arg_name} must start with 'Data/', where all user-uploaded data lives. {hint}"
+    )
+
+
+def _virtual_path(project_name, path):
+    """Path of an item as shown in the web UI's File Explorer."""
+    return f"Projects/{project_name}/{path.strip('/')}"
+
+
+def _storage_path(item):
+    """The s3:// or az:// location backing a File Explorer item, or None."""
+    if item.get("fileType") == "S3File" or item.get("folderType") == "S3Folder":
+        bucket = item.get("s3BucketName")
+        key = item.get("s3ObjectKey") or item.get("s3Prefix")
+        return f"s3://{bucket}/{key}" if bucket and key else None
+    if item.get("fileType") == "AzureBlobFile" or item.get("folderType") == "AzureBlobFolder":
+        account = item.get("blobStorageAccountName")
+        container = item.get("blobContainerName")
+        key = item.get("blobName") if item.get("fileType") == "AzureBlobFile" else item.get("blobPrefix")
+        if account and container and key:
+            return f"az://{account}.blob.core.windows.net/{container}/{key}"
+    return None
 
 
 @click.group(cls=pass_debug_to_subcommands())
@@ -140,17 +192,7 @@ def list_files(ctx,
             updated = item.get("updatedAt") or item.get("lastModified", "-")
             filepath = item.get("name", "-")
 
-            if item.get("fileType") == "S3File" or item.get("folderType") == "S3Folder":
-                bucket = item.get("s3BucketName")
-                key = item.get("s3ObjectKey") or item.get("s3Prefix")
-                storage_path = f"s3://{bucket}/{key}" if bucket and key else "-"
-            elif item.get("fileType") == "AzureBlobFile" or item.get("folderType") == "AzureBlobFolder":
-                account = item.get("blobStorageAccountName")
-                container = item.get("blobContainerName")
-                key = item.get("blobName") if item.get("fileType") == "AzureBlobFile" else item.get("blobPrefix")
-                storage_path = f"az://{account}.blob.core.windows.net/{container}/{key}" if account and container and key else "-"
-            else:
-                storage_path = "-"
+            storage_path = _storage_path(item) or "-"
 
             processed_items.append({
                 'type': type_,
@@ -257,10 +299,8 @@ def move_files(ctx, source_path, destination_path, apikey, cloudos_url, workspac
      E.g.: 'Data/folderB'
     """
     # Validate destination constraint
-    if not destination_path.strip("/").startswith("Data/") and destination_path.strip("/") != "Data":
-        raise ValueError("Destination path must begin with 'Data/' or be 'Data'.")
-    if not source_path.strip("/").startswith("Data/") and source_path.strip("/") != "Data":
-        raise ValueError("SOURCE_PATH must start with  'Data/' or be 'Data'.")
+    _require_data_path(destination_path, "DESTINATION_PATH", allow_root=True)
+    _require_data_path(source_path, "SOURCE_PATH", allow_root=True)
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 
@@ -382,8 +422,7 @@ def renaming_item(ctx,
      E.g.: 'Data/folderA/old_name.txt'\n
     NEW_NAME [name]: the new name to assign to the file or folder. E.g.: 'new_name.txt'
     """
-    if not source_path.strip("/").startswith("Data/"):
-        raise ValueError("SOURCE_PATH must start with 'Data/', pointing to a file or folder in that dataset.")
+    _require_data_path(source_path, "SOURCE_PATH")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
     client = Datasets(
@@ -488,9 +527,7 @@ def copy_item_cli(ctx,
         cromwell_token=None
     )
     # Validate paths
-    dest_parts = destination_path.strip("/").split("/")
-    if not dest_parts or dest_parts[0] != "Data":
-        raise ValueError("DESTINATION_PATH must start with 'Data/'.")
+    dest_parts = _require_data_path(destination_path, "DESTINATION_PATH", allow_root=True).split("/")
     # Parse source and destination
     source_parts = source_path.strip("/").split("/")
     source_parent = "/".join(source_parts[:-1]) if len(source_parts) > 1 else ""
@@ -548,6 +585,201 @@ def copy_item_cli(ctx,
         raise ValueError(f"Copy operation failed. {str(e)}")
 
 
+@datasets.command(name="upload")
+@click.argument("local_path", required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
+@click.argument("destination_path", required=True)
+@click.option('-k', '--apikey', required=True, help='Your Lifebit Platform API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The Lifebit Platform URL.')
+@click.option('--workspace-id', required=True, help='The Lifebit Platform workspace ID.')
+@click.option('--project-name', required=True, help='The project name.')
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.option('--show-storage-path', is_flag=True,
+              help='Also print the s3:// location the file was stored at.')
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'project_name'])
+def upload_file_cli(ctx,
+                    local_path,
+                    destination_path,
+                    apikey,
+                    cloudos_url,
+                    workspace_id,
+                    project_name,
+                    disable_ssl_verification,
+                    ssl_cert,
+                    profile,
+                    show_storage_path):
+    """
+    Upload a local file to a Lifebit Platform project's File Explorer.
+
+    LOCAL_PATH [path]: the path, on your local machine, to the file to upload.\n
+    DESTINATION_PATH [path]: the File Explorer folder to upload into. It must be a 'Data'
+     folder path. E.g.: 'Data/uploads'
+
+    > [!NOTE]
+    > Only AWS workspaces are supported. The command stops before uploading if the
+    > workspace's Airlock policy blocks uploads from your computer.
+    """
+    destination_path = _require_data_path(destination_path, "DESTINATION_PATH", allow_root=True)
+    client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=ssl_selector(disable_ssl_verification, ssl_cert),
+        cromwell_token=None
+    )
+
+    airlock_message = client.check_airlock_restriction('upload')
+    if airlock_message:
+        raise click.ClickException(airlock_message)
+    try:
+        cloud_config = client.get_cloud_aws_config()
+    except Exception as e:
+        raise click.ClickException(
+            f"Uploading from your computer is only supported in AWS workspaces, and this one "
+            f"doesn't appear to be AWS-based (e.g. it uses Azure). Details: {e}"
+        )
+
+    dest_parent, _, dest_folder_name = destination_path.rpartition("/")
+    filename = os.path.basename(local_path)
+    try:
+        destination_folder = next((f for f in client.list_folder_content(dest_parent).get("folders", [])
+                                   if f.get("name") == dest_folder_name), None)
+        if not destination_folder:
+            raise ValueError(f"Destination folder '{destination_path}' not found.")
+        if destination_folder.get("folderType") in ("S3Folder", "AzureBlobFolder"):
+            raise ValueError(f"Unable to upload to '{destination_path}': only virtual folders and "
+                             "datasets can be upload destinations, not cloud storage folders.")
+        # An existing file would share the S3 key, so its content would be replaced even
+        # though the platform then rejects the duplicate name.
+        existing = client.list_folder_content(destination_path)
+    except BadRequestException as e:
+        raise click.ClickException(f"Could not resolve destination path '{destination_path}'. {_airlock_hint(e)}")
+    if any(i.get("name") == filename for i in existing.get("files", []) + existing.get("folders", [])):
+        raise click.ClickException(
+            f"'{filename}' already exists in '{destination_path}'. Remove or rename it first "
+            "(e.g. 'cloudos datasets rm' or 'cloudos datasets rename'), or rename the local file."
+        )
+    destination_kind = "Dataset" if destination_folder.get("folderType") is True else "Folder"
+
+    print(f"Uploading '{local_path}' to '{destination_path}/{filename}'...")
+    try:
+        client.upload_local_file(local_path=local_path, destination_folder_id=destination_folder["_id"],
+                                 destination_parent_kind=destination_kind, cloud_config=cloud_config,
+                                 destination_name=filename)
+    except BadRequestException as e:
+        raise click.ClickException(f"Upload to '{destination_path}' was rejected. {_airlock_hint(e)}")
+    except Exception as e:
+        raise ValueError(f"Upload operation failed. {e}")
+    click.secho(f"File '{filename}' uploaded.", fg="green", bold=True)
+    print(f"Virtual path: {_virtual_path(project_name, f'{destination_path}/{filename}')}")
+    if show_storage_path:
+        key = client.upload_object_key(cloud_config, destination_kind, destination_folder["_id"], filename)
+        print(f"Storage path: s3://{cloud_config['lifebitBucketName']}/{key}")
+
+
+@datasets.command(name="download")
+@click.argument("source_path", required=True)
+@click.argument("local_path", required=True, type=click.Path())
+@click.option('-k', '--apikey', required=True, help='Your Lifebit Platform API key.')
+@click.option('-c', '--cloudos-url', default=CLOUDOS_URL, required=True, help='The Lifebit Platform URL.')
+@click.option('--workspace-id', required=True, help='The Lifebit Platform workspace ID.')
+@click.option('--project-name', required=True, help='The project name.')
+@click.option('--disable-ssl-verification', is_flag=True, help='Disable SSL certificate verification.')
+@click.option('--ssl-cert', help='Path to your SSL certificate file.')
+@click.option('--profile', default=None, help='Profile to use from the config file.')
+@click.option('--show-storage-path', is_flag=True,
+              help='Also print the s3:// or az:// location the file was read from.')
+@click.option('-f', '--overwrite', is_flag=True,
+              help='Overwrite LOCAL_PATH if it already exists as a file.')
+@click.pass_context
+@with_profile_config(required_params=['apikey', 'workspace_id', 'project_name'])
+def download_file_cli(ctx,
+                      source_path,
+                      local_path,
+                      apikey,
+                      cloudos_url,
+                      workspace_id,
+                      project_name,
+                      disable_ssl_verification,
+                      ssl_cert,
+                      profile,
+                      show_storage_path,
+                      overwrite):
+    """
+    Download a file from a Lifebit Platform project's File Explorer to local disk.
+
+    SOURCE_PATH [path]: the File Explorer path of the file. E.g.: 'Data/results/my_plot.png'\n
+    LOCAL_PATH [path]: where to save it. If LOCAL_PATH is an existing folder, the file keeps
+     its name inside it. The folder is never created automatically.
+
+    > [!NOTE]
+    > An existing local file is only replaced with --overwrite/-f. The command stops before
+    > downloading if Airlock is enabled for the workspace.
+    """
+    client = Datasets(
+        cloudos_url=cloudos_url,
+        apikey=apikey,
+        workspace_id=workspace_id,
+        project_name=project_name,
+        verify=ssl_selector(disable_ssl_verification, ssl_cert),
+        cromwell_token=None
+    )
+
+    airlock_message = client.check_airlock_restriction('download')
+    if airlock_message:
+        raise click.ClickException(airlock_message)
+
+    source_parent, _, source_name = source_path.strip("/").rpartition("/")
+    try:
+        source_content = client.list_folder_content(source_parent)
+    except BadRequestException as e:
+        raise click.ClickException(f"Could not resolve source path '{source_path}'. {_airlock_hint(e)}")
+    source_item = next((f for f in source_content.get("files", []) if f.get("name") == source_name), None)
+    if not source_item:
+        if any(f.get("name") == source_name for f in source_content.get("folders", [])):
+            raise ValueError(f"'{source_path}' is a folder. 'cloudos datasets download' only downloads single files.")
+        raise ValueError(f"File '{source_name}' not found in '{source_parent or '[project root]'}'")
+
+    if local_path.endswith(tuple(s for s in (os.sep, os.altsep) if s)) and not os.path.isdir(local_path):
+        raise ValueError(f"Local folder '{local_path}' does not exist. Create it first "
+                         f"(e.g. 'mkdir -p {local_path}') or pass a full file path instead.")
+    if os.path.isdir(local_path):
+        # The name comes from the platform, so it must not be able to point outside local_path.
+        if (os.path.basename(source_name) != source_name or source_name in (".", "..")
+                or (os.name == "nt" and ":" in source_name)):
+            raise ValueError(f"The remote file name '{source_name}' is not a safe local file name. "
+                             "Pass a full LOCAL_PATH including the file name instead.")
+        dest_file = os.path.join(local_path, source_name)
+    else:
+        dest_file = local_path
+        parent_dir = os.path.dirname(os.path.abspath(dest_file))
+        if not os.path.isdir(parent_dir):
+            raise ValueError(f"Cannot save to '{dest_file}': folder '{parent_dir}' does not exist. "
+                             "Create it first, e.g. with 'mkdir -p'.")
+    if os.path.isdir(dest_file):
+        raise ValueError(f"'{dest_file}' is a directory.")
+    if os.path.lexists(dest_file) and not overwrite:
+        raise ValueError(f"'{dest_file}' already exists. Use --overwrite/-f to overwrite it.")
+
+    print(f"Downloading '{source_path}' to '{dest_file}'...")
+    try:
+        client.download_to_file(client.get_signed_download_url(source_item), dest_file, overwrite=overwrite,
+                                expected_size=source_item.get("sizeInBytes"), progress=True)
+    except BadRequestException as e:
+        raise click.ClickException(f"Download of '{source_path}' was rejected. {_airlock_hint(e)}")
+    except OSError as e:
+        # Report the user's path, not the internal temporary file name.
+        raise ValueError(f"Could not save to '{dest_file}': {e.strerror or e}")
+    except Exception as e:
+        raise ValueError(f"Download operation failed. {e}")
+    click.secho(f"File '{source_name}' downloaded to '{dest_file}'.", fg="green", bold=True)
+    if show_storage_path:
+        print(f"Storage path: {_storage_path(source_item) or '-'}")
+
+
 @datasets.command(name="mkdir")
 @click.argument("new_folder_path", required=True)
 @click.option('-k', '--apikey', required=True, help='Your Lifebit Platform API key.')
@@ -573,9 +805,7 @@ def mkdir_item(ctx,
 
     NEW_FOLDER_PATH [path]: Full path to the new folder including its name. Must start with 'Data'.
     """
-    new_folder_path = new_folder_path.strip("/")
-    if not new_folder_path.startswith("Data"):
-        raise ValueError("NEW_FOLDER_PATH must start with 'Data'.")
+    new_folder_path = _require_data_path(new_folder_path, "NEW_FOLDER_PATH")
 
     path_parts = new_folder_path.split("/")
     if len(path_parts) < 2:
@@ -630,7 +860,8 @@ def mkdir_item(ctx,
     try:
         response = client.create_virtual_folder(name=folder_name, parent_id=parent_id, parent_kind=parent_kind)
         if response.ok:
-            click.secho(f"Folder '{folder_name}' created under '{parent_path}'", fg="green", bold=True)
+            click.secho(f"Folder '{folder_name}' created.", fg="green", bold=True)
+            print(f"Virtual path: {_virtual_path(project_name, new_folder_path)}")
         else:
             raise ValueError(f"Folder creation failed. {response.status_code} - {response.text}")
     except Exception as e:
@@ -665,8 +896,7 @@ def rm_item(ctx,
     TARGET_PATH [path]: the full path to the file or folder to delete. Must start with 'Data'. \n
     E.g.: 'Data/folderA/file.txt' or 'Data/my_analysis/results/folderB'
     """
-    if not target_path.strip("/").startswith("Data/"):
-        raise ValueError("TARGET_PATH must start with 'Data/', pointing to a file or folder.")
+    _require_data_path(target_path, "TARGET_PATH")
 
     verify_ssl = ssl_selector(disable_ssl_verification, ssl_cert)
 

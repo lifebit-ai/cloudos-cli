@@ -1,5 +1,17 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.100.0 (2026-11-02)
+
+### Feat:
+
+- New `datasets upload` command uploads a file from your computer to a project's File Explorer (AWS workspaces only), using S3 multipart upload. Files up to S3's 5 TiB object maximum are supported. It stops before sending any data if the destination already has an item with the same name
+- New `datasets download` command downloads a File Explorer file to your computer (AWS and Azure workspaces). `--overwrite`/`-f` is needed to replace an existing local file
+- Both commands check the workspace's Airlock policy first: upload stops when importing from your computer is disabled or imports must be scanned (Airlock-In), and download stops whenever Airlock is enabled, as the platform rejects all API-key downloads then. Both show a progress bar, print the item's virtual path, and print its `s3://` or `az://` location with `--show-storage-path`
+
+### Fix:
+
+- `datasets` commands given a path outside `Data/` now explain that user-uploaded data lives under `Data/` and suggest the corrected path, with the same wording in `mkdir`, `mv`, `cp`, `rename`, `rm` and `upload`. `mkdir` no longer accepts paths such as `Dataxyz/...`, and prints the new folder's virtual path
+
 ## v2.99.3 (2026-10-30)
 
 ### Fix:
