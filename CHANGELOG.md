@@ -1,5 +1,13 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.99.4 (2026-11-02)
+
+### Fix:
+
+- Error messages are printed as plain text: rich markup in them (e.g. `[link=...]` from a file name or server response) is no longer interpreted, and stray brackets no longer raise a `MarkupError` instead of the real error. Terminal control characters (e.g. escape sequences) are removed from them
+- `datasets ls` prints file and folder names, owners and storage paths as plain text, without interpreting rich markup or printing terminal control characters
+- Log files no longer contain URL query strings from `urllib3` debug records, which can hold presigned URL signatures (`X-Amz-Signature`, Azure `sig=`) and session tokens: the query is written as `?***`
+
 ## v2.99.3 (2026-10-30)
 
 ### Fix:

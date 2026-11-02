@@ -40,6 +40,9 @@ AUTH_SCHEME_RE = re.compile(
     rf"\b(Bearer|Basic)(\s+)(?=[^\s'\"]{{{MIN_CREDENTIAL_LENGTH},}})[^\s'\"]+", re.IGNORECASE)
 # password in a URL, e.g. postgres://user:X@host
 URL_CREDENTIALS_RE = re.compile(r"(://[^/\s:@]+:)[^/\s@]+(@)")
+# query string of a URL in a urllib3 record, which can hold a presigned URL signature
+# (X-Amz-Signature, Azure sig=) or an STS session token
+URL_QUERY_RE = re.compile(r"\?[^\s'\"]*")
 ASSIGNMENT_NAME_RE = re.compile(r"[A-Za-z0-9_.-]+")
 
 
@@ -223,6 +226,10 @@ class CommandContextFilter(logging.Filter):
     def filter(self, record):
         if not hasattr(record, "command"):
             record.command = self.command
+        # urllib3 debug records log full URLs, e.g. '"GET /path?query HTTP/1.1"' or 'Redirecting a -> b'
+        if record.name.startswith("urllib3"):
+            record.msg = URL_QUERY_RE.sub(f"?{REDACTED}", record.getMessage())
+            record.args = None
         params = getattr(record, "params", self.params)
         record.params = redact_params(params)
         # exceptions can carry a secret, e.g. requests puts a malformed API key header in its message

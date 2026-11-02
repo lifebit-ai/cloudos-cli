@@ -1,5 +1,7 @@
 import json
+import pytest
 import responses
+from unittest.mock import patch
 from cloudos_cli.datasets import Datasets
 from tests.functions_for_pytest import load_json_file
 from responses import matchers
@@ -80,3 +82,38 @@ def test_list_folder_content_for_s3_dataset():
     contents = result.get("contents", [])
     assert any(item["name"] == "flowchart.png" for item in contents)
     assert any(item["name"] == "results" for item in contents)
+
+
+REMOTE_NAME = "[link=https://evil.example]report[/link]\x1b[2J.bam"
+REMOTE_KEY = "data/[red]x[/red]\x1b]8;;https://evil.example\x07.bam"
+
+
+@pytest.mark.parametrize("details", [False, True])
+def test_ls_prints_remote_names_as_plain_text(details):
+    """Remote names and storage keys are printed literally, without markup or control characters"""
+    from click.testing import CliRunner
+    from cloudos_cli.datasets.cli import list_files
+
+    contents = [
+        {"name": REMOTE_NAME, "fileType": "S3File", "s3BucketName": "bucket", "s3ObjectKey": REMOTE_KEY,
+         "user": {"name": "[bold]Eve[/bold]", "surname": "\x1b[31mX"}},
+        {"name": "[/oops]", "folderType": "VirtualFolder"},
+    ]
+    args = ['-k', APIKEY, '-c', CLOUDOS_URL, '--workspace-id', WORKSPACE_ID, '--project-name', PROJECT_NAME]
+    if details:
+        args.append('--details')
+    profile = {"apikey": APIKEY, "cloudos_url": CLOUDOS_URL, "workspace_id": WORKSPACE_ID,
+               "project_name": PROJECT_NAME}
+    with patch('cloudos_cli.configure.configure.ConfigurationProfile.load_profile_and_validate_data',
+               return_value=profile), \
+            patch('cloudos_cli.datasets.cli.Datasets') as mock_datasets:
+        mock_datasets.return_value.list_folder_content.return_value = {"contents": contents}
+        result = CliRunner().invoke(list_files, args, env={"COLUMNS": "400"})
+
+    assert result.exit_code == 0, result.output
+    assert "\x1b" not in result.output and "\x07" not in result.output
+    assert "[link=https://evil.example]report[/link][2J.bam" in result.output
+    assert "[/oops]" in result.output
+    if details:
+        assert "s3://bucket/data/[red]x[/red]]8;;https://evil.example.bam" in result.output
+        assert "[bold]Eve[/bold] [31mX" in result.output

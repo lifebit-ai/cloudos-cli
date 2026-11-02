@@ -10,7 +10,8 @@ from cloudos_cli.logging.logger import update_command_context_from_click
 from rich.console import Console
 from rich.table import Table
 from rich.style import Style
-from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands
+from rich.markup import escape
+from cloudos_cli.utils.cli_helpers import pass_debug_to_subcommands, strip_control_chars
 
 
 @click.group(cls=pass_debug_to_subcommands())
@@ -207,13 +208,11 @@ def list_files(ctx,
 
                 for item in processed_items:
                     style = Style(color="blue", underline=True) if item['is_folder'] else None
+                    # names, owners and storage keys come from the server: print them as plain text
                     table.add_row(
                         item['type'],
-                        item['owner'],
-                        item['size'],
-                        item['updated'],
-                        item['name'],
-                        item['storage_path'],
+                        *(escape(strip_control_chars(item[key]))
+                          for key in ('owner', 'size', 'updated', 'name', 'storage_path')),
                         style=style
                     )
 
@@ -222,10 +221,11 @@ def list_files(ctx,
             else:
                 console = Console()
                 for item in processed_items:
+                    name = escape(strip_control_chars(item['name']))
                     if item['is_folder']:
-                        console.print(f"[blue underline]{item['name']}[/]")
+                        console.print(f"[blue underline]{name}[/]")
                     else:
-                        console.print(item['name'])
+                        console.print(name)
 
     except Exception as e:
         raise ValueError(f"Failed to list files for project '{project_name}'. {str(e)}")
