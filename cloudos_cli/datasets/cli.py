@@ -36,7 +36,9 @@ def _require_data_path(path, arg_name, allow_root=False):
     clean = path.strip("/")
     if clean.startswith("Data/") or (allow_root and clean == "Data"):
         return clean
-    if clean and clean != "Data":
+    if clean.lower().startswith("data/"):
+        hint = f"Did you mean 'Data/{clean[5:]}'?"
+    elif clean and clean != "Data":
         hint = f"Did you mean 'Data/{clean}'?"
     else:
         hint = "E.g.: 'Data/my-folder'."
@@ -636,11 +638,12 @@ def upload_file_cli(ctx,
         raise click.ClickException(airlock_message)
     try:
         cloud_config = client.get_cloud_aws_config()
-    except Exception as e:
-        raise click.ClickException(
-            f"Uploading from your computer is only supported in AWS workspaces, and this one "
-            f"doesn't appear to be AWS-based (e.g. it uses Azure). Details: {e}"
-        )
+    except BadRequestException as e:
+        if e.rv.status_code >= 400:
+            raise click.ClickException(f"Could not read this workspace's AWS configuration. {_airlock_hint(e)}")
+        # Non-AWS workspaces (e.g. Azure) answer with an empty body.
+        raise click.ClickException("Uploading from your computer is only supported in AWS workspaces, "
+                                   "and this one doesn't appear to be AWS-based (e.g. it uses Azure).")
 
     dest_parent, _, dest_folder_name = destination_path.rpartition("/")
     filename = os.path.basename(local_path)

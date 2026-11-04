@@ -17,6 +17,7 @@ from urllib.parse import quote
 from xml.etree import ElementTree as ET
 
 import requests
+import urllib3
 
 from cloudos_cli.utils.requests import retry_requests_delete, retry_requests_post, retry_requests_put
 
@@ -63,14 +64,14 @@ class TransferError(Exception):
 
 @contextmanager
 def scrubbed_transport_errors(action):
-    """Re-raise requests errors without their message.
+    """Re-raise requests and urllib3 errors without their message.
 
     Their text embeds the full request URL, whose query string can hold a
     presigned signature or an STS session token.
     """
     try:
         yield
-    except requests.RequestException as e:
+    except (requests.RequestException, urllib3.exceptions.HTTPError) as e:
         raise TransferError(f"{action} failed: {type(e).__name__} (network error, details withheld)") from None
 
 
@@ -136,7 +137,7 @@ class SignedS3MultipartUploader:
         headers["Authorization"] = (f"AWS4-HMAC-SHA256 Credential={self.access_key_id}/{scope}, "
                                     f"SignedHeaders={signed_headers}, Signature={signature}")
         with scrubbed_transport_errors(f"S3 {action}"):
-            response = send(f"https://{self.host}{self._canonical_uri}?{query}", headers=headers,
+            response = send(f"https://{self.host}{self._canonical_uri}" + (f"?{query}" if query else ""), headers=headers,
                             data=body, verify=self.verify, timeout=S3_TIMEOUT)
         if response.status_code >= 300:
             raise S3UploadError(action, response)
@@ -176,6 +177,10 @@ class SignedS3MultipartUploader:
         # S3 can report a failed completion with a 200 status and an <Error> body.
         if ET.fromstring(response.content).tag.endswith("Error"):
             raise S3UploadError("CompleteMultipartUpload", response)
+
+    def delete_object(self):
+        """Delete the completed object, e.g. after the platform refused to register it."""
+        self._request(retry_requests_delete, "DELETE", "DeleteObject", "", EMPTY_PAYLOAD_SHA256)
 
     def abort_multipart_upload(self, upload_id):
         """Abort the upload so S3 discards the parts already sent."""

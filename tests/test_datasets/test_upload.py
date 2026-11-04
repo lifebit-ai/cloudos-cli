@@ -21,6 +21,7 @@ from cloudos_cli.datasets.s3_multipart_upload import (
     compute_part_size,
     s3_uri_encode,
 )
+from cloudos_cli.utils.errors import BadRequestException
 from tests.functions_for_pytest import load_json_file
 
 APIKEY = 'vnoiweur89u2ongs'
@@ -51,8 +52,12 @@ def _client():
                     project_name=PROJECT_NAME, verify=True, project_id=PROJECT_ID, cromwell_token=None)
 
 
-def _mock_s3_upload(status=200, complete_status=200, complete_body="<CompleteMultipartUploadResult/>"):
-    """Mock the signer and a successful (or failing) multipart upload plus file registration."""
+def _mock_s3_upload(status=200, complete_status=200, complete_body="<CompleteMultipartUploadResult/>",
+                    register_statuses=(201,)):
+    """Mock the signer and a successful (or failing) multipart upload plus file registration.
+
+    Returns the S3 DELETE mock (abort and DeleteObject) and the registration mocks, in order.
+    """
     responses.add(responses.GET, f"{CLOUDOS_URL}/api/v1/aws/tmp-credentials", json=TMP_CREDENTIALS)
     responses.add(responses.GET, SIGNER_URL, json={"signature": "0" * 64})
     responses.add(responses.POST, S3_URL_RE, content_type="application/xml",
@@ -60,18 +65,20 @@ def _mock_s3_upload(status=200, complete_status=200, complete_body="<CompleteMul
     responses.add(responses.PUT, S3_URL_RE, status=status, headers={"ETag": '"etag-1"'},
                   body="<Error><Message>Signature expired</Message></Error>")
     responses.add(responses.POST, S3_URL_RE, status=complete_status, body=complete_body)
-    return (responses.add(responses.DELETE, S3_URL_RE, status=204),
-            responses.add(responses.POST, f"{CLOUDOS_URL}/api/v1/files/s3", json={"name": "f"}, status=201))
+    delete = responses.add(responses.DELETE, S3_URL_RE, status=204)
+    registers = [responses.add(responses.POST, f"{CLOUDOS_URL}/api/v1/files/s3", json={"name": "f"}, status=s)
+                 for s in register_statuses]
+    return delete, registers[0] if len(registers) == 1 else registers
 
 
-def _mock_cli_chain(airlock_config=None, cloud_status=200):
+def _mock_cli_chain(airlock_config=None, cloud_status=200, cloud_config=CLOUD_AWS):
     """Mock project lookup, the Airlock policy, the AWS config and listing of 'Data'."""
     responses.add(responses.GET, f"{CLOUDOS_URL}/api/v2/projects",
                   json=json.loads(load_json_file("tests/test_data/projects.json")),
                   match=[matchers.query_param_matcher({"teamId": WORKSPACE_ID, "search": PROJECT_NAME})])
     responses.add(responses.GET, AIRLOCK_URL, json=airlock_config or {}, status=200 if airlock_config else 404)
     responses.add(responses.GET, f"{CLOUDOS_URL}/api/v1/cloud/aws",
-                  json=CLOUD_AWS if cloud_status == 200 else None, status=cloud_status)
+                  body=json.dumps(cloud_config), content_type="application/json", status=cloud_status)
     responses.add(responses.GET, f"{CLOUDOS_URL}/api/v2/datasets",
                   json=json.loads(load_json_file("tests/test_data/datasets.json")),
                   match=[matchers.query_param_matcher({"projectId": PROJECT_ID, "teamId": WORKSPACE_ID})])
@@ -133,11 +140,88 @@ def test_upload_key_layout_matches_web_uploader(tmp_path, kind, segment):
     _client().upload_local_file(local_path=str(local_file), destination_folder_id="fid",
                                 destination_parent_kind=kind, cloud_config=CLOUD_AWS, progress=False)
 
-    body = json.loads(register.calls[0].request.body)
+    body = json.loads(next(c for c in responses.calls if "/api/v1/files/s3" in c.request.url).request.body)
     assert body["s3ObjectKey"] == f"deploit/{segment}/fid/f.txt"
     assert body["parent"] == {"kind": kind, "id": "fid"}
     assert body["sizeInBytes"] == 2
     assert abort.call_count == 0
+
+
+@responses.activate
+def test_upload_aborts_multipart_on_ctrl_c(tmp_path):
+    abort, register = _mock_s3_upload()
+    local_file = tmp_path / "big.bin"
+    local_file.write_bytes(b"x" * 1000)
+
+    with mock.patch.object(SignedS3MultipartUploader, "upload_part", side_effect=KeyboardInterrupt):
+        with pytest.raises(KeyboardInterrupt):
+            _client().upload_local_file(local_path=str(local_file), destination_folder_id="fid",
+                                        destination_parent_kind="Folder", cloud_config=CLOUD_AWS, progress=False)
+    assert abort.call_count == 1
+    assert register.call_count == 0
+
+
+def _object_deletes():
+    """S3 DeleteObject calls (DELETE without an uploadId, unlike AbortMultipartUpload)."""
+    return [c for c in responses.calls if c.request.method == "DELETE" and "uploadId" not in c.request.url]
+
+
+def _mock_folder_items(names=()):
+    return responses.add(responses.GET, f"{CLOUDOS_URL}/api/v1/folders/virtual/fid/items",
+                         json={"files": [{"name": n} for n in names], "folders": []})
+
+
+@responses.activate
+def test_upload_refused_registration_deletes_the_object(tmp_path):
+    _mock_s3_upload(register_statuses=(400,))
+    local_file = tmp_path / "f.txt"
+    local_file.write_text("hi")
+
+    with pytest.raises(BadRequestException):
+        _client().upload_local_file(local_path=str(local_file), destination_folder_id="fid",
+                                    destination_parent_kind="Folder", cloud_config=CLOUD_AWS, progress=False)
+    deletes = _object_deletes()
+    assert len(deletes) == 1 and deletes[0].request.url.endswith("/deploit/folder/fid/f.txt")
+
+
+@responses.activate
+def test_upload_retries_registration_after_server_error(tmp_path):
+    _, registers = _mock_s3_upload(register_statuses=(502, 201))
+    listing = _mock_folder_items()
+    local_file = tmp_path / "f.txt"
+    local_file.write_text("hi")
+
+    response = _client().upload_local_file(local_path=str(local_file), destination_folder_id="fid",
+                                           destination_parent_kind="Folder", cloud_config=CLOUD_AWS, progress=False)
+    assert response.status_code == 201
+    assert listing.call_count == 1 and [r.call_count for r in registers] == [1, 1]
+    assert _object_deletes() == []
+
+
+@responses.activate
+def test_upload_does_not_register_twice_when_the_first_attempt_landed(tmp_path):
+    _, registers = _mock_s3_upload(register_statuses=(502, 201))
+    _mock_folder_items(["f.txt"])
+    local_file = tmp_path / "f.txt"
+    local_file.write_text("hi")
+
+    _client().upload_local_file(local_path=str(local_file), destination_folder_id="fid",
+                                destination_parent_kind="Folder", cloud_config=CLOUD_AWS, progress=False)
+    assert [r.call_count for r in registers] == [1, 0]
+
+
+@responses.activate
+def test_upload_unregistered_object_is_reported_with_its_location(tmp_path):
+    _mock_s3_upload(register_statuses=(502, 502))
+    _mock_folder_items()
+    local_file = tmp_path / "f.txt"
+    local_file.write_text("hi")
+
+    with pytest.raises(TransferError, match="s3://lifebit-user-data-12345678/deploit/folder/fid/f.txt"):
+        _client().upload_local_file(local_path=str(local_file), destination_folder_id="fid",
+                                    destination_parent_kind="Folder", cloud_config=CLOUD_AWS, progress=False)
+    # The outcome is unknown, so the object is kept rather than deleted.
+    assert _object_deletes() == []
 
 
 @responses.activate
@@ -300,7 +384,8 @@ def test_cli_upload_blocked_by_airlock(tmp_path):
 
 @responses.activate
 def test_cli_upload_non_aws_workspace_gives_clear_error(tmp_path):
-    _mock_cli_chain(cloud_status=404)
+    # Non-AWS workspaces answer 200 with a null body.
+    _mock_cli_chain(cloud_config=None)
     local_file = tmp_path / "upload_me.txt"
     local_file.write_text("hello")
 
@@ -308,6 +393,19 @@ def test_cli_upload_non_aws_workspace_gives_clear_error(tmp_path):
 
     assert result.exit_code != 0
     assert "only supported in AWS workspaces" in result.output
+
+
+@responses.activate
+def test_cli_upload_unreadable_aws_config_is_not_reported_as_azure(tmp_path):
+    _mock_cli_chain(cloud_status=401, cloud_config={"message": "Unauthorized"})
+    local_file = tmp_path / "upload_me.txt"
+    local_file.write_text("hello")
+
+    result = CliRunner().invoke(run_cloudos_cli, ['datasets', 'upload', str(local_file), 'Data', *CLI_AUTH])
+
+    assert result.exit_code != 0
+    assert "Could not read this workspace's AWS configuration" in result.output
+    assert "Azure" not in result.output
 
 
 @responses.activate
@@ -334,3 +432,12 @@ def test_cli_upload_destination_outside_data_suggests_fix(tmp_path):
 
     assert result.exit_code != 0
     assert "Did you mean 'Data/cli-test'?" in str(result.exception)
+
+
+@pytest.mark.parametrize("path, suggestion", [
+    ("results", "Data/results"), ("data/results", "Data/results"), ("/data/x.txt", "Data/x.txt"),
+])
+def test_data_path_hint(path, suggestion):
+    from cloudos_cli.datasets.cli import _require_data_path
+    with pytest.raises(ValueError, match=re.escape(f"Did you mean '{suggestion}'?")):
+        _require_data_path(path, "DESTINATION_PATH")

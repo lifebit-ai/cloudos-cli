@@ -730,14 +730,19 @@ class Datasets(Cloudos):
         fd, tmp_path = tempfile.mkstemp(dir=dest_dir, prefix=".cloudos-download-", suffix=".part")
         try:
             if hasattr(os, "fchmod"):
-                # mkstemp creates the file 0600; give it the usual permissions for a new file.
-                umask = os.umask(0)
-                os.umask(umask)
-                os.fchmod(fd, 0o666 & ~umask)
+                if overwrite and os.path.isfile(local_path):
+                    # Keep the mode of the file being replaced, e.g. a private 0600 file.
+                    os.fchmod(fd, stat.S_IMODE(os.stat(local_path).st_mode))
+                else:
+                    # mkstemp creates the file 0600; give it the usual permissions for a new file.
+                    umask = os.umask(0)
+                    os.umask(umask)
+                    os.fchmod(fd, 0o666 & ~umask)
             written = 0
             with os.fdopen(fd, "wb") as fh, scrubbed_transport_errors("Download"), \
                     _transfer_progress(progress, expected_size, "Downloading") as advance:
-                for chunk in response.iter_content(chunk_size=chunk_size):
+                # The stored bytes, as sizeInBytes counts them: no Content-Encoding (e.g. gzip) decoding.
+                for chunk in response.raw.stream(chunk_size, decode_content=False):
                     if chunk:
                         fh.write(chunk)
                         written += len(chunk)
@@ -754,11 +759,14 @@ class Datasets(Cloudos):
                 try:
                     os.link(tmp_path, local_path)
                 except OSError:
-                    if os.path.lexists(local_path):
+                    # No hard links (e.g. FAT or some network drives): claim the name with an
+                    # exclusive create, so a file created meanwhile is never replaced.
+                    try:
+                        os.close(os.open(local_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600))
+                    except FileExistsError:
                         raise FileExistsError(
                             f"'{local_path}' already exists. Use --overwrite/-f to overwrite it."
                         ) from None
-                    # Filesystem without hard links (e.g. FAT or some network drives).
                     os.replace(tmp_path, local_path)
         finally:
             if os.path.exists(tmp_path):
@@ -769,7 +777,7 @@ class Datasets(Cloudos):
         r = retry_requests_get(f"{self.cloudos_url}{path}?teamId={self.workspace_id}",
                                headers={"Content-type": "application/json", "apikey": self.apikey},
                                verify=self.verify)
-        data = r.json() if r.status_code < 400 else None
+        data = r.json() if r.status_code < 400 and r.content.strip() else None
         if not data:
             raise BadRequestException(r)
         return data
@@ -888,7 +896,7 @@ class Datasets(Cloudos):
                     parts.append((part_number, uploader.upload_part(part_number, chunk, upload_id)))
                     advance(len(chunk))
             uploader.complete_multipart_upload(upload_id, parts)
-        except Exception as e:
+        except BaseException as e:  # also Ctrl+C, so S3 discards the parts already sent
             try:
                 uploader.abort_multipart_upload(upload_id)
             except Exception:
@@ -902,10 +910,44 @@ class Datasets(Cloudos):
         payload = {"name": filename, "parent": {"kind": destination_parent_kind, "id": destination_folder_id},
                    "s3BucketName": bucket, "s3ObjectKey": object_key, "sizeInBytes": file_size,
                    "isManagedByLifebit": True, "fileType": "S3File"}
-        response = retry_requests_post(f"{self.cloudos_url}/api/v1/files/s3?teamId={self.workspace_id}",
-                                       headers={"accept": "application/json", "content-type": "application/json",
-                                                "ApiKey": self.apikey},
-                                       json=payload, verify=self.verify)
-        if response.status_code >= 400:
-            raise BadRequestException(response)
-        return response
+
+        def register():
+            try:
+                return retry_requests_post(f"{self.cloudos_url}/api/v1/files/s3?teamId={self.workspace_id}",
+                                           headers={"accept": "application/json",
+                                                    "content-type": "application/json", "ApiKey": self.apikey},
+                                           json=payload, verify=self.verify)
+            except requests.RequestException:
+                return None
+
+        response = register()
+        if response is None or response.status_code >= 500:
+            # The outcome is unknown: the file may have been registered, so only retry if it wasn't.
+            if self._folder_has_item(destination_parent_kind, destination_folder_id, filename):
+                return response
+            response = register()
+        if response is not None and response.status_code < 400:
+            return response
+        if response is not None and response.status_code < 500:
+            # Refused for good: remove the object so the same name can be uploaded again.
+            try:
+                uploader.delete_object()
+            except Exception:
+                pass
+            else:
+                raise BadRequestException(response)
+        status = f" (status {response.status_code})" if response is not None else ""
+        raise TransferError(f"The file was uploaded to s3://{bucket}/{object_key} but could not be "
+                            f"registered in File Explorer{status}. Ask a workspace admin to register "
+                            "or remove it before uploading the same name again.")
+
+    def _folder_has_item(self, parent_kind, parent_id, name):
+        """Whether a Dataset or virtual Folder, given by id, contains an item called ``name``."""
+        path = f"datasets/{parent_id}" if parent_kind == "Dataset" else f"folders/virtual/{parent_id}"
+        r = retry_requests_get(f"{self.cloudos_url}/api/v1/{path}/items?teamId={self.workspace_id}",
+                               headers={"Content-type": "application/json", "apikey": self.apikey},
+                               verify=self.verify)
+        if r.status_code >= 400:
+            raise BadRequestException(r)
+        content = r.json()
+        return any(i.get("name") == name for i in content.get("files", []) + content.get("folders", []))

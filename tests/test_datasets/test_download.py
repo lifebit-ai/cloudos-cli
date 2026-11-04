@@ -1,4 +1,7 @@
 import base64
+import gzip
+import os
+from unittest import mock
 
 import pytest
 import requests
@@ -100,6 +103,53 @@ def test_overwrite_replaces_existing_file(tmp_path):
     dest = tmp_path / "out.bin"
     dest.write_bytes(b"old")
     _client().download_to_file(SIGNED_URL, str(dest), overwrite=True, expected_size=3)
+    assert dest.read_bytes() == b"new"
+    assert _leftovers(tmp_path) == []
+
+
+@responses.activate
+def test_download_keeps_stored_bytes_of_gzip_encoded_objects(tmp_path):
+    compressed = gzip.compress(b"x" * 10_000)
+    responses.add(responses.GET, SIGNED_URL, body=compressed, headers={"Content-Encoding": "gzip"})
+    dest = tmp_path / "data.csv.gz"
+    _client().download_to_file(SIGNED_URL, str(dest), expected_size=len(compressed))
+    assert dest.read_bytes() == compressed
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX permissions")
+@responses.activate
+def test_overwrite_keeps_the_replaced_file_mode(tmp_path):
+    responses.add(responses.GET, SIGNED_URL, body=b"new")
+    dest = tmp_path / "private.bin"
+    dest.write_bytes(b"old")
+    dest.chmod(0o600)
+    _client().download_to_file(SIGNED_URL, str(dest), overwrite=True, expected_size=3)
+    assert dest.read_bytes() == b"new"
+    assert dest.stat().st_mode & 0o777 == 0o600
+
+
+@responses.activate
+def test_no_hard_link_fallback_never_replaces_a_file_created_meanwhile(tmp_path):
+    responses.add(responses.GET, SIGNED_URL, body=b"new")
+    dest = tmp_path / "out.bin"
+
+    def link_unsupported(src, dst):
+        dest.write_bytes(b"created meanwhile")  # another process wins the race
+        raise OSError("hard links not supported")
+
+    with mock.patch("cloudos_cli.datasets.datasets.os.link", side_effect=link_unsupported):
+        with pytest.raises(FileExistsError):
+            _client().download_to_file(SIGNED_URL, str(dest), expected_size=3)
+    assert dest.read_bytes() == b"created meanwhile"
+    assert _leftovers(tmp_path) == []
+
+
+@responses.activate
+def test_no_hard_link_fallback_saves_the_file(tmp_path):
+    responses.add(responses.GET, SIGNED_URL, body=b"new")
+    dest = tmp_path / "out.bin"
+    with mock.patch("cloudos_cli.datasets.datasets.os.link", side_effect=OSError("hard links not supported")):
+        _client().download_to_file(SIGNED_URL, str(dest), expected_size=3)
     assert dest.read_bytes() == b"new"
     assert _leftovers(tmp_path) == []
 
