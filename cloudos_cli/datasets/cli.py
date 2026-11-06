@@ -639,11 +639,12 @@ def upload_file_cli(ctx,
     try:
         cloud_config = client.get_cloud_aws_config()
     except BadRequestException as e:
-        if e.rv.status_code >= 400:
-            raise click.ClickException(f"Could not read this workspace's AWS configuration. {_airlock_hint(e)}")
-        # Non-AWS workspaces (e.g. Azure) answer with an empty body.
-        raise click.ClickException("Uploading from your computer is only supported in AWS workspaces, "
-                                   "and this one doesn't appear to be AWS-based (e.g. it uses Azure).")
+        if e.rv.status_code == 404:
+            raise click.ClickException("Uploading from your computer is only supported in AWS workspaces, "
+                                       "and this one doesn't appear to be AWS-based (e.g. it uses Azure).")
+        raise click.ClickException(f"Could not read this workspace's AWS configuration. {_airlock_hint(e)}")
+    except Exception as e:
+        raise click.ClickException(f"Could not read this workspace's AWS configuration. {e}")
 
     dest_parent, _, dest_folder_name = destination_path.rpartition("/")
     filename = os.path.basename(local_path)

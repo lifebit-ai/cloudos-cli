@@ -384,8 +384,7 @@ def test_cli_upload_blocked_by_airlock(tmp_path):
 
 @responses.activate
 def test_cli_upload_non_aws_workspace_gives_clear_error(tmp_path):
-    # Non-AWS workspaces answer 200 with a null body.
-    _mock_cli_chain(cloud_config=None)
+    _mock_cli_chain(cloud_status=404, cloud_config={"message": "Not Found"})
     local_file = tmp_path / "upload_me.txt"
     local_file.write_text("hello")
 
@@ -395,9 +394,14 @@ def test_cli_upload_non_aws_workspace_gives_clear_error(tmp_path):
     assert "only supported in AWS workspaces" in result.output
 
 
+@pytest.mark.parametrize("status, config", [
+    (200, None), (200, {}), (204, None),
+    (401, {"message": "Unauthorized"}), (403, {"message": "Forbidden"}),
+    (500, {"message": "Internal Server Error"}),
+])
 @responses.activate
-def test_cli_upload_unreadable_aws_config_is_not_reported_as_azure(tmp_path):
-    _mock_cli_chain(cloud_status=401, cloud_config={"message": "Unauthorized"})
+def test_cli_upload_unreadable_aws_config_is_not_reported_as_azure(tmp_path, status, config):
+    _mock_cli_chain(cloud_status=status, cloud_config=config)
     local_file = tmp_path / "upload_me.txt"
     local_file.write_text("hello")
 
@@ -406,6 +410,23 @@ def test_cli_upload_unreadable_aws_config_is_not_reported_as_azure(tmp_path):
     assert result.exit_code != 0
     assert "Could not read this workspace's AWS configuration" in result.output
     assert "Azure" not in result.output
+
+
+@pytest.mark.parametrize("error", [requests.ConnectionError("Connection failed"), ValueError("Invalid JSON")])
+@responses.activate
+def test_cli_upload_aws_config_exception_gives_neutral_error(tmp_path, error):
+    _mock_cli_chain()
+    local_file = tmp_path / "upload_me.txt"
+    local_file.write_text("hello")
+
+    with mock.patch.object(Datasets, "get_cloud_aws_config", side_effect=error), \
+            mock.patch.object(Datasets, "upload_local_file") as upload:
+        result = CliRunner().invoke(run_cloudos_cli, ['datasets', 'upload', str(local_file), 'Data', *CLI_AUTH])
+
+    assert result.exit_code != 0
+    assert "Could not read this workspace's AWS configuration" in result.output
+    assert "Azure" not in result.output
+    upload.assert_not_called()
 
 
 @responses.activate
