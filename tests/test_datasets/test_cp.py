@@ -83,3 +83,16 @@ def test_copy_file_to_folder():
     )
 
     assert response.status_code == 200
+
+
+@responses.activate
+def test_cli_cp_resolves_destination_path():
+    from click.testing import CliRunner
+    from cloudos_cli.__main__ import run_cloudos_cli
+    from tests.test_datasets.test_upload import CLI_AUTH, _mock_cli_chain
+
+    _mock_cli_chain()
+    result = CliRunner().invoke(run_cloudos_cli, ['datasets', 'cp', 'Data/flowchart.png', 'Data/missing', *CLI_AUTH])
+
+    assert result.exit_code != 0
+    assert "Destination folder 'Data/missing' not found." in str(result.exception)

@@ -78,6 +78,9 @@ Python package for interacting with Lifebit Platform
       - [Link Files and Folders to Interactive Analysis](#link-files-and-folders-to-interactive-analysis)
       - [Create Folder](#create-folder)
       - [Remove Files or Folders](#remove-files-or-folders)
+      - [Upload File](#upload-file)
+      - [Download File](#download-file)
+      - [Airlock data-governance restrictions](#airlock-data-governance-restrictions)
     - [Link](#link)
       - [Link Files and Folders to Interactive Analysis](#link-files-and-folders-to-interactive-analysis-1)
     - [Procurement](#procurement)
@@ -2944,6 +2947,40 @@ cloudos datasets rm <path> --profile my_profile
 ```
 > [!NOTE]
 > If a file was uploaded by the user, in order to be removed you must use  `--force` and that will permanently remove the file. If the file is "linked" (e.g a s3 folder or file), removing it using `cloudos datasets rm` will not remove it from the the s3 bucket.
+
+#### Upload File
+
+Upload a file from your computer into a project's File Explorer. `destination_path` is the folder to upload into and must start with `Data` (e.g. `Data/uploads`). The file keeps its local name.
+
+```bash
+cloudos datasets upload ./results.csv Data/uploads --profile my_profile
+```
+
+The command prints the file's virtual path as the web UI shows it (e.g. `Projects/my_project/Data/uploads/results.csv`) and, with `--show-storage-path`, its `s3://` location. A progress bar shows the transfer. It stops before uploading if a file or folder with the same name already exists in the destination.
+
+> [!NOTE]
+> Uploads are supported in AWS workspaces only.
+
+#### Download File
+
+Download a file from a project's File Explorer. If `local_path` is an existing folder, the file keeps its name inside it.
+
+```bash
+cloudos datasets download Data/results/my_plot.png ./my_plot.png --profile my_profile
+```
+
+A progress bar shows the transfer, and `--show-storage-path` prints the file's `s3://` or `az://` location. Works in AWS and Azure workspaces.
+
+> [!NOTE]
+> An existing local file is only replaced with `--overwrite`/`-f`. The local folder must already exist; it is never created automatically.
+
+#### Airlock data-governance restrictions
+
+`upload` and `download` check the workspace's Airlock policy before transferring anything:
+
+- `upload` stops if the policy disables importing files from your computer, or if imported files must be scanned and approved first (Airlock-In). Use the web UI for those uploads.
+- `download` stops whenever Airlock is enabled. The platform rejects every API-key (CLI) download while Airlock is on, even for members who can view files in the web UI.
+- If the policy can't be read (none is configured, or you can't view it), the command goes ahead, and a 401/403 from the platform is reported as possibly caused by Airlock.
 
 ---
 
