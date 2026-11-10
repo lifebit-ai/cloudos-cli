@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.99.4 (2026-11-10)
+
+### Fix:
+
+- Docker image: `apt` updated to 2.8.4ubuntu0.1 to fix CVE-2026-109518
+- Docker image: `libapt-pkg6.0t64` updated to 2.8.4ubuntu0.1 to fix CVE-2026-109518
+
 ## v2.99.3 (2026-10-30)
 
 ### Fix:
