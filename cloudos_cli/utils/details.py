@@ -303,6 +303,10 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
                                          f"{str(j_details_h['resourceRequirements']['ram'])} GB RAM"
     job_details_json["Pipeline url"] = pipeline_url
     job_details_json["Nextflow Version"] = nextflow_version
+    environment_variables = j_details_h.get("environmentVariables") or []
+    if environment_variables:
+        job_details_json["Environment Variables"] = ';'.join(
+            f'{env_var.get("name")}={env_var.get("value")}' for env_var in environment_variables)
     job_details_json["Execution Platform"] = execution_platform
     job_details_json["Accelerated File Staging"] = accelerated_file_staging
     job_details_json["Parameters"] = ';'.join(concat_string.split("\n"))
@@ -322,7 +326,7 @@ def create_job_details(j_details_h, job_id, output_format, output_basename, para
         table.add_column("Value", style="magenta", overflow="fold")
 
         for key, value in job_details_json.items():
-            if key == "Parameters":
+            if key in ("Parameters", "Environment Variables"):
                 table.add_row(key, "\n".join(value.split(";")))
             elif key == "ID":
                 # Add hyperlink to job ID

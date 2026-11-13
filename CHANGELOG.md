@@ -1,5 +1,15 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.100.0 (2026-11-13)
+
+### Feat:
+
+- `job run`, `job clone` and `job resume` accept `--environment-variable NAME=VALUE` to export a Nextflow runtime environment variable before `nextflow run`. The option can be repeated. The only supported variable is `NXF_SYNTAX_PARSER` (`v1` legacy parser, `v2` strict syntax parser), which requires Nextflow 25.04.0 or later
+- The Python SDK accepts the same variables with `Job.send_job(..., environment_variable=('NXF_SYNTAX_PARSER=v2',))`, and `Job.clone_or_resume_job(..., environment_variable=...)`
+- The CLI and SDK check the variables before submitting and stop with a clear error for an unsupported name, a value other than the allowed ones, a Nextflow version that is too old, a non-Nextflow workflow, a Lifebit Platform Workflow, or Azure/HPC (whose only Nextflow versions are older than 25.04.0). Without `--nextflow-version`, user-imported workflows use 24.04.4, and the error says so
+- `job clone` and `job resume` keep the environment variables of the original job; `--environment-variable` replaces the variable with the same name or adds a new one
+- `job details` shows the environment variables a job ran with
+
 ## v2.99.3 (2026-10-30)
 
 ### Fix:

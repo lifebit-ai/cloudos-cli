@@ -13,6 +13,11 @@ from urllib.parse import urlparse
 import base64
 import re
 from cloudos_cli.utils.array_job import classify_pattern, get_file_or_folder_id, extract_project
+from cloudos_cli.utils.environment_variables import (
+    parse_environment_variables,
+    merge_environment_variables,
+    validate_environment_variables
+)
 import os
 import click
 from datetime import datetime
@@ -483,7 +488,8 @@ class Job(Cloudos):
                                  docker_login,
                                  command,
                                  cpus,
-                                 memory):
+                                 memory,
+                                 environment_variable=None):
         """Converts a job config file into a json formatted dict.
 
         Parameters
@@ -568,13 +574,19 @@ class Job(Cloudos):
             The number of CPUs to use for the bash jobs task's master node.
         memory : int
             The amount of memory, in GB, to use for the bash job task's master node.
-
+        environment_variable : tuple, optional
+            Nextflow runtime environment variables to export before `nextflow run`, in the
+            form ('NXF_SYNTAX_PARSER=v2',). Only supported for Nextflow workflows.
 
         Returns
         -------
         params : dict
             A JSON formatted dict.
         """
+        environment_variables = parse_environment_variables(environment_variable)
+        validate_environment_variables(environment_variables, nextflow_version,
+                                       workflow_type=workflow_type,
+                                       execution_platform=execution_platform)
         workflow_params = []
         if workflow_type == 'wdl':
             # This is required as non-resumable jobs fails always using WDL workflows.
@@ -652,6 +664,8 @@ class Job(Cloudos):
             params.update(params_file_payload)
         if workflow_type != 'docker':
             params["nextflowVersion"] = nextflow_version
+        if environment_variables:
+            params["environmentVariables"] = environment_variables
         if execution_platform != 'hpc':
             params['masterInstance'] = {
                 "requestedInstance": {
@@ -731,7 +745,8 @@ class Job(Cloudos):
                  verify=True,
                  command=None,
                  cpus=1,
-                 memory=4):
+                 memory=4,
+                 environment_variable=()):
         """Send a job to Lifebit Platform.
 
         Parameters
@@ -813,6 +828,11 @@ class Job(Cloudos):
             The number of CPUs to use for the bash jobs task's master node.
         memory : int
             The amount of memory, in GB, to use for the bash job task's master node.
+        environment_variable : tuple, optional
+            Nextflow runtime environment variables to export before `nextflow run`, in the
+            form ('NXF_SYNTAX_PARSER=v2',). Only supported for Nextflow workflows. Each name
+            must be supported for the selected nextflow_version, otherwise a ValueError is
+            raised and the job is not submitted.
 
         Returns
         -------
@@ -863,7 +883,8 @@ class Job(Cloudos):
                                                docker_login,
                                                command=command,
                                                cpus=cpus,
-                                               memory=memory)
+                                               memory=memory,
+                                               environment_variable=environment_variable)
         r = retry_requests_post("{}/api/v2/jobs?teamId={}".format(cloudos_url,
                                                                   workspace_id),
                                 data=json.dumps(params), headers=headers, verify=verify)
@@ -1288,7 +1309,8 @@ class Job(Cloudos):
                   project_name=None,
                   parameters=None,
                   verify=True,
-                  mode=None):
+                  mode=None,
+                  environment_variable=None):
         """Clone or resume an existing job with optional parameter overrides.
 
         Parameters
@@ -1329,12 +1351,17 @@ class Job(Cloudos):
             the SSL certificate file.
         mode : str, optional
             The mode to use for the job (e.g. "clone", "resume").
+        environment_variable : tuple, optional
+            Nextflow runtime environment variable overrides in the form ('NXF_SYNTAX_PARSER=v2',).
+            Each one replaces the variable with the same name from the original job, or is added.
 
         Returns
         -------
         str
             The Lifebit Platform job ID of the cloned/resumed job.
         """
+        # Parse first so a malformed value fails before any API call
+        environment_variable_overrides = parse_environment_variables(environment_variable)
 
         # Get the original job payload
         original_payload = self.get_job_request_payload(source_job_id, verify=verify)
@@ -1456,6 +1483,23 @@ class Job(Cloudos):
             if resumable:
                 print("'resumable' option is not applicable when resuming a bash job, ignoring '--resumable' flag.\n")
 
+        # Merge environment variable overrides into the ones of the original job, then check the
+        # result against the final Nextflow version (it may have been changed with --nextflow-version)
+        environment_variables = merge_environment_variables(
+            cloned_payload.get('environmentVariables'), environment_variable_overrides)
+        if environment_variables:
+            if 'command' in cloned_payload:
+                workflow_type = 'docker'
+            elif 'cromwellCloudResources' in cloned_payload:
+                workflow_type = 'wdl'
+            else:
+                workflow_type = 'nextflow'
+            validate_environment_variables(environment_variables,
+                                           cloned_payload.get('nextflowVersion'),
+                                           workflow_type=workflow_type,
+                                           execution_platform=cloned_payload.get('executionPlatform', 'aws'))
+            cloned_payload['environmentVariables'] = environment_variables
+
         # Handle job queue override
         if queue_name:
             if cloned_payload['executionPlatform'] != 'azure':
@@ -1540,11 +1584,12 @@ class Job(Cloudos):
     def fix_boolean_strings(self, obj):
         """
         Recursively convert string booleans ('True', 'False') into real booleans
-        inside dicts, lists, or nested structures. It excludes 'textValues' as they
-        have to remain as text even if the text is 'true'.
+        inside dicts, lists, or nested structures. It excludes 'textValues' and
+        'environmentVariables' as they have to remain as text even if the text is 'true'.
         """
         if isinstance(obj, dict):
-            return {k: self.fix_boolean_strings(v) if k != 'textValue' else v for k, v in obj.items()}
+            return {k: self.fix_boolean_strings(v) if k not in ('textValue', 'environmentVariables') else v
+                    for k, v in obj.items()}
         elif isinstance(obj, list):
             return [self.fix_boolean_strings(v) for v in obj]
         elif isinstance(obj, str):

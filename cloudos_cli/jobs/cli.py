@@ -12,6 +12,7 @@ from cloudos_cli.utils.errors import BadRequestException
 from cloudos_cli.utils.resources import ssl_selector
 from cloudos_cli.utils.details import create_job_details, create_job_list_table
 from cloudos_cli.utils.nextflow_version import resolve_nextflow_version
+from cloudos_cli.utils.environment_variables import parse_environment_variables, validate_environment_variables
 from cloudos_cli.cost.cost import CostViewer
 from cloudos_cli.related_analyses.related_analyses import related_analyses
 from cloudos_cli.configure.configure import with_profile_config, CLOUDOS_URL
@@ -91,6 +92,13 @@ def job():
                     'Defaults to 22.10.8 for Platform Workflows or 24.04.4 for user-imported Workflows.'),
               type=click.Choice(['22.10.8', '24.04.4', '25.04.8', '25.10.4', '22.11.1-edge', 'latest']),
               default=None)
+@click.option('--environment-variable',
+              multiple=True,
+              help=('A Nextflow runtime environment variable to export before `nextflow run`, ' +
+                    'in the form NAME=VALUE. E.g.: --environment-variable NXF_SYNTAX_PARSER=v2. ' +
+                    'Only Nextflow workflows are supported. Currently supported: NXF_SYNTAX_PARSER ' +
+                    '(v1|v2), which requires --nextflow-version 25.04.8 or later. You can use this ' +
+                    'option as many times as environment variables you want to include.'))
 @click.option('--git-commit',
               help=('The git commit hash to run for ' +
                     'the selected pipeline. ' +
@@ -213,6 +221,7 @@ def run(ctx,
         job_queue,
         nextflow_profile,
         nextflow_version,
+        environment_variable,
         instance_type,
         instance_disk,
         wait_completion,
@@ -280,6 +289,8 @@ def run(ctx,
                   '\t- This is still a Lifebit Platform BETA feature.\n')
     else:
         use_mountpoints = False
+    # Parse first so a malformed --environment-variable fails before any API call
+    environment_variables = parse_environment_variables(environment_variable)
     if verbose:
         print('\t...Detecting workflow type')
     cl = Cloudos(cloudos_url, apikey, cromwell_token)
@@ -287,6 +298,7 @@ def run(ctx,
     is_module = cl.is_module(workflow_name, workspace_id, verify_ssl, last)
     
     # Resolve and validate Nextflow version
+    requested_nextflow_version = nextflow_version
     nextflow_version = resolve_nextflow_version(
         nextflow_version=nextflow_version,
         execution_platform=execution_platform,
@@ -294,7 +306,21 @@ def run(ctx,
         workflow_name=workflow_name,
         verbose=verbose
     )
-    
+
+    # Validate environment variables before submitting anything
+    if environment_variables and workflow_type == 'nextflow' and is_module:
+        raise ValueError(f'The selected workflow \'{workflow_name}\' is a Lifebit Platform Workflow, which ' +
+                         f'always runs with Nextflow {nextflow_version}. --environment-variable can\'t be ' +
+                         'used with Platform Workflows.')
+    version_note = None
+    if requested_nextflow_version is None and execution_platform == 'aws':
+        version_note = (f'Nextflow {nextflow_version} is the default because --nextflow-version ' +
+                        'was not set.')
+    validate_environment_variables(environment_variables, nextflow_version,
+                                   workflow_type=workflow_type,
+                                   execution_platform=execution_platform,
+                                   version_note=version_note)
+
     if execution_platform == 'hpc' and workflow_type == 'wdl':
         raise ValueError(f'The workflow {workflow_name} is a WDL workflow. ' +
                          'WDL is not supported on HPC execution platform.')
@@ -378,6 +404,8 @@ def run(ctx,
     print('\nExecuting run...')
     if workflow_type == 'nextflow':
         print(f'\tNextflow version: {nextflow_version}')
+        for env_var in environment_variables:
+            print(f'\tEnvironment variable: {env_var["name"]}={env_var["value"]}')
     j_id = j.send_job(job_config=job_config,
                       params_file=params_file,
                       parameter=parameter,
@@ -405,7 +433,8 @@ def run(ctx,
                       use_mountpoints=use_mountpoints,
                       accelerate_saving_results=accelerate_saving_results,
                       docker_login=docker_login,
-                      verify=verify_ssl)
+                      verify=verify_ssl,
+                      environment_variable=environment_variable)
     print(f'\tYour assigned job id is: {j_id}\n')
     j_url = f'{cloudos_url}/app/advanced-analytics/analyses/{j_id}'
     if wait_completion:
@@ -1703,6 +1732,13 @@ def archive_unarchive_jobs(ctx,
 @click.option('--nextflow-version',
               help=('Nextflow version to use when executing the workflow in Lifebit Platform.'),
               type=click.Choice(['22.10.8', '24.04.4', '25.04.8', '25.10.4', '22.11.1-edge', 'latest']))
+@click.option('--environment-variable',
+              multiple=True,
+              help=('A Nextflow runtime environment variable to export before `nextflow run`, ' +
+                    'in the form NAME=VALUE. E.g.: --environment-variable NXF_SYNTAX_PARSER=v2. ' +
+                    'It overrides the variable with the same name from the original job, or adds it. ' +
+                    'Currently supported: NXF_SYNTAX_PARSER (v1|v2), which requires Nextflow 25.04.8 ' +
+                    'or later. You can use this option as many times as environment variables you want to include.'))
 @click.option('--git-branch',
               help=('The branch to run for the selected pipeline. ' +
                     'If not specified it defaults to the last commit ' +
@@ -1773,6 +1809,7 @@ def clone_resume(ctx,
                  parameter,
                  nextflow_profile,
                  nextflow_version,
+                 environment_variable,
                  git_branch,
                  repository_platform,
                  job_name,
@@ -1834,7 +1871,8 @@ def clone_resume(ctx,
             project_name=project_name if ctx.get_parameter_source("project_name") == click.core.ParameterSource.COMMANDLINE else None,
             parameters=list(parameter) if parameter else None,
             verify=verify_ssl,
-            mode=mode
+            mode=mode,
+            environment_variable=environment_variable
         )
 
         if verbose:

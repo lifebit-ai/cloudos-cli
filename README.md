@@ -723,6 +723,29 @@ cloudos job run --profile my_profile --workflow-name rnatoy --job-config cloudos
 > [!NOTE]
 > **Azure Platform Behavior**: If you specify a Nextflow version not supported by Azure (anything other than 22.11.1-edge), CloudOS CLI will display a warning and automatically use 22.11.1-edge instead. Your job will proceed without error.
 
+**Nextflow Runtime Environment Variables**
+
+Use `--environment-variable NAME=VALUE` to export a Nextflow runtime environment variable in the job's head node before `nextflow run`. Unlike `--parameter`, these are real environment variables that Nextflow reads at startup. You can use the option several times.
+
+Only Nextflow workflows support environment variables, and only the following ones:
+
+| Variable | Allowed values | Requires |
+|---|---|---|
+| `NXF_SYNTAX_PARSER` | `v1` (legacy parser), `v2` (strict syntax parser) | Nextflow 25.04.0 or later (`--nextflow-version 25.04.8` or `25.10.4`) |
+
+For example, to run a pipeline written in the Nextflow strict syntax:
+
+```bash
+cloudos job run --profile my_profile --workflow-name my-strict-pipeline --nextflow-version 25.10.4 --environment-variable NXF_SYNTAX_PARSER=v2
+```
+
+The CLI checks the variables before submitting the job and stops with an error if a name is not supported, a value is not allowed or the Nextflow version is too old. In practice:
+
+- Set `--nextflow-version` to 25.04.8 or later. User-imported workflows default to 24.04.4, so without `--nextflow-version` the job is rejected.
+- Azure (22.11.1-edge only), HPC (22.10.8 only) and Lifebit Platform Workflows (22.10.8) can't use `NXF_SYNTAX_PARSER`.
+
+`cloudos job details` shows the environment variables a job ran with.
+
 **AWS Executor Support**
 
 Lifebit Platform supports [AWS batch](https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch) executor by default.
@@ -1099,6 +1122,7 @@ cloudos job resume \
 - `--instance-type`: Change the master instance type
 - `--job-name`: Assign a custom name to the cloned/resumed job
 - `--nextflow-version`: Use a different Nextflow version
+- `--environment-variable`: Override or add a Nextflow runtime environment variable, e.g. `--environment-variable NXF_SYNTAX_PARSER=v2` (can be used multiple times, see [Nextflow Runtime Environment Variables](#submit-a-job))
 - `--git-branch`: Switch to a different git branch
 - `--nextflow-profile`: Change the Nextflow profile
 - `--do-not-save-logs`: Enable/disable log saving
@@ -1108,6 +1132,9 @@ cloudos job resume \
 
 > [!NOTE]
 > Parameters can be overridden or new ones can be added using `-p` option
+
+> [!NOTE]
+> Cloned and resumed jobs keep the environment variables of the original job. If you change `--nextflow-version` to a version that doesn't support one of them (e.g. `NXF_SYNTAX_PARSER` with a version below 25.04.0), the command stops with an error before submitting the job.
 
 #### Abort Jobs
 
@@ -3202,6 +3229,19 @@ Then, send the job:
 ```python
 j_id = j.send_job(job_config)
 ```
+
+To set a Nextflow runtime environment variable, pass `environment_variable` as a tuple of
+`'NAME=VALUE'` strings, together with a Nextflow version that supports it (see
+[Nextflow Runtime Environment Variables](#submit-a-job)):
+
+```python
+j_id = j.send_job(job_config,
+                  nextflow_version='25.10.4',
+                  environment_variable=('NXF_SYNTAX_PARSER=v2',))
+```
+
+`send_job` raises a `ValueError` and does not submit the job if a variable is not supported,
+its value is not allowed or the Nextflow version is too old.
 
 To check the status:
 
