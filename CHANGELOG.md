@@ -1,5 +1,12 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.101.0 (2026-11-16)
+
+### Feat:
+
+- New `Dockerfile.fips`: a FIPS build of the Docker image, with the same CLI and settings as `Dockerfile`, on Red Hat UBI 10.1. Every HTTPS call the CLI makes goes through the OpenSSL FIPS provider (FIPS 140-3, CMVP #4857) when the host is in FIPS mode. It uses Python 3.13, the newest version whose hashing can be kept inside the FIPS module (see `docker/fips/README.md`)
+- `docker/fips/smoketest.sh` checks the FIPS image: the CLI starts, and Python only loads the system `libcrypto`
+
 ## v2.99.3 (2026-10-30)
 
 ### Fix:
