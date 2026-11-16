@@ -2,6 +2,7 @@
 
 import pytest
 import json
+import re
 from click.testing import CliRunner
 from cloudos_cli.__main__ import run_cloudos_cli
 from unittest import mock
@@ -1111,7 +1112,9 @@ class TestCreateSessionVolumeFlags:
 
         result = CliRunner().invoke(run_cloudos_cli, ['interactive-session', command, '--help'])
         assert result.exit_code == 0
-        output = ' '.join(result.output.replace('│', ' ').split())
+        # rich adds colour codes when it detects CI (e.g. GITHUB_ACTIONS), so strip them before matching
+        plain = re.sub(r'\x1b\[[0-9;]*m', '', result.output)
+        output = ' '.join(plain.replace('│', ' ').split())
         assert f'({STORAGE_RANGE})' in output
         for volume, minimum in VOLUME_MINIMUMS.items():
             assert f'(min {minimum}, max {VOLUME_MAXIMUMS[volume]})' in output
