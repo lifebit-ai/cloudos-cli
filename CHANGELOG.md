@@ -10,6 +10,10 @@
 - `job clone` and `job resume` keep the environment variables of the original job; `--environment-variable` replaces the variable with the same name or adds a new one
 - `job details` shows the environment variables a job ran with
 
+### Breaking:
+
+- Python 3.11 or later is now required (was 3.9). Python 3.9 is end of life and GitHub's Ubuntu 26.04 runners no longer provide it, so CI now runs on Python 3.11
+
 ## v2.99.3 (2026-10-30)
 
 ### Fix:

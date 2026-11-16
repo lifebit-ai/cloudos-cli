@@ -95,7 +95,7 @@ Python package for interacting with Lifebit Platform
 
 ## Requirements
 
-CloudOS CLI requires Python 3.9 or higher and several key dependencies for API communication, data processing, and user interface functionality.
+CloudOS CLI requires Python 3.11 or higher and several key dependencies for API communication, data processing, and user interface functionality.
 
 ```
 click>=8.0.1
@@ -144,7 +144,7 @@ docker run --rm -it quay.io/lifebitaiorg/cloudos-cli:latest
 
 ### From Github
 
-You will need Python >= 3.9 and pip installed.
+You will need Python >= 3.11 and pip installed.
 
 Clone the repo and install it using pip:
 
