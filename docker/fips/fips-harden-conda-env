@@ -1,0 +1,64 @@
+#!/bin/bash
+# Make a conda environment use RHEL's system OpenSSL, so it follows the host's FIPS mode.
+#
+# conda-forge ships its own OpenSSL, without a FIPS provider, and CPython silently falls back to its built-in hash
+# implementations when OpenSSL rejects an algorithm. Both bypass FIPS mode, so this script:
+#   1. points the environment's libssl/libcrypto to the system ones. Symlinks rather than deleting them, so that
+#      both the runtime loader and conda's compilers (which don't search /usr/lib64) resolve the system library;
+#   2. removes CPython's built-in md5/sha* modules, so hashing always goes through OpenSSL;
+#   3. patches hashlib so that an algorithm rejected by OpenSSL raises an error when used, instead of logging a
+#      traceback on every `import hashlib`.
+#
+# The environment must pin openssl to the system's major.minor (OPENSSL_PIN), otherwise its packages may need
+# symbols that the system library doesn't provide. The script is idempotent: conda-pack and reinstalling openssl
+# both restore the bundled library, so run it again after either.
+#
+# Usage: fips-harden-conda-env <conda environment prefix>
+set -euo pipefail
+IFS=$'\n\t'
+
+prefix="$1"
+python="$prefix/bin/python"
+python_version=$("$python" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')
+stdlib="$prefix/lib/python$python_version"
+
+for lib in libssl libcrypto; do
+  rm -f "$prefix"/lib/"$lib".so*
+  ln -s "/usr/lib64/$lib.so.3" "$prefix/lib/$lib.so.3"
+  ln -s "/usr/lib64/$lib.so.3" "$prefix/lib/$lib.so"
+done
+rm -rf "$prefix"/lib/ossl-modules
+
+# _sha2 is Python >= 3.12, _sha256 and _sha512 are Python <= 3.11.
+for module in _md5 _sha1 _sha2 _sha256 _sha512 _sha3; do
+  rm -f "$stdlib"/lib-dynload/"$module".cpython-*.so
+done
+
+"$python" - "$stdlib/hashlib.py" <<'PY'
+import sys
+
+path = sys.argv[1]
+original = """        import logging
+        logging.exception('code for hash %s was not found.', __func_name)
+"""
+patched = """        # Patched by fips-harden-conda-env: the algorithm is not allowed by OpenSSL (e.g. FIPS mode).
+        def __unsupported(*args, __name=__func_name, **kwargs):
+            raise ValueError('unsupported hash type ' + __name + ' (not allowed by OpenSSL)')
+        globals()[__func_name] = __unsupported
+"""
+with open(path) as f:
+    source = f.read()
+if patched in source:
+    sys.exit(0)
+if original not in source:
+    sys.exit(f"fips-harden-conda-env: unexpected hashlib.py layout in {path}")
+with open(path, "w") as f:
+    f.write(source.replace(original, patched))
+PY
+rm -f "$stdlib"/__pycache__/hashlib.*.pyc
+
+if ! "$python" -c 'import _hashlib; print(open("/proc/self/maps").read())' | grep -q ' /usr/lib64/libcrypto\.so'; then
+  echo "fips-harden-conda-env: $prefix is not using the system libcrypto" >&2
+  exit 1
+fi
+echo "fips-harden-conda-env: $prefix now uses the system OpenSSL"
