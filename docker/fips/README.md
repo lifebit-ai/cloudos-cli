@@ -1,10 +1,10 @@
-# cloudos-cli FIPS image (`Dockerfile.fips`)
+# cloudos-cli image: FIPS build
 
-`Dockerfile.fips` builds the same image as `Dockerfile` (the CLI, its conda environment, `procps`, `CMD ["/bin/bash"]`, `ENTRYPOINT []`, `LANG`/`LC_ALL=C.UTF-8`, `CONDA_DIR`, `PATH`), but on Red Hat UBI 10, so that every HTTPS call the CLI makes goes through a FIPS 140-3 validated OpenSSL module when the host is in FIPS mode. It follows the "FIPS hardening POC" (Confluence, IO Squad space) and `containers/report_etl/2.0.0-fips` in `lifebit-ai/ADAPT-docker-containers`.
+From v2.101.0, the image (`Dockerfile`, published as `quay.io/lifebitaiorg/cloudos-cli:v<version>` and `:latest`) is built for FIPS: Red Hat UBI 10.1 with the CLI in a conda environment, so that every HTTPS call the CLI makes goes through a FIPS 140-3 validated OpenSSL module when the host is in FIPS mode. On a host that isn't in FIPS mode it behaves like any other image (all algorithms allowed). It follows the "FIPS hardening POC" (Confluence, IO Squad space) and `containers/report_etl/2.0.0-fips` in `lifebit-ai/ADAPT-docker-containers`.
 
 ```bash
-docker build -f Dockerfile.fips -t quay.io/lifebitaiorg/cloudos-cli:<version>-fips .
-docker run --rm --entrypoint sh quay.io/lifebitaiorg/cloudos-cli:<version>-fips /docker/fips/smoketest.sh
+docker build -t quay.io/lifebitaiorg/cloudos-cli:<version> .
+docker run --rm --entrypoint sh quay.io/lifebitaiorg/cloudos-cli:<version> /docker/fips/smoketest.sh
 ```
 
 ## FIPS module
@@ -27,19 +27,16 @@ All crypto goes through **Red Hat Enterprise Linux 9 - OpenSSL FIPS Provider** (
 
 So 3.13 is the newest Python that keeps every hash and HMAC path inside the FIPS module, and behaves exactly like 3.12. Python 3.14+ would need a change in CPython's `_hashlib` itself, not just the script. (BLAKE2 stays available through CPython's own `_blake2` in every version, as in report_etl: `fips-harden-conda-env` doesn't remove it, and `fips-scan` doesn't test it.)
 
-## Differences from `Dockerfile`
+## Differences from the Ubuntu image (up to v2.99.3)
+The CLI, `environment.yml`, `pip install -e /`, `PATH`, `LANG`/`LC_ALL=C.UTF-8`, `CONDA_DIR`, `CMD ["/bin/bash"]`, `ENTRYPOINT []` and `procps` (for Nextflow) are the same. What changed:
+- **Base**: Red Hat UBI 10.1 instead of `condaforge/miniforge3` (Ubuntu 24.04). Ubuntu tools are gone (`apt-get`, `dpkg`, `perl`, `cmp`…); install extra OS packages with `dnf` from the UBI repositories in images built on top of this one.
 - **Python 3.13** instead of 3.14 (`python_requires` is `>=3.11`): the newest version that can be hardened (see Why Python 3.13).
 - conda's OpenSSL 3.5 instead of 3.6, replaced at runtime by the system library.
-- Miniforge is installed from its GitHub release with a pinned version and SHA-256, instead of coming with the base image.
+- Miniforge is installed from its GitHub release with a pinned version and SHA-256, instead of coming with the base image; micromamba and conda's package cache are removed.
 - `TZ=Etc/UTC` (UBI has no `/etc/localtime`; Ubuntu defaults to UTC).
-- No `SECURITY_REFRESH` layer yet: build with `--no-cache` (or add the same final `dnf upgrade --exclude='openssl-fips-provider*'` layer) so cached builds still pick up OS security fixes.
+- About 1 GB instead of 790 MB.
 
-## Publishing
-Every release publishes both images: `quay.io/lifebitaiorg/cloudos-cli:v<version>` from `Dockerfile` and `quay.io/lifebitaiorg/cloudos-cli:v<version>-fips` from `Dockerfile.fips`. `release.yml` builds both, runs `docker/fips/smoketest.sh` in the FIPS image, scans both with the same Trivy gate, and pushes nothing unless all of it passes. `:latest` stays the `Dockerfile` image.
-
-A Trivy failure in the FIPS image blocks the release but doesn't start Security autofix, which only fixes `Dockerfile`'s dependencies: fix `Dockerfile.fips` by hand. On every PR, the `scan-fips` job of `image-scan.yml` runs the same build, smoke test and scan, so it's caught there first.
-
-GitHub's runners aren't in FIPS mode, so CI can't show that MD5 is refused. Check that on a FIPS-enabled host with `scripts/fips/fips-scan` from `lifebit-ai/ADAPT-docker-containers`, when `Dockerfile.fips` or its base changes.
-
-## Validation
-See the PR that added this file for the FIPS scan (`scripts/fips/fips-scan` from `ADAPT-docker-containers`, on a FIPS-enabled host), Trivy and network results.
+## CI and releases
+- `release.yml` builds `Dockerfile` (with `SECURITY_REFRESH`, which re-runs the final `dnf upgrade`), runs `docker/fips/smoketest.sh`, applies the Trivy gate, and publishes `v<version>` and `:latest` as before.
+- `image-scan.yml` (every PR) and `security-autofix.yml` build the same `Dockerfile`; the PR scan runs the smoke test too. Autofix only edits `environment.yml`/`requirements.txt`, and is told never to change the `openssl` and `python` pins, which the hardening depends on.
+- GitHub's runners aren't in FIPS mode, so CI checks that the hardening is intact (the CLI starts, Python loads only the system `libcrypto`), not that MD5 is refused. Check that on a FIPS-enabled host with `scripts/fips/fips-scan` from `lifebit-ai/ADAPT-docker-containers` when the base, `OPENSSL_PIN` or the Python version changes.

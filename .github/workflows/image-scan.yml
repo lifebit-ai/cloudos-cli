@@ -99,6 +99,14 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           .github/scripts/autofix_loop.sh
 
+      # Same check as the release: the CLI starts and Python only loads the
+      # system libcrypto (the runner isn't in FIPS mode, so MD5 refusal isn't
+      # tested here). Before the push, so fixes that undo the FIPS hardening
+      # (e.g. a different conda openssl) never reach the branch.
+      - name: Smoke test image (FIPS hardening intact)
+        if: steps.loop.outcome == 'success'
+        run: docker run --rm --entrypoint sh "$IMAGE" /docker/fips/smoketest.sh
+
       # Pushed with GITHUB_TOKEN, so the push doesn't start another run of
       # this or any other workflow: the rescan above is the check on it.
       - name: Push the fixes to the PR branch
@@ -182,44 +190,4 @@ jobs:
         with:
           name: image-scan-reports
           path: ${{ env.AUTOFIX_DIR }}
-          if-no-files-found: ignore
-
-  # The FIPS image (Dockerfile.fips) ships with every release as v$VER-fips,
-  # and the release is blocked if it fails, so check it here too: build,
-  # smoke test and the same Trivy gate. No automatic fixes: the model only
-  # edits Dockerfile's dependencies. Read-only: it never pushes.
-  scan-fips:
-    name: Build and scan the FIPS image
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      # The default ref (the PR's merge commit, or the dispatched branch), not
-      # the PR branch by name as in the scan job: this job never pushes, and
-      # naming a ref from the event would let CodeQL's cache-poisoning check
-      # (and an attacker) pick which code runs here.
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Build FIPS image
-        run: docker build -f Dockerfile.fips -t cloudos-cli:pr-fips .
-
-      # The runner isn't in FIPS mode: this checks that the CLI starts and that
-      # Python only loads the system libcrypto, not that MD5 is refused.
-      - name: Smoke test FIPS image
-        run: docker run --rm --entrypoint sh cloudos-cli:pr-fips /docker/fips/smoketest.sh
-
-      - name: Scan FIPS image with Trivy
-        uses: ./.github/actions/trivy-scan
-        with:
-          image: cloudos-cli:pr-fips
-          report: ${{ runner.temp }}/trivy-report-fips.json
-
-      - name: Keep report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: image-scan-report-fips
-          path: ${{ runner.temp }}/trivy-report-fips.json
           if-no-files-found: ignore

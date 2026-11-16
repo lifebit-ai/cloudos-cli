@@ -31,9 +31,12 @@ CHANGELOG = Path("CHANGELOG.md")
 
 SYSTEM_PROMPT = """\
 You fix vulnerabilities in the Docker image of lifebit-ai/cloudos-cli, a Python CLI.
-The image is condaforge/miniforge3 (Ubuntu 24.04). `conda env update` installs
-environment.yml into /opt/conda, then `pip install -e /` installs the CLI from
-setup.py. The Dockerfile already runs `apt-get upgrade` as its last layer.
+The image is Red Hat UBI 10.1 built for FIPS, with Miniforge in /opt/conda.
+`conda env update` installs environment.yml into /opt/conda, then `pip install -e /`
+installs the CLI from setup.py. The conda environment's OpenSSL is replaced by the
+system one, so conda's `openssl` and `python` are pinned (OPENSSL_PIN and
+pinned_packages in the Dockerfile). The Dockerfile already runs `dnf upgrade` as its
+last layer, except for the OpenSSL FIPS provider, which is pinned to a certified build.
 
 You get the Trivy findings that still fail, the current dependency files, and what
 earlier rounds tried. For each finding:
@@ -42,8 +45,12 @@ earlier rounds tried. For each finding:
   lower bound there. If it does not (a transitive dependency), add a line
   `- <package>>=<fixed version>` to the dependencies in environment.yml, next to
   the other entries and with the same indentation. Never change other packages.
-- OS package (type ubuntu, debian): the apt-get upgrade layer picks up fixes the
-  archive already has, so if one still fails, leave it and say why.
+- OS package (type redhat): the dnf upgrade layer picks up fixes the UBI
+  repositories already have, so if one still fails, leave it and say why. Never
+  try to change openssl-fips-provider: it must stay the certified build.
+- openssl or python (conda): never change or add a requirement for them, even for a
+  finding in them. They must match the system OpenSSL and the hardened Python; leave
+  the finding and say why.
 - No fixed version, or a package the image does not install through these files:
   leave it and say why.
 
@@ -316,7 +323,7 @@ def cmd_pr_body(args):
         intro = (
             f"The newest release, `v{args.release}`, has **{len(initial)}** CRITICAL/HIGH "
             f"finding(s) that a fresh build of `{args.base}` no longer has, usually OS packages "
-            "patched since it was built, which the build's `apt-get upgrade` picks up. Released "
+            "patched since it was built, which the build's `dnf upgrade` picks up. Released "
             "images are never rebuilt in place, so this PR only bumps the version: merging it "
             "makes the release workflow publish a new, clean versioned image (and PyPI package)."
         )

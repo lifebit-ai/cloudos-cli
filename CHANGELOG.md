@@ -4,9 +4,14 @@
 
 ### Feat:
 
-- New `Dockerfile.fips`: a FIPS build of the Docker image, with the same CLI and settings as `Dockerfile`, on Red Hat UBI 10.1. Every HTTPS call the CLI makes goes through the OpenSSL FIPS provider (FIPS 140-3, CMVP #4857) when the host is in FIPS mode. It uses Python 3.13, the newest version whose hashing can be kept inside the FIPS module (see `docker/fips/README.md`)
-- `docker/fips/smoketest.sh` checks the FIPS image: the CLI starts, and Python only loads the system `libcrypto`
-- Releases also publish the FIPS image as `quay.io/lifebitaiorg/cloudos-cli:v<version>-fips`: `release.yml` builds, smoke-tests and scans it with the same Trivy gate, and pushes neither image unless both pass. PRs build and scan it too (`scan-fips` job in `image-scan.yml`)
+- The Docker image (`quay.io/lifebitaiorg/cloudos-cli:v2.101.0` and `:latest`) is now built for FIPS: every HTTPS call the CLI makes goes through a FIPS 140-3 validated OpenSSL module (CMVP #4857) when the host is in FIPS mode. On other hosts it works as before. See `docker/fips/README.md`
+- `docker/fips/smoketest.sh` checks the image: the CLI starts, and Python only loads the system `libcrypto`. The release and the PR image scan run it, so a dependency change that undoes the FIPS hardening can't ship
+
+### Breaking (Docker image only):
+
+- The image is based on Red Hat UBI 10.1 instead of `condaforge/miniforge3` (Ubuntu 24.04). Ubuntu tools such as `apt-get`, `dpkg` and `perl` are no longer in the image: images built on top of it must install OS packages with `dnf`
+- Python 3.13 instead of 3.14 in the image, the newest version whose hashing can be kept inside the FIPS module. The `pip` package still supports Python >= 3.11
+- The CLI, `environment.yml`, `PATH`, `LANG`/`LC_ALL`, `CMD` and `ENTRYPOINT` are unchanged
 
 ## v2.99.3 (2026-10-30)
 

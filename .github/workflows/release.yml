@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]  # run on merges to main
   # A release blocked by the scan is retried by rebuilding the same commit, for
-  # when the fix needs no file change (an Ubuntu patch reaching the archive, a
+  # when the fix needs no file change (an OS patch reaching the repositories, a
   # withdrawn advisory). Security autofix starts it when its fresh build of
   # main is clean and the version is still untagged. Only main releases: the
   # check job refuses any other ref.
@@ -131,11 +131,22 @@ jobs:
           VER="${{ needs.check.outputs.version }}"
           echo "Building Docker image for version: $VER"
           # SECURITY_REFRESH busts the cache on the Dockerfile's final
-          # `apt-get upgrade` layer. Without it, once this job uses a build
+          # `dnf upgrade` layer. Without it, once this job uses a build
           # cache, a cached upgrade silently stops picking up new patches.
           docker build -f Dockerfile \
             --build-arg SECURITY_REFRESH="$(date +%s)" \
             -t "${QUAY_REPO}:v${VER}" .
+
+      # The image is the FIPS build (see docker/fips/README.md). The runner
+      # isn't in FIPS mode, so this can't show that MD5 is refused (that
+      # needs a FIPS-enabled host). It does fail the release if the CLI
+      # doesn't start, or if Python loads any libcrypto other than the
+      # system one, i.e. if a dependency change undid the FIPS hardening.
+      - name: Smoke test image (FIPS hardening intact)
+        run: |
+          set -euo pipefail
+          VER="${{ needs.check.outputs.version }}"
+          docker run --rm --entrypoint sh "${QUAY_REPO}:v${VER}" /docker/fips/smoketest.sh
 
       # Same scan as the PR gate and the weekly security-autofix run (see
       # .github/actions/trivy-scan): fails on any CRITICAL/HIGH, counts
@@ -146,40 +157,6 @@ jobs:
         uses: ./.github/actions/trivy-scan
         with:
           image: ${{ env.QUAY_REPO }}:v${{ needs.check.outputs.version }}
-
-      # -------- FIPS IMAGE --------
-      # The same CLI on Red Hat UBI 10.1 with the certified OpenSSL FIPS
-      # provider (see docker/fips/README.md), published as v$VER-fips next to
-      # v$VER. Both images ship or neither does: every FIPS step below runs
-      # before anything is pushed, and a failure stops the release.
-      # Dockerfile.fips has no cached layers here (a fresh runner, no build
-      # cache), so its `dnf upgrade` always picks up current OS fixes.
-      - name: Build FIPS image
-        run: |
-          set -euo pipefail
-          VER="${{ needs.check.outputs.version }}"
-          echo "Building FIPS Docker image for version: $VER"
-          docker build -f Dockerfile.fips -t "${QUAY_REPO}:v${VER}-fips" .
-
-      # The runner isn't in FIPS mode, so this can't show that MD5 is refused
-      # (that needs a FIPS-enabled host, see docker/fips/README.md). It does
-      # fail if the CLI doesn't start or if Python loads any libcrypto other
-      # than the system one, i.e. if a dependency change undid the hardening.
-      - name: Smoke test FIPS image
-        run: |
-          set -euo pipefail
-          VER="${{ needs.check.outputs.version }}"
-          docker run --rm --entrypoint sh "${QUAY_REPO}:v${VER}-fips" /docker/fips/smoketest.sh
-
-      # A failure here blocks the release but doesn't start Security autofix
-      # (the recover job only follows the scan of Dockerfile): autofix fixes
-      # Dockerfile's dependencies, not Dockerfile.fips's, so fix it by hand.
-      - name: Scan FIPS image with Trivy (blocks the release on CRITICAL/HIGH)
-        id: scan_fips
-        uses: ./.github/actions/trivy-scan
-        with:
-          image: ${{ env.QUAY_REPO }}:v${{ needs.check.outputs.version }}-fips
-          report: ${{ runner.temp }}/trivy-report-fips.json
 
       # Last check before anything leaves the runner. The concurrency group
       # above already serializes release runs, but a manual re-run of an old
@@ -209,24 +186,20 @@ jobs:
         run: |
           set -euo pipefail
           VER="${{ needs.check.outputs.version }}"
-          for TAG in "v${VER}" "v${VER}-fips"; do
-            if docker manifest inspect "${QUAY_REPO}:${TAG}" >/dev/null 2>&1; then
-              echo "::error::${QUAY_REPO}:${TAG} is already published."
-              echo "Refusing to overwrite it with a different build."
-              echo "Bump __version__ to cut a new release."
-              exit 1
-            fi
-            echo "${QUAY_REPO}:${TAG} is unclaimed; publishing."
-          done
+          if docker manifest inspect "${QUAY_REPO}:v${VER}" >/dev/null 2>&1; then
+            echo "::error::${QUAY_REPO}:v${VER} is already published."
+            echo "Refusing to overwrite it with a different build."
+            echo "Bump __version__ to cut a new release."
+            exit 1
+          fi
+          echo "${QUAY_REPO}:v${VER} is unclaimed; publishing."
 
-      - name: Push images to Quay (version tags)
+      - name: Push image to Quay (version tag)
         run: |
           set -euo pipefail
           VER="${{ needs.check.outputs.version }}"
           docker push "${QUAY_REPO}:v${VER}"
           echo "Pushed ${QUAY_REPO}:v${VER}"
-          docker push "${QUAY_REPO}:v${VER}-fips"
-          echo "Pushed ${QUAY_REPO}:v${VER}-fips"
 
       # -------- PYPI (no helper actions) --------
       - name: Upload to PyPI with twine

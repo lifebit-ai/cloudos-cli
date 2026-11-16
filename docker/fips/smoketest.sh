@@ -1,5 +1,5 @@
 #!/bin/sh
-# Smoke test for the FIPS image (Dockerfile.fips): docker run --rm --entrypoint sh <image> /docker/fips/smoketest.sh
+# Smoke test for the image (FIPS build, see README.md): docker run --rm --entrypoint sh <image> /docker/fips/smoketest.sh
 # Fails if the CLI doesn't start, or if Python loads a libcrypto other than the system (FIPS-capable) one.
 set -e
 ps --version
