@@ -586,7 +586,8 @@ class Job(Cloudos):
         environment_variables = parse_environment_variables(environment_variable)
         validate_environment_variables(environment_variables, nextflow_version,
                                        workflow_type=workflow_type,
-                                       execution_platform=execution_platform)
+                                       execution_platform=execution_platform,
+                                       is_module=is_module)
         workflow_params = []
         if workflow_type == 'wdl':
             # This is required as non-resumable jobs fails always using WDL workflows.

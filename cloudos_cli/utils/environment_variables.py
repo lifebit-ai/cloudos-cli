@@ -97,7 +97,7 @@ def merge_environment_variables(original, overrides):
 
 def validate_environment_variables(environment_variables, nextflow_version,
                                    workflow_type='nextflow', execution_platform='aws',
-                                   version_note=None):
+                                   version_note=None, is_module=False):
     """Check environment variables against the supported allowlist before submitting a job.
 
     Mirrors the api-server validation: only Nextflow jobs, only allowlisted names,
@@ -116,6 +116,9 @@ def validate_environment_variables(environment_variables, nextflow_version,
     version_note : str, optional
         Extra sentence added to the error when the Nextflow version is too old,
         e.g. to explain that the version is a default.
+    is_module : bool
+        Whether the workflow is a Lifebit Platform Workflow. Platform Workflows always run
+        with a fixed Nextflow version, so environment variables can't be used with them.
 
     Raises
     ------
@@ -127,6 +130,9 @@ def validate_environment_variables(environment_variables, nextflow_version,
     if workflow_type != 'nextflow':
         raise ValueError('Environment variables are only supported for Nextflow workflows. '
                          f'This workflow is of type \'{workflow_type}\'.')
+    if is_module:
+        raise ValueError('Environment variables can\'t be used with Lifebit Platform Workflows, '
+                         'which always run with a fixed Nextflow version.')
     platform_versions, platform_latest = PLATFORM_NEXTFLOW_VERSIONS.get(
         execution_platform, PLATFORM_NEXTFLOW_VERSIONS['aws'])
     if nextflow_version == 'latest':
@@ -144,13 +150,15 @@ def validate_environment_variables(environment_variables, nextflow_version,
             raise ValueError(f"Invalid value '{value}' for environment variable '{name}'. "
                              f"Allowed values: {', '.join(allowed_values)}.")
         min_version = definition['min_nextflow_version']
+        compatible = [v for v in platform_versions if _is_version_at_least(v, min_version)]
+        if not compatible:
+            # The platform has no compatible version (e.g. Azure, HPC): reject whatever
+            # version was requested, as the job can't run with a newer one there
+            raise ValueError(f"Environment variable '{name}' requires Nextflow {min_version} or later. "
+                             f"The {execution_platform} execution platform only supports Nextflow "
+                             f"{', '.join(platform_versions)}, so '{name}' can't be used there.")
         if not _is_version_at_least(nextflow_version, min_version):
-            compatible = [v for v in platform_versions if _is_version_at_least(v, min_version)]
-            if compatible:
-                hint = f"Use one of these Nextflow versions: {', '.join(compatible)}."
-            else:
-                hint = (f"The {execution_platform} execution platform only supports Nextflow "
-                        f"{', '.join(platform_versions)}, so '{name}' can't be used there.")
             note = f'{version_note} ' if version_note else ''
             raise ValueError(f"Environment variable '{name}' requires Nextflow {min_version} or later, "
-                             f"but the job uses Nextflow {nextflow_version}. {note}{hint}")
+                             f"but the job uses Nextflow {nextflow_version}. {note}"
+                             f"Use one of these Nextflow versions: {', '.join(compatible)}.")

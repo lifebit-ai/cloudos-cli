@@ -89,6 +89,21 @@ def test_send_job_rejects_without_submitting(env_var, nextflow_version, error):
     assert len(responses.calls) == 0
 
 
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
+@responses.activate
+@pytest.mark.parametrize('kwargs, error', [
+    ({'is_module': True}, "can't be used with Lifebit Platform Workflows"),
+    ({'execution_platform': 'azure'}, 'azure execution platform only supports Nextflow 22.11.1-edge'),
+    ({'execution_platform': 'hpc'}, 'hpc execution platform only supports Nextflow 22.10.8'),
+])
+def test_send_job_rejects_unsupported_target_even_with_recent_version(kwargs, error):
+    """Platform Workflows, Azure and HPC are rejected in the SDK too, whatever version is passed."""
+    with pytest.raises(ValueError, match=error):
+        make_job().send_job(job_config=JOB_CONFIG, nextflow_version='25.10.4',
+                            environment_variable=('NXF_SYNTAX_PARSER=v2',), **kwargs)
+    assert len(responses.calls) == 0
+
+
 # --- clone / resume ---------------------------------------------------------
 
 @mock.patch('cloudos_cli.clos', mock.MagicMock())
@@ -147,6 +162,17 @@ def test_clone_rejects_inherited_variable_on_downgraded_version():
                     'environmentVariables': [{'name': 'NXF_SYNTAX_PARSER', 'value': 'v2'}]})
     with pytest.raises(ValueError, match='uses Nextflow 24.04.4'):
         make_job().clone_or_resume_job(source_job_id=SOURCE_JOB_ID, mode='clone', nextflow_version='24.04.4')
+    assert not [call for call in responses.calls if call.request.method == 'POST']
+
+
+@mock.patch('cloudos_cli.clos', mock.MagicMock())
+@responses.activate
+def test_clone_rejects_variable_on_azure_job_with_recent_version():
+    """An Azure job can't get the variable, even with a recent version override."""
+    add_source_job({'executionPlatform': 'azure', 'nextflowVersion': '22.11.1-edge'})
+    with pytest.raises(ValueError, match='azure execution platform only supports Nextflow 22.11.1-edge'):
+        make_job().clone_or_resume_job(source_job_id=SOURCE_JOB_ID, mode='clone', nextflow_version='25.10.4',
+                                       environment_variable=('NXF_SYNTAX_PARSER=v2',))
     assert not [call for call in responses.calls if call.request.method == 'POST']
 
 

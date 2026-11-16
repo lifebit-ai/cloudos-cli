@@ -102,9 +102,19 @@ class TestValidateEnvironmentVariables:
         with pytest.raises(ValueError, match="azure execution platform only supports Nextflow 22.11.1-edge"):
             validate_environment_variables(SYNTAX_PARSER_V2, '22.11.1-edge', execution_platform='azure')
 
-    def test_azure_latest_resolves_to_azure_version(self):
-        with pytest.raises(ValueError, match='uses Nextflow 22.11.1-edge'):
-            validate_environment_variables(SYNTAX_PARSER_V2, 'latest', execution_platform='azure')
+    @pytest.mark.parametrize('platform, platform_versions', [('azure', '22.11.1-edge'), ('hpc', '22.10.8')])
+    @pytest.mark.parametrize('version', ['25.10.4', 'latest'])
+    def test_platform_without_compatible_version_rejects_any_version(self, platform, platform_versions, version):
+        """Azure and HPC are rejected even when a recent version is requested (e.g. from the SDK)."""
+        with pytest.raises(ValueError, match=f'{platform} execution platform only supports Nextflow {platform_versions}'):
+            validate_environment_variables(SYNTAX_PARSER_V2, version, execution_platform=platform)
+
+    def test_platform_workflow_raises(self):
+        with pytest.raises(ValueError, match="can't be used with Lifebit Platform Workflows"):
+            validate_environment_variables(SYNTAX_PARSER_V2, '25.10.4', is_module=True)
+
+    def test_platform_workflow_without_variables_is_allowed(self):
+        validate_environment_variables([], '22.10.8', is_module=True)
 
     def test_hpc_explains_platform_limit(self):
         with pytest.raises(ValueError, match="hpc execution platform only supports Nextflow 22.10.8"):
