@@ -183,3 +183,41 @@ jobs:
           name: image-scan-reports
           path: ${{ env.AUTOFIX_DIR }}
           if-no-files-found: ignore
+
+  # The FIPS image (Dockerfile.fips) ships with every release as v$VER-fips,
+  # and the release is blocked if it fails, so check it here too: build,
+  # smoke test and the same Trivy gate. No automatic fixes: the model only
+  # edits Dockerfile's dependencies. Read-only: it never pushes.
+  scan-fips:
+    name: Build and scan the FIPS image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.head_ref || github.ref_name }}
+          persist-credentials: false
+
+      - name: Build FIPS image
+        run: docker build -f Dockerfile.fips -t cloudos-cli:pr-fips .
+
+      # The runner isn't in FIPS mode: this checks that the CLI starts and that
+      # Python only loads the system libcrypto, not that MD5 is refused.
+      - name: Smoke test FIPS image
+        run: docker run --rm --entrypoint sh cloudos-cli:pr-fips /docker/fips/smoketest.sh
+
+      - name: Scan FIPS image with Trivy
+        uses: ./.github/actions/trivy-scan
+        with:
+          image: cloudos-cli:pr-fips
+          report: ${{ runner.temp }}/trivy-report-fips.json
+
+      - name: Keep report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-scan-report-fips
+          path: ${{ runner.temp }}/trivy-report-fips.json
+          if-no-files-found: ignore

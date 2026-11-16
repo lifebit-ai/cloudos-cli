@@ -147,6 +147,40 @@ jobs:
         with:
           image: ${{ env.QUAY_REPO }}:v${{ needs.check.outputs.version }}
 
+      # -------- FIPS IMAGE --------
+      # The same CLI on Red Hat UBI 10.1 with the certified OpenSSL FIPS
+      # provider (see docker/fips/README.md), published as v$VER-fips next to
+      # v$VER. Both images ship or neither does: every FIPS step below runs
+      # before anything is pushed, and a failure stops the release.
+      # Dockerfile.fips has no cached layers here (a fresh runner, no build
+      # cache), so its `dnf upgrade` always picks up current OS fixes.
+      - name: Build FIPS image
+        run: |
+          set -euo pipefail
+          VER="${{ needs.check.outputs.version }}"
+          echo "Building FIPS Docker image for version: $VER"
+          docker build -f Dockerfile.fips -t "${QUAY_REPO}:v${VER}-fips" .
+
+      # The runner isn't in FIPS mode, so this can't show that MD5 is refused
+      # (that needs a FIPS-enabled host, see docker/fips/README.md). It does
+      # fail if the CLI doesn't start or if Python loads any libcrypto other
+      # than the system one, i.e. if a dependency change undid the hardening.
+      - name: Smoke test FIPS image
+        run: |
+          set -euo pipefail
+          VER="${{ needs.check.outputs.version }}"
+          docker run --rm --entrypoint sh "${QUAY_REPO}:v${VER}-fips" /docker/fips/smoketest.sh
+
+      # A failure here blocks the release but doesn't start Security autofix
+      # (the recover job only follows the scan of Dockerfile): autofix fixes
+      # Dockerfile's dependencies, not Dockerfile.fips's, so fix it by hand.
+      - name: Scan FIPS image with Trivy (blocks the release on CRITICAL/HIGH)
+        id: scan_fips
+        uses: ./.github/actions/trivy-scan
+        with:
+          image: ${{ env.QUAY_REPO }}:v${{ needs.check.outputs.version }}-fips
+          report: ${{ runner.temp }}/trivy-report-fips.json
+
       # Last check before anything leaves the runner. The concurrency group
       # above already serializes release runs, but a manual re-run of an old
       # workflow run, or a run started before the group was in place, is not
@@ -175,20 +209,24 @@ jobs:
         run: |
           set -euo pipefail
           VER="${{ needs.check.outputs.version }}"
-          if docker manifest inspect "${QUAY_REPO}:v${VER}" >/dev/null 2>&1; then
-            echo "::error::${QUAY_REPO}:v${VER} is already published."
-            echo "Refusing to overwrite it with a different build."
-            echo "Bump __version__ to cut a new release."
-            exit 1
-          fi
-          echo "${QUAY_REPO}:v${VER} is unclaimed; publishing."
+          for TAG in "v${VER}" "v${VER}-fips"; do
+            if docker manifest inspect "${QUAY_REPO}:${TAG}" >/dev/null 2>&1; then
+              echo "::error::${QUAY_REPO}:${TAG} is already published."
+              echo "Refusing to overwrite it with a different build."
+              echo "Bump __version__ to cut a new release."
+              exit 1
+            fi
+            echo "${QUAY_REPO}:${TAG} is unclaimed; publishing."
+          done
 
-      - name: Push image to Quay (version tag)
+      - name: Push images to Quay (version tags)
         run: |
           set -euo pipefail
           VER="${{ needs.check.outputs.version }}"
           docker push "${QUAY_REPO}:v${VER}"
           echo "Pushed ${QUAY_REPO}:v${VER}"
+          docker push "${QUAY_REPO}:v${VER}-fips"
+          echo "Pushed ${QUAY_REPO}:v${VER}-fips"
 
       # -------- PYPI (no helper actions) --------
       - name: Upload to PyPI with twine

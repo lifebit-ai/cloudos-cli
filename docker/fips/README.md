@@ -35,7 +35,11 @@ So 3.13 is the newest Python that keeps every hash and HMAC path inside the FIPS
 - No `SECURITY_REFRESH` layer yet: build with `--no-cache` (or add the same final `dnf upgrade --exclude='openssl-fips-provider*'` layer) so cached builds still pick up OS security fixes.
 
 ## Publishing
-`release.yml` and `image-scan.yml` only build `Dockerfile`. To publish `<version>-fips` tags, add a build of `Dockerfile.fips` to them (same scan gate), once the image has passed a functional run on a FIPS host.
+Every release publishes both images: `quay.io/lifebitaiorg/cloudos-cli:v<version>` from `Dockerfile` and `quay.io/lifebitaiorg/cloudos-cli:v<version>-fips` from `Dockerfile.fips`. `release.yml` builds both, runs `docker/fips/smoketest.sh` in the FIPS image, scans both with the same Trivy gate, and pushes nothing unless all of it passes. `:latest` stays the `Dockerfile` image.
+
+A Trivy failure in the FIPS image blocks the release but doesn't start Security autofix, which only fixes `Dockerfile`'s dependencies: fix `Dockerfile.fips` by hand. On every PR, the `scan-fips` job of `image-scan.yml` runs the same build, smoke test and scan, so it's caught there first.
+
+GitHub's runners aren't in FIPS mode, so CI can't show that MD5 is refused. Check that on a FIPS-enabled host with `scripts/fips/fips-scan` from `lifebit-ai/ADAPT-docker-containers`, when `Dockerfile.fips` or its base changes.
 
 ## Validation
 See the PR that added this file for the FIPS scan (`scripts/fips/fips-scan` from `ADAPT-docker-containers`, on a FIPS-enabled host), Trivy and network results.
