@@ -194,10 +194,12 @@ jobs:
     permissions:
       contents: read
     steps:
+      # The default ref (the PR's merge commit, or the dispatched branch), not
+      # the PR branch by name as in the scan job: this job never pushes, and
+      # naming a ref from the event would let CodeQL's cache-poisoning check
+      # (and an attacker) pick which code runs here.
       - uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-          ref: ${{ github.head_ref || github.ref_name }}
           persist-credentials: false
 
       - name: Build FIPS image
