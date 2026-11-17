@@ -9,8 +9,9 @@
 #
 # The base is UBI 10.3, pinned by digest, because its OpenSSL FIPS provider (openssl-fips-provider-3.0.7-11.el10_2) is
 # module version 3.0.7-cda111b5812c30d4, the one on CMVP certificate #5573 (FIPS 140-3, active; it replaced #4857).
-# The certificate's tested operational environments are RHEL 9; Red Hat lists RHEL 10 as "Pending Operational
-# Environment update", so on UBI 10 it is the validated module binary, not yet a validated configuration. The UBI
+# The certificate's tested operational environments are RHEL 9 only. Red Hat's FIPS page marks the older RHEL 10.0
+# provider as "Pending Operational Environment update" and lists RHEL 10.2 as TBD, so validation on UBI 10 is
+# unconfirmed: this is the validated module binary, not a validated configuration. The UBI
 # repositories only carry the newest provider build, which may not be on a certificate yet, so every other package is
 # upgraded (security fixes) but the FIPS provider is kept. Move to a newer base once Red Hat's certificate covers its
 # provider.

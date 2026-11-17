@@ -25,6 +25,10 @@ refused = {
     "hashlib.new('md5')": lambda: hashlib.new("md5", b"x"),
     "hmac md5": lambda: hmac.new(b"k", b"x", "md5"),
     "hashlib.blake2b": lambda: hashlib.blake2b(b"x"),
+    "hashlib.new('blake2b')": lambda: hashlib.new("blake2b", b"x"),
+    # These OpenSSL names bypass hashlib's _blake2 lookup and go to _hashlib, which must refuse them in FIPS mode.
+    "hashlib.new('blake2b512')": lambda: hashlib.new("blake2b512", b"x"),
+    "hashlib.new('blake2s256')": lambda: hashlib.new("blake2s256", b"x"),
 }
 for name, call in refused.items():
     try:
