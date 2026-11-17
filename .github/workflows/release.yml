@@ -138,10 +138,11 @@ jobs:
             -t "${QUAY_REPO}:v${VER}" .
 
       # The image is the FIPS build (see docker/fips/README.md). The runner
-      # isn't in FIPS mode, so this can't show that MD5 is refused (that
-      # needs a FIPS-enabled host). It does fail the release if the CLI
-      # doesn't start, or if Python loads any libcrypto other than the
-      # system one, i.e. if a dependency change undid the FIPS hardening.
+      # isn't a FIPS host, so the smoke test forces FIPS mode
+      # (OPENSSL_FORCE_FIPS_MODE=1). It fails the release if the CLI doesn't
+      # start, if Python loads any libcrypto other than the system one, if
+      # the certified provider is missing, or if MD5 or BLAKE2 still work,
+      # i.e. if a dependency change undid the FIPS hardening.
       - name: Smoke test image (FIPS hardening intact)
         run: |
           set -euo pipefail

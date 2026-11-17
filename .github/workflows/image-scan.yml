@@ -99,10 +99,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           .github/scripts/autofix_loop.sh
 
-      # Same check as the release: the CLI starts and Python only loads the
-      # system libcrypto (the runner isn't in FIPS mode, so MD5 refusal isn't
-      # tested here). Before the push, so fixes that undo the FIPS hardening
-      # (e.g. a different conda openssl) never reach the branch.
+      # Same check as the release: the CLI starts, Python only loads the
+      # system libcrypto, and in forced FIPS mode (OPENSSL_FORCE_FIPS_MODE=1,
+      # the runner isn't a FIPS host) MD5 and BLAKE2 are refused. Before the
+      # push, so fixes that undo the FIPS hardening (e.g. a different conda
+      # openssl) never reach the branch. autofix_loop.sh leaves $IMAGE on the
+      # last kept round, so this tests the commit that will be pushed.
       - name: Smoke test image (FIPS hardening intact)
         if: steps.loop.outcome == 'success'
         run: docker run --rm --entrypoint sh "$IMAGE" /docker/fips/smoketest.sh

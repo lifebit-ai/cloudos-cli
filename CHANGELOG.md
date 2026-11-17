@@ -4,8 +4,8 @@
 
 ### Feat:
 
-- The Docker image (`quay.io/lifebitaiorg/cloudos-cli:v2.101.0` and `:latest`) is now built for FIPS: every HTTPS call the CLI makes goes through a FIPS 140-3 validated OpenSSL module (CMVP #4857) when the host is in FIPS mode. On other hosts it works as before. See `docker/fips/README.md`
-- `docker/fips/smoketest.sh` checks the image: the CLI starts, and Python only loads the system `libcrypto`. The release and the PR image scan run it, so a dependency change that undoes the FIPS hardening can't ship
+- The Docker image (`quay.io/lifebitaiorg/cloudos-cli:v2.101.0` and `:latest`) is now built for FIPS: every HTTPS call the CLI makes goes through Red Hat's OpenSSL FIPS provider when the host is in FIPS mode: the module version on FIPS 140-3 certificate CMVP #4857, whose tested environments are RHEL 9 (RHEL 10 is pending at Red Hat). On other hosts it works as before. See `docker/fips/README.md`
+- `docker/fips/smoketest.sh` checks the image in forced FIPS mode (`OPENSSL_FORCE_FIPS_MODE=1`): the CLI starts, Python only loads the system `libcrypto`, the certified provider is installed and loads, and MD5, HMAC-MD5 and BLAKE2 are refused. The release and the PR image scan run it, so a dependency change that undoes the FIPS hardening fails the build
 
 ### Breaking (Docker image only):
 
