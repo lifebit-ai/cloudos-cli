@@ -31,7 +31,7 @@ CHANGELOG = Path("CHANGELOG.md")
 
 SYSTEM_PROMPT = """\
 You fix vulnerabilities in the Docker image of lifebit-ai/cloudos-cli, a Python CLI.
-The image is Red Hat UBI 10.1 built for FIPS, with Miniforge in /opt/conda.
+The image is Red Hat UBI 10.3 built for FIPS, with Miniforge in /opt/conda.
 `conda env update` installs environment.yml into /opt/conda, then `pip install -e /`
 installs the CLI from setup.py. The conda environment's OpenSSL is replaced by the
 system one, so conda's `openssl` and `python` are pinned (OPENSSL_PIN and

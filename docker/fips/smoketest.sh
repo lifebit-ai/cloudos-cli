@@ -6,7 +6,9 @@ set -e
 # CI runners aren't FIPS hosts. RHEL's libcrypto treats OPENSSL_FORCE_FIPS_MODE=1 like a kernel with fips_enabled=1,
 # so the checks below run in FIPS mode on any host.
 export OPENSSL_FORCE_FIPS_MODE=1
-rpm -q openssl-fips-provider-3.0.7-8.el10 >/dev/null
+rpm -q openssl-fips-provider-3.0.7-11.el10_2 >/dev/null
+# The module version on CMVP certificate #5573.
+grep -qa 3.0.7-cda111b5812c30d4 /usr/lib64/ossl-modules/fips.so
 ps --version
 cloudos --version
 python -c 'import cloudos_cli, requests, click, rich_click, pandas, numpy'
@@ -15,6 +17,7 @@ python - <<'PY'
 import _hashlib, hashlib, hmac, importlib.util
 assert _hashlib.get_fips_mode() == 1, "not in FIPS mode"
 assert importlib.util.find_spec("_blake2") is None, "CPython's built-in _blake2 is still there"
+assert importlib.util.find_spec("_crypt") is None, "CPython's _crypt (libxcrypt) is still there"
 hashlib.sha256(b"x")
 hmac.new(b"k", b"x", "sha256")
 refused = {
@@ -33,5 +36,6 @@ PY
 python -c 'import _hashlib, ssl, urllib3; print(open("/proc/self/maps").read())' | grep libcrypto > /tmp/maps
 test -s /tmp/maps
 test -z "$(grep -v ' /usr/lib64/libcrypto' /tmp/maps)"
-test -z "$(find / -xdev -type f \( -name "libcrypto.so*" -o -name "libssl.so*" \) ! -path "/usr/lib64/*" 2>/dev/null)"
+# Any libcrypto/libssl outside /usr/lib64 itself, including wheel-style libcrypto-<hash>.so and /usr/lib64 subdirectories.
+test -z "$(find / -xdev -type f \( -name "libcrypto*.so*" -o -name "libssl*.so*" \) ! -regex "/usr/lib64/[^/]*" 2>/dev/null)"
 echo "smoketest: OK"

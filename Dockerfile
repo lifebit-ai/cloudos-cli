@@ -7,13 +7,14 @@
 # points the conda environment to the system OpenSSL: every HTTPS call the CLI makes (requests/urllib3) then goes
 # through the FIPS module. See docker/fips/README.md.
 #
-# The base is UBI 10.1, pinned by digest, because its OpenSSL FIPS provider (openssl-fips-provider-3.0.7-8.el10) is the
-# module version on CMVP certificate #4857 (3.0.7-395c1a240fbfffd8). The certificate's tested operational environments
-# are RHEL 9; Red Hat lists RHEL 10 as "Pending Operational Environment update", so on UBI 10 it is the validated
-# module binary, not yet a validated configuration. Newer UBI 10 releases ship a provider build that isn't on a
-# certificate at all, and the UBI repositories only carry the newest build. So every other package is upgraded
-# (security fixes), but the FIPS provider is kept. Move to a newer base once Red Hat's certificate covers its provider.
-FROM registry.access.redhat.com/ubi10/ubi:10.1@sha256:15f0a6e2b448ac7aa24425c9ab541e6402dc32b782844a285ccaeffb1c938fe1
+# The base is UBI 10.3, pinned by digest, because its OpenSSL FIPS provider (openssl-fips-provider-3.0.7-11.el10_2) is
+# module version 3.0.7-cda111b5812c30d4, the one on CMVP certificate #5573 (FIPS 140-3, active; it replaced #4857).
+# The certificate's tested operational environments are RHEL 9; Red Hat lists RHEL 10 as "Pending Operational
+# Environment update", so on UBI 10 it is the validated module binary, not yet a validated configuration. The UBI
+# repositories only carry the newest provider build, which may not be on a certificate yet, so every other package is
+# upgraded (security fixes) but the FIPS provider is kept. Move to a newer base once Red Hat's certificate covers its
+# provider.
+FROM registry.access.redhat.com/ubi10/ubi:10.3@sha256:73ea54bfbfb586075bd3d45df6483a7f68875233c8cc7cebcf9b2bb42306c308
 
 LABEL name="quay.io/lifebitaiorg/cloudos-cli" \
       description="The cloudos-cli docker container" \
@@ -43,7 +44,7 @@ ENV PATH="${CONDA_DIR}/bin:${PATH}"
 RUN dnf upgrade -y --exclude='openssl-fips-provider*' \
     && dnf install -y --setopt=install_weak_deps=0 --exclude='openssl-fips-provider*' \
       procps-ng-4.0.4 \
-    && rpm -q openssl-fips-provider-3.0.7-8.el10 openssl-fips-provider-so-3.0.7-8.el10 \
+    && rpm -q openssl-fips-provider-3.0.7-11.el10_2 openssl-fips-provider-so-3.0.7-11.el10_2 \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
@@ -97,7 +98,7 @@ RUN find /opt/conda \( -path "*/pip/_vendor/vendor.txt" \
 # Make the environments use the system (FIPS-capable) OpenSSL, and trust the system CA bundle. Last, because any later
 # conda install would restore conda's OpenSSL. Both base and, with --build-arg ENV_NAME=<name>, the environment the CLI
 # is installed in (first on PATH). Copied from lifebit-ai/ADAPT-docker-containers containers/etl_ingest/4.0.0-fips
-# (lifebit-ai/vscode fips-builds/base/bin 1d7f3fa1804b, via report_etl, plus the removal of _blake2).
+# (lifebit-ai/vscode fips-builds/base/bin 1d7f3fa1804b, via report_etl, plus the removal of _blake2 and _crypt).
 COPY docker/fips/fips-harden-conda-env /usr/local/bin/fips-harden-conda-env
 RUN chmod 755 /usr/local/bin/fips-harden-conda-env \
     && envs="${CONDA_DIR}" \
@@ -113,7 +114,7 @@ RUN chmod 755 /usr/local/bin/fips-harden-conda-env \
 # --build-arg SECURITY_REFRESH=$(date +%s). The FIPS provider stays excluded, and the build fails if it changed.
 ARG SECURITY_REFRESH=1
 RUN dnf upgrade -y --exclude='openssl-fips-provider*' \
-    && rpm -q openssl-fips-provider-3.0.7-8.el10 openssl-fips-provider-so-3.0.7-8.el10 \
+    && rpm -q openssl-fips-provider-3.0.7-11.el10_2 openssl-fips-provider-so-3.0.7-11.el10_2 \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 

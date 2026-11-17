@@ -5,7 +5,8 @@
 # implementations when OpenSSL rejects an algorithm. Both bypass FIPS mode, so this script:
 #   1. points the environment's libssl/libcrypto to the system ones. Symlinks rather than deleting them, so that
 #      both the runtime loader and conda's compilers (which don't search /usr/lib64) resolve the system library;
-#   2. removes CPython's built-in md5/sha*/blake2 modules, so hashing always goes through OpenSSL;
+#   2. removes CPython's built-in md5/sha*/blake2 modules, so hashing always goes through OpenSSL, and _crypt,
+#      which wraps libxcrypt's own DES/MD5/SHA-crypt;
 #   3. patches hashlib so that an algorithm rejected by OpenSSL raises an error when used, instead of logging a
 #      traceback on every `import hashlib`.
 #
@@ -34,6 +35,9 @@ rm -rf "$prefix"/lib/ossl-modules
 for module in _md5 _sha1 _sha2 _sha256 _sha512 _sha3 _blake2; do
   rm -f "$stdlib"/lib-dynload/"$module".cpython-*.so
 done
+# _crypt wraps libxcrypt (conda's libcrypt.so.2), which implements DES/MD5/SHA-crypt itself and ignores FIPS mode.
+# The crypt module is deprecated (PEP 594) and gone from Python 3.13, where there is nothing to remove.
+rm -f "$stdlib"/lib-dynload/_crypt.cpython-*.so
 
 "$python" - "$stdlib/hashlib.py" <<'PY'
 import sys
