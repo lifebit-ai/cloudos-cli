@@ -442,3 +442,28 @@ class TestDateFormatting:
             
         finally:
             sys.stdout = sys.__stdout__
+
+
+class TestJobDetailsEnvironmentVariables:
+    """'job details' shows the Nextflow environment variables a job ran with."""
+
+    @staticmethod
+    def _details(tmp_path, environment_variables):
+        import json
+        with open('tests/test_data/get_job_details.json') as f:
+            job = json.load(f)
+        if environment_variables is not None:
+            job['environmentVariables'] = environment_variables
+        from cloudos_cli.utils.details import create_job_details
+        basename = str(tmp_path / 'details')
+        create_job_details(job, job['_id'], 'json', basename, parameters=False)
+        with open(f'{basename}.json') as f:
+            return json.load(f)
+
+    def test_environment_variables_are_shown(self, tmp_path):
+        details = self._details(tmp_path, [{'name': 'NXF_SYNTAX_PARSER', 'value': 'v2'}])
+        assert details['Environment Variables'] == 'NXF_SYNTAX_PARSER=v2'
+
+    def test_no_environment_variables_no_row(self, tmp_path):
+        details = self._details(tmp_path, None)
+        assert 'Environment Variables' not in details

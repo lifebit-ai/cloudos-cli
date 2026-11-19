@@ -19,7 +19,7 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     ],
-    python_requires='>=3.9',
+    python_requires='>=3.11',
     entry_points={"console_scripts": [
         "cloudos=cloudos_cli.__main__:run_cloudos_cli"
     ]},
