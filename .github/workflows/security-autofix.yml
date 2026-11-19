@@ -133,7 +133,7 @@ jobs:
       # - fix: the model changed dependency files to fix the fresh build.
       # - rebuild: the fresh build is already clean but the newest release
       #   is not (typically OS packages patched since it was built, which the
-      #   build's apt-get upgrade picks up). Only a new release replaces the
+      #   build's dnf upgrade picks up). Only a new release replaces the
       #   versioned image, so the PR is a version bump. Only on the branch
       #   whose version is that release: bumping an older branch would not
       #   replace it. Not needed while a release is pending: that release

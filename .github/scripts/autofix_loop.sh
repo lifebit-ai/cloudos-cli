@@ -20,13 +20,19 @@ mkdir -p "$AUTOFIX_DIR"
 count() { jq '[.Results[]?.Vulnerabilities[]?] | length' "$1"; }
 
 # Same build as the release, so the scan sees what the release would ship.
+# build <log> <tag>
 build() {
-  docker build -f Dockerfile --build-arg SECURITY_REFRESH="$(date +%s)" -t "$IMAGE" . >"$1" 2>&1
+  docker build -f Dockerfile --build-arg SECURITY_REFRESH="$(date +%s)" -t "$2" . >"$1" 2>&1
 }
+
+# Each round builds into its own tag, and only a round that is kept moves $IMAGE to it. So when this script ends,
+# $IMAGE is always the image of the commit it leaves checked out, even if the last round was rolled back, and the
+# workflow's later steps (the smoke test) test what will be pushed.
+candidate="${IMAGE}-candidate"
 
 start_sha=$(git rev-parse HEAD)
 
-if ! build "$AUTOFIX_DIR/build-0.log"; then
+if ! build "$AUTOFIX_DIR/build-0.log" "$IMAGE"; then
   tail -50 "$AUTOFIX_DIR/build-0.log"
   echo "::error::The image does not build from this commit, so there is nothing to scan."
   exit 1
@@ -66,14 +72,15 @@ while [ "$remaining" -gt 0 ] && [ "$round" -le "$MAX_ROUNDS" ]; do
   fi
   git --no-pager diff
 
-  if build "$AUTOFIX_DIR/build-$round.log"; then
-    "$scan" "$IMAGE" "$AUTOFIX_DIR/round-$round.json"
+  if build "$AUTOFIX_DIR/build-$round.log" "$candidate"; then
+    "$scan" "$candidate" "$AUTOFIX_DIR/round-$round.json"
     after=$(count "$AUTOFIX_DIR/round-$round.json")
     # Keep a round only if it reduced the findings: an edit that builds but
     # fixes nothing would otherwise be committed, pushed and put in a PR.
     if [ "$after" -lt "$remaining" ]; then
       python "$autofix" record --history "$history" --build ok --report "$AUTOFIX_DIR/round-$round.json"
       git commit -qam "Security autofix: round $round"
+      docker tag "$candidate" "$IMAGE"
       last="$AUTOFIX_DIR/round-$round.json"
       remaining=$after
       echo "After round $round: $remaining finding(s) left"
