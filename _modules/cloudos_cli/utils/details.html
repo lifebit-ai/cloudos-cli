@@ -262,6 +262,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html">cloudos_cli.utils.cli_helpers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.environment_variables.html">cloudos_cli.utils.environment_variables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.nextflow_version.html">cloudos_cli.utils.nextflow_version</a></li>
@@ -324,6 +325,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html">cloudos_cli.utils.cli_helpers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.environment_variables.html">cloudos_cli.utils.environment_variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.nextflow_version.html">cloudos_cli.utils.nextflow_version</a></li>
@@ -683,6 +685,10 @@
                                          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">j_details_h</span><span class="p">[</span><span class="s1">'resourceRequirements'</span><span class="p">][</span><span class="s1">'ram'</span><span class="p">])</span><span class="si">}</span><span class="s2"> GB RAM"</span>
     <span class="n">job_details_json</span><span class="p">[</span><span class="s2">"Pipeline url"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipeline_url</span>
     <span class="n">job_details_json</span><span class="p">[</span><span class="s2">"Nextflow Version"</span><span class="p">]</span> <span class="o">=</span> <span class="n">nextflow_version</span>
+    <span class="n">environment_variables</span> <span class="o">=</span> <span class="n">j_details_h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"environmentVariables"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">environment_variables</span><span class="p">:</span>
+        <span class="n">job_details_json</span><span class="p">[</span><span class="s2">"Environment Variables"</span><span class="p">]</span> <span class="o">=</span> <span class="s1">';'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">env_var</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span><span class="si">}</span><span class="s1">=</span><span class="si">{</span><span class="n">env_var</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"value"</span><span class="p">)</span><span class="si">}</span><span class="s1">'</span> <span class="k">for</span> <span class="n">env_var</span> <span class="ow">in</span> <span class="n">environment_variables</span><span class="p">)</span>
     <span class="n">job_details_json</span><span class="p">[</span><span class="s2">"Execution Platform"</span><span class="p">]</span> <span class="o">=</span> <span class="n">execution_platform</span>
     <span class="n">job_details_json</span><span class="p">[</span><span class="s2">"Accelerated File Staging"</span><span class="p">]</span> <span class="o">=</span> <span class="n">accelerated_file_staging</span>
     <span class="n">job_details_json</span><span class="p">[</span><span class="s2">"Parameters"</span><span class="p">]</span> <span class="o">=</span> <span class="s1">';'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">concat_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">))</span>
@@ -702,7 +708,7 @@
         <span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">"Value"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"magenta"</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="s2">"fold"</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">job_details_json</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">"Parameters"</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"Parameters"</span><span class="p">,</span> <span class="s2">"Environment Variables"</span><span class="p">):</span>
                 <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">";"</span><span class="p">)))</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">"ID"</span><span class="p">:</span>
                 <span class="c1"># Add hyperlink to job ID</span>

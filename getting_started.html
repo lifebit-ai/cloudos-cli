@@ -263,6 +263,7 @@
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.cli_helpers.html">cloudos_cli.utils.cli_helpers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.environment_variables.html">cloudos_cli.utils.environment_variables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
 <li class="toctree-l4"><a class="reference internal" href="_autosummary/cloudos_cli.utils.nextflow_version.html">cloudos_cli.utils.nextflow_version</a></li>
@@ -325,6 +326,7 @@
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.cli_helpers.html">cloudos_cli.utils.cli_helpers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.environment_variables.html">cloudos_cli.utils.environment_variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/cloudos_cli.utils.nextflow_version.html">cloudos_cli.utils.nextflow_version</a></li>
@@ -531,7 +533,7 @@
 <hr class="docutils" />
 <section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
-<p>CloudOS CLI requires Python 3.9 or higher and several key dependencies for API communication, data processing, and user interface functionality.</p>
+<p>CloudOS CLI requires Python 3.11 or higher and several key dependencies for API communication, data processing, and user interface functionality.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">click</span><span class="o">&gt;=</span><span class="mf">8.0.1</span>
 <span class="n">pandas</span><span class="o">&gt;=</span><span class="mf">1.3.4</span>
 <span class="n">numpy</span><span class="o">&gt;=</span><span class="mf">1.26.4</span>
@@ -569,7 +571,7 @@
 </section>
 <section id="from-github">
 <h3>From Github<a class="headerlink" href="#from-github" title="Link to this heading">¶</a></h3>
-<p>You will need Python &gt;= 3.9 and pip installed.</p>
+<p>You will need Python &gt;= 3.11 and pip installed.</p>
 <p>Clone the repo and install it using pip:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/lifebit-ai/cloudos-cli
 <span class="nb">cd</span><span class="w"> </span>cloudos-cli
@@ -1055,6 +1057,35 @@ cloudos<span class="w"> </span>workflow<span class="w"> </span>import<span class
 <div><p>[!NOTE]
 <strong>Azure Platform Behavior</strong>: If you specify a Nextflow version not supported by Azure (anything other than 22.11.1-edge), CloudOS CLI will display a warning and automatically use 22.11.1-edge instead. Your job will proceed without error.</p>
 </div></blockquote>
+<p><strong>Nextflow Runtime Environment Variables</strong></p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">--environment-variable</span> <span class="pre">NAME=VALUE</span></code> to export a Nextflow runtime environment variable in the job’s head node before <code class="docutils literal notranslate"><span class="pre">nextflow</span> <span class="pre">run</span></code>. Unlike <code class="docutils literal notranslate"><span class="pre">--parameter</span></code>, these are real environment variables that Nextflow reads at startup. You can use the option several times.</p>
+<p>Only Nextflow workflows support environment variables, and only the following ones:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Requires</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NXF_SYNTAX_PARSER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">v1</span></code> (legacy parser), <code class="docutils literal notranslate"><span class="pre">v2</span></code> (strict syntax parser)</p></td>
+<td><p>Nextflow 25.04.0 or later (<code class="docutils literal notranslate"><span class="pre">--nextflow-version</span> <span class="pre">25.04.8</span></code> or <code class="docutils literal notranslate"><span class="pre">25.10.4</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>For example, to run a pipeline written in the Nextflow strict syntax:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cloudos<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>--profile<span class="w"> </span>my_profile<span class="w"> </span>--workflow-name<span class="w"> </span>my-strict-pipeline<span class="w"> </span>--nextflow-version<span class="w"> </span><span class="m">25</span>.10.4<span class="w"> </span>--environment-variable<span class="w"> </span><span class="nv">NXF_SYNTAX_PARSER</span><span class="o">=</span>v2
+</pre></div>
+</div>
+<p>The CLI checks the variables before submitting the job and stops with an error if a name is not supported, a value is not allowed or the Nextflow version is too old. In practice:</p>
+<ul class="simple">
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">--nextflow-version</span></code> to 25.04.8 or later. User-imported workflows default to 24.04.4, so without <code class="docutils literal notranslate"><span class="pre">--nextflow-version</span></code> the job is rejected.</p></li>
+<li><p>Azure (22.11.1-edge only), HPC (22.10.8 only) and Lifebit Platform Workflows (22.10.8) can’t use <code class="docutils literal notranslate"><span class="pre">NXF_SYNTAX_PARSER</span></code>.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">cloudos</span> <span class="pre">job</span> <span class="pre">details</span></code> shows the environment variables a job ran with.</p>
 <p><strong>AWS Executor Support</strong></p>
 <p>Lifebit Platform supports <a class="reference external" href="https://www.nextflow.io/docs/latest/executor.html?highlight=executors#aws-batch">AWS batch</a> executor by default.
 You can specify the AWS batch queue to use from the ones available in your workspace (see <a class="reference internal" href="#list-job-queues"><span class="xref myst">here</span></a>) by specifying its name with the <code class="docutils literal notranslate"><span class="pre">--job-queue</span></code> parameter. If none is specified, the most recent suitable queue in your workspace will be selected by default.</p>
@@ -1380,6 +1411,7 @@ Only jobs initially run with <code class="docutils literal notranslate"><span cl
 <li><p><code class="docutils literal notranslate"><span class="pre">--instance-type</span></code>: Change the master instance type</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--job-name</span></code>: Assign a custom name to the cloned/resumed job</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--nextflow-version</span></code>: Use a different Nextflow version</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--environment-variable</span></code>: Override or add a Nextflow runtime environment variable, e.g. <code class="docutils literal notranslate"><span class="pre">--environment-variable</span> <span class="pre">NXF_SYNTAX_PARSER=v2</span></code> (can be used multiple times, see <a class="reference internal" href="#submit-a-job"><span class="xref myst">Nextflow Runtime Environment Variables</span></a>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--git-branch</span></code>: Switch to a different git branch</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--nextflow-profile</span></code>: Change the Nextflow profile</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--do-not-save-logs</span></code>: Enable/disable log saving</p></li>
@@ -1390,6 +1422,10 @@ Only jobs initially run with <code class="docutils literal notranslate"><span cl
 <blockquote>
 <div><p>[!NOTE]
 Parameters can be overridden or new ones can be added using <code class="docutils literal notranslate"><span class="pre">-p</span></code> option</p>
+</div></blockquote>
+<blockquote>
+<div><p>[!NOTE]
+Cloned and resumed jobs keep the environment variables of the original job. If you change <code class="docutils literal notranslate"><span class="pre">--nextflow-version</span></code> to a version that doesn’t support one of them (e.g. <code class="docutils literal notranslate"><span class="pre">NXF_SYNTAX_PARSER</span></code> with a version below 25.04.0), the command stops with an error before submitting the job.</p>
 </div></blockquote>
 </section>
 <section id="abort-jobs">
@@ -3263,6 +3299,16 @@ status from inside a python script.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">j_id</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">send_job</span><span class="p">(</span><span class="n">job_config</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>To set a Nextflow runtime environment variable, pass <code class="docutils literal notranslate"><span class="pre">environment_variable</span></code> as a tuple of
+<code class="docutils literal notranslate"><span class="pre">'NAME=VALUE'</span></code> strings, together with a Nextflow version that supports it (see
+<a class="reference internal" href="#submit-a-job"><span class="xref myst">Nextflow Runtime Environment Variables</span></a>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">j_id</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">send_job</span><span class="p">(</span><span class="n">job_config</span><span class="p">,</span>
+                  <span class="n">nextflow_version</span><span class="o">=</span><span class="s1">'25.10.4'</span><span class="p">,</span>
+                  <span class="n">environment_variable</span><span class="o">=</span><span class="p">(</span><span class="s1">'NXF_SYNTAX_PARSER=v2'</span><span class="p">,))</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">send_job</span></code> raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> and does not submit the job if a variable is not supported,
+its value is not allowed or the Nextflow version is too old.</p>
 <p>To check the status:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">j_status</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">(</span><span class="n">j_id</span><span class="p">,</span> <span class="n">workspace_id</span><span class="p">)</span>
 <span class="n">j_status_h</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">j_status</span><span class="o">.</span><span class="n">content</span><span class="p">)[</span><span class="s2">"status"</span><span class="p">]</span>

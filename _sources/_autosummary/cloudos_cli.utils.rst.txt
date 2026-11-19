@@ -14,6 +14,7 @@ cloudos\_cli.utils
    cli_helpers
    cloud
    details
+   environment_variables
    errors
    last_wf
    nextflow_version

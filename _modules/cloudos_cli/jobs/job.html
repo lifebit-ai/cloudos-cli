@@ -262,6 +262,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html">cloudos_cli.utils.cli_helpers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.environment_variables.html">cloudos_cli.utils.environment_variables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.nextflow_version.html">cloudos_cli.utils.nextflow_version</a></li>
@@ -324,6 +325,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cli_helpers.html">cloudos_cli.utils.cli_helpers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.cloud.html">cloudos_cli.utils.cloud</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.details.html">cloudos_cli.utils.details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.environment_variables.html">cloudos_cli.utils.environment_variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.errors.html">cloudos_cli.utils.errors</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.last_wf.html">cloudos_cli.utils.last_wf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/cloudos_cli.utils.nextflow_version.html">cloudos_cli.utils.nextflow_version</a></li>
@@ -388,6 +390,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.array_job</span><span class="w"> </span><span class="kn">import</span> <span class="n">classify_pattern</span><span class="p">,</span> <span class="n">get_file_or_folder_id</span><span class="p">,</span> <span class="n">extract_project</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudos_cli.utils.environment_variables</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">parse_environment_variables</span><span class="p">,</span>
+    <span class="n">merge_environment_variables</span><span class="p">,</span>
+    <span class="n">validate_environment_variables</span>
+<span class="p">)</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
@@ -877,7 +884,8 @@
                                  <span class="n">docker_login</span><span class="p">,</span>
                                  <span class="n">command</span><span class="p">,</span>
                                  <span class="n">cpus</span><span class="p">,</span>
-                                 <span class="n">memory</span><span class="p">):</span>
+                                 <span class="n">memory</span><span class="p">,</span>
+                                 <span class="n">environment_variable</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Converts a job config file into a json formatted dict.</span>
 
 <span class="sd">        Parameters</span>
@@ -962,13 +970,20 @@
 <span class="sd">            The number of CPUs to use for the bash jobs task's master node.</span>
 <span class="sd">        memory : int</span>
 <span class="sd">            The amount of memory, in GB, to use for the bash job task's master node.</span>
-
+<span class="sd">        environment_variable : tuple, optional</span>
+<span class="sd">            Nextflow runtime environment variables to export before `nextflow run`, in the</span>
+<span class="sd">            form ('NXF_SYNTAX_PARSER=v2',). Only supported for Nextflow workflows.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        params : dict</span>
 <span class="sd">            A JSON formatted dict.</span>
 <span class="sd">        """</span>
+        <span class="n">environment_variables</span> <span class="o">=</span> <span class="n">parse_environment_variables</span><span class="p">(</span><span class="n">environment_variable</span><span class="p">)</span>
+        <span class="n">validate_environment_variables</span><span class="p">(</span><span class="n">environment_variables</span><span class="p">,</span> <span class="n">nextflow_version</span><span class="p">,</span>
+                                       <span class="n">workflow_type</span><span class="o">=</span><span class="n">workflow_type</span><span class="p">,</span>
+                                       <span class="n">execution_platform</span><span class="o">=</span><span class="n">execution_platform</span><span class="p">,</span>
+                                       <span class="n">is_module</span><span class="o">=</span><span class="n">is_module</span><span class="p">)</span>
         <span class="n">workflow_params</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">==</span> <span class="s1">'wdl'</span><span class="p">:</span>
             <span class="c1"># This is required as non-resumable jobs fails always using WDL workflows.</span>
@@ -1046,6 +1061,8 @@
             <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params_file_payload</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">workflow_type</span> <span class="o">!=</span> <span class="s1">'docker'</span><span class="p">:</span>
             <span class="n">params</span><span class="p">[</span><span class="s2">"nextflowVersion"</span><span class="p">]</span> <span class="o">=</span> <span class="n">nextflow_version</span>
+        <span class="k">if</span> <span class="n">environment_variables</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">"environmentVariables"</span><span class="p">]</span> <span class="o">=</span> <span class="n">environment_variables</span>
         <span class="k">if</span> <span class="n">execution_platform</span> <span class="o">!=</span> <span class="s1">'hpc'</span><span class="p">:</span>
             <span class="n">params</span><span class="p">[</span><span class="s1">'masterInstance'</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">"requestedInstance"</span><span class="p">:</span> <span class="p">{</span>
@@ -1128,7 +1145,8 @@
                  <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                  <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">cpus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">memory</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+                 <span class="n">memory</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                 <span class="n">environment_variable</span><span class="o">=</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">"""Send a job to Lifebit Platform.</span>
 
 <span class="sd">        Parameters</span>
@@ -1210,6 +1228,11 @@
 <span class="sd">            The number of CPUs to use for the bash jobs task's master node.</span>
 <span class="sd">        memory : int</span>
 <span class="sd">            The amount of memory, in GB, to use for the bash job task's master node.</span>
+<span class="sd">        environment_variable : tuple, optional</span>
+<span class="sd">            Nextflow runtime environment variables to export before `nextflow run`, in the</span>
+<span class="sd">            form ('NXF_SYNTAX_PARSER=v2',). Only supported for Nextflow workflows. Each name</span>
+<span class="sd">            must be supported for the selected nextflow_version, otherwise a ValueError is</span>
+<span class="sd">            raised and the job is not submitted.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1260,7 +1283,8 @@
                                                <span class="n">docker_login</span><span class="p">,</span>
                                                <span class="n">command</span><span class="o">=</span><span class="n">command</span><span class="p">,</span>
                                                <span class="n">cpus</span><span class="o">=</span><span class="n">cpus</span><span class="p">,</span>
-                                               <span class="n">memory</span><span class="o">=</span><span class="n">memory</span><span class="p">)</span>
+                                               <span class="n">memory</span><span class="o">=</span><span class="n">memory</span><span class="p">,</span>
+                                               <span class="n">environment_variable</span><span class="o">=</span><span class="n">environment_variable</span><span class="p">)</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">retry_requests_post</span><span class="p">(</span><span class="s2">"</span><span class="si">{}</span><span class="s2">/api/v2/jobs?teamId=</span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cloudos_url</span><span class="p">,</span>
                                                                   <span class="n">workspace_id</span><span class="p">),</span>
                                 <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">params</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
@@ -1712,7 +1736,8 @@
                   <span class="n">project_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                  <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                  <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">environment_variable</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Clone or resume an existing job with optional parameter overrides.</span>
 
 <span class="sd">        Parameters</span>
@@ -1753,12 +1778,17 @@
 <span class="sd">            the SSL certificate file.</span>
 <span class="sd">        mode : str, optional</span>
 <span class="sd">            The mode to use for the job (e.g. "clone", "resume").</span>
+<span class="sd">        environment_variable : tuple, optional</span>
+<span class="sd">            Nextflow runtime environment variable overrides in the form ('NXF_SYNTAX_PARSER=v2',).</span>
+<span class="sd">            Each one replaces the variable with the same name from the original job, or is added.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">            The Lifebit Platform job ID of the cloned/resumed job.</span>
 <span class="sd">        """</span>
+        <span class="c1"># Parse first so a malformed value fails before any API call</span>
+        <span class="n">environment_variable_overrides</span> <span class="o">=</span> <span class="n">parse_environment_variables</span><span class="p">(</span><span class="n">environment_variable</span><span class="p">)</span>
 
         <span class="c1"># Get the original job payload</span>
         <span class="n">original_payload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_job_request_payload</span><span class="p">(</span><span class="n">source_job_id</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
@@ -1880,6 +1910,23 @@
             <span class="k">if</span> <span class="n">resumable</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">"'resumable' option is not applicable when resuming a bash job, ignoring '--resumable' flag.</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 
+        <span class="c1"># Merge environment variable overrides into the ones of the original job, then check the</span>
+        <span class="c1"># result against the final Nextflow version (it may have been changed with --nextflow-version)</span>
+        <span class="n">environment_variables</span> <span class="o">=</span> <span class="n">merge_environment_variables</span><span class="p">(</span>
+            <span class="n">cloned_payload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'environmentVariables'</span><span class="p">),</span> <span class="n">environment_variable_overrides</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">environment_variables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">'command'</span> <span class="ow">in</span> <span class="n">cloned_payload</span><span class="p">:</span>
+                <span class="n">workflow_type</span> <span class="o">=</span> <span class="s1">'docker'</span>
+            <span class="k">elif</span> <span class="s1">'cromwellCloudResources'</span> <span class="ow">in</span> <span class="n">cloned_payload</span><span class="p">:</span>
+                <span class="n">workflow_type</span> <span class="o">=</span> <span class="s1">'wdl'</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">workflow_type</span> <span class="o">=</span> <span class="s1">'nextflow'</span>
+            <span class="n">validate_environment_variables</span><span class="p">(</span><span class="n">environment_variables</span><span class="p">,</span>
+                                           <span class="n">cloned_payload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'nextflowVersion'</span><span class="p">),</span>
+                                           <span class="n">workflow_type</span><span class="o">=</span><span class="n">workflow_type</span><span class="p">,</span>
+                                           <span class="n">execution_platform</span><span class="o">=</span><span class="n">cloned_payload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'executionPlatform'</span><span class="p">,</span> <span class="s1">'aws'</span><span class="p">))</span>
+            <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">'environmentVariables'</span><span class="p">]</span> <span class="o">=</span> <span class="n">environment_variables</span>
+
         <span class="c1"># Handle job queue override</span>
         <span class="k">if</span> <span class="n">queue_name</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">cloned_payload</span><span class="p">[</span><span class="s1">'executionPlatform'</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">'azure'</span><span class="p">:</span>
@@ -1967,11 +2014,12 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">fix_boolean_strings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Recursively convert string booleans ('True', 'False') into real booleans</span>
-<span class="sd">        inside dicts, lists, or nested structures. It excludes 'textValues' as they</span>
-<span class="sd">        have to remain as text even if the text is 'true'.</span>
+<span class="sd">        inside dicts, lists, or nested structures. It excludes 'textValues' and</span>
+<span class="sd">        'environmentVariables' as they have to remain as text even if the text is 'true'.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fix_boolean_strings</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s1">'textValue'</span> <span class="k">else</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fix_boolean_strings</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'textValue'</span><span class="p">,</span> <span class="s1">'environmentVariables'</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fix_boolean_strings</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
