@@ -15,7 +15,10 @@
 # repositories only carry the newest provider build, which may not be on a certificate yet, so every other package is
 # upgraded (security fixes) but the FIPS provider is kept. Move to a newer base once Red Hat's certificate covers its
 # provider.
-FROM registry.access.redhat.com/ubi10/ubi:10.3@sha256:73ea54bfbfb586075bd3d45df6483a7f68875233c8cc7cebcf9b2bb42306c308
+# Pinned to amd64: the digest is a multi-arch index, but the Miniforge installer and MINIFORGE_SHA256 below are
+# x86_64 only, so without this an arm64 machine (e.g. Apple Silicon) pulls the arm64 UBI and the installer fails.
+# CI and releases are amd64; elsewhere, Docker emulates it.
+FROM --platform=linux/amd64 registry.access.redhat.com/ubi10/ubi:10.3@sha256:73ea54bfbfb586075bd3d45df6483a7f68875233c8cc7cebcf9b2bb42306c308
 
 LABEL name="quay.io/lifebitaiorg/cloudos-cli" \
       description="The cloudos-cli docker container" \
@@ -29,7 +32,8 @@ ARG MINIFORGE_SHA256=281b0ac7d550802efc81af633225a5e6116d29ae72f3ab4eae7168c3931
 
 # The conda environment must use the system OpenSSL major.minor, because fips-harden-conda-env points its
 # libssl/libcrypto to the system ones (3.5 after the upgrade below). Bump it together with the UBI version.
-ENV OPENSSL_PIN=3.5
+# An ARG, not an ENV: only the build reads it, and conda's pinned_packages records it for later installs.
+ARG OPENSSL_PIN=3.5
 
 # Same settings as the Ubuntu image (CONDA_DIR, LANG and LC_ALL came from its condaforge/miniforge3 base).
 ENV CONDA_DIR=/opt/conda \

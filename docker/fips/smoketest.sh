@@ -30,10 +30,12 @@ refused = {
     "hashlib.new('blake2b512')": lambda: hashlib.new("blake2b512", b"x"),
     "hashlib.new('blake2s256')": lambda: hashlib.new("blake2s256", b"x"),
 }
+# Every refusal raises ValueError: _hashlib.UnsupportedDigestmodError subclasses it, and hashlib's patched
+# __unsupported raises it. Anything else is a bug in this check and must fail it, not count as refused.
 for name, call in refused.items():
     try:
         call()
-    except Exception:
+    except ValueError:
         continue
     raise SystemExit(f"{name} works in FIPS mode")
 PY

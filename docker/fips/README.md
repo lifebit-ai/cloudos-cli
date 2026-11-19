@@ -1,14 +1,22 @@
 # cloudos-cli image: FIPS build
 
-From v2.101.0, the image (`Dockerfile`, published as `quay.io/lifebitaiorg/cloudos-cli:v<version>` and `:latest`) is built for FIPS: Red Hat UBI 10.3 with the CLI in a conda environment, so that every HTTPS call the CLI makes goes through Red Hat's OpenSSL FIPS provider when the host is in FIPS mode (see FIPS module for its certificate status on UBI 10). On a host that isn't in FIPS mode it behaves like any other image (all algorithms allowed). It follows the "FIPS hardening POC" (Confluence, IO Squad space) and `containers/report_etl/2.0.0-fips` in `lifebit-ai/ADAPT-docker-containers`.
+From v2.101.0, the image (`Dockerfile`, published as `quay.io/lifebitaiorg/cloudos-cli:v<version>` and `:latest`) is built for FIPS: Red Hat UBI 10.3 with the CLI in a conda environment, so that every HTTPS call the CLI makes goes through Red Hat's OpenSSL FIPS provider when the host is in FIPS mode (see FIPS module for its certificate status on UBI 10). On a host that isn't in FIPS mode every algorithm OpenSSL offers works, with one exception: `hashlib.blake2b`/`blake2s` and `hashlib.new("blake2b")` raise `ValueError` on every host, because CPython's `_blake2` is removed (see Why Python 3.13); use `hashlib.new("blake2b512")` or `hashlib.new("blake2s256")` instead. It follows the "FIPS hardening POC" (Confluence, IO Squad space) and `containers/report_etl/2.0.0-fips` in `lifebit-ai/ADAPT-docker-containers`.
 
 ```bash
+# Always linux/amd64 (FROM --platform): the Miniforge installer is x86_64 only. On arm64 (e.g. Apple Silicon) Docker emulates it.
 docker build -t quay.io/lifebitaiorg/cloudos-cli:<version> .
 docker run --rm --entrypoint sh quay.io/lifebitaiorg/cloudos-cli:<version> /docker/fips/smoketest.sh
 ```
 
 ## FIPS module
-All crypto goes through **Red Hat Enterprise Linux 9 - OpenSSL FIPS Provider** (the name on the certificate; the image is UBI 10.3), module version `3.0.7-cda111b5812c30d4`, package `openssl-fips-provider-3.0.7-11.el10_2`. That's the module on [CMVP certificate #5573](https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/5573) (FIPS 140-3, active, validated 2026-11-09), which replaced #4857 (now historical). The certificate's tested operational environments are RHEL 9 only. The [Red Hat FIPS page](https://access.redhat.com/compliance/fips) marks the older RHEL 10.0 provider (module `3.0.7-395c1a240fbfffd8`) as "Pending Operational Environment update" and lists RHEL 10.2, where this package comes from, as TBD. So whether this module is validated on RHEL 10 / UBI 10 is unconfirmed: it's the validated module binary, not a validated configuration. Check that with your compliance team before relying on it. The base is **UBI 10.3, pinned by digest**, which ships that provider; `dnf upgrade` excludes `openssl-fips-provider*`, so the certified build stays when the UBI repositories move to a newer one, and the build fails if the provider isn't `3.0.7-11.el10_2`. Move to a newer UBI once Red Hat's certificate covers its provider.
+In FIPS mode, all security-use crypto (everything except `usedforsecurity=False` hashes) goes through **Red Hat Enterprise Linux 9 - OpenSSL FIPS Provider** (the name on the certificate; the image is UBI 10.3), module version `3.0.7-cda111b5812c30d4`, package `openssl-fips-provider-3.0.7-11.el10_2`. That's the module on [CMVP certificate #5573](https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/5573) (FIPS 140-3, active, validated 2026-11-09), which replaced #4857 (now historical). The certificate's tested operational environments are RHEL 9 only. The [Red Hat FIPS page](https://access.redhat.com/compliance/fips) marks the older RHEL 10.0 provider (module `3.0.7-395c1a240fbfffd8`) as "Pending Operational Environment update" and lists RHEL 10.2, where this package comes from, as TBD. So whether this module is validated on RHEL 10 / UBI 10 is unconfirmed: it's the validated module binary, not a validated configuration. Check that with your compliance team before relying on it. The base is **UBI 10.3, pinned by digest**, which ships that provider; `dnf upgrade` excludes `openssl-fips-provider*`, so the certified build stays when the UBI repositories move to a newer one, and the build fails if the provider isn't `3.0.7-11.el10_2`. Move to a newer UBI once Red Hat's certificate covers its provider.
+
+## If the scan flags the FIPS provider
+The Trivy gate counts unfixed CVEs and fails on any CRITICAL/HIGH, but `openssl-fips-provider` can't be upgraded: it's excluded from `dnf upgrade`, the build checks its exact release, and the Security autofix is told never to change it. So if Trivy reports a CRITICAL/HIGH against `openssl-fips-provider-3.0.7-11.el10_2`, every release and every PR image scan fails until someone acts, and the autofix can't resolve it. The same applies if a later `openssl-libs` errata needs a newer provider: the `dnf upgrade` layer then either fails or keeps the old `openssl-libs`.
+
+That's a compliance decision, not a code fix: the compliance team decides between
+1. an **S&C exemption** for the certified build, recorded in the repo with an expiring Trivy ignore entry for that CVE, or
+2. **moving the pin and the base together** (the UBI digest, the `openssl-fips-provider` release in the `Dockerfile` and `smoketest.sh`, and the module version in `smoketest.sh`), once a newer provider is on a CMVP certificate.
 
 ## How it follows FIPS mode
 - **System OpenSSL with a FIPS provider**: UBI 10.3 instead of `condaforge/miniforge3` (Ubuntu, no FIPS provider).
@@ -29,7 +37,11 @@ So 3.13 is the newest Python that keeps every hash and HMAC path inside the FIPS
 
 ## Differences from the Ubuntu image (up to v2.99.3)
 The CLI, `environment.yml`, `pip install -e /`, `PATH`, `LANG`/`LC_ALL=C.UTF-8`, `CONDA_DIR`, `CMD ["/bin/bash"]`, `ENTRYPOINT []` and `procps` (for Nextflow) are the same. What changed:
-- **Base**: Red Hat UBI 10.3 instead of `condaforge/miniforge3` (Ubuntu 24.04). Ubuntu tools are gone (`apt-get`, `dpkg`, `perl`, `cmp`…); install extra OS packages with `dnf` from the UBI repositories in images built on top of this one.
+- **Base**: Red Hat UBI 10.3 instead of `condaforge/miniforge3` (Ubuntu 24.04); install extra OS packages with `dnf` from the UBI repositories in images built on top of this one. Commands the old image had and this one doesn't (checked against the file list of the pinned UBI 10.3 amd64 image, 2026-11-19):
+  - from the `condaforge/miniforge3` Dockerfile: **`wget`**, **`git`**, `tini` (unused: `ENTRYPOINT []`). `bzip2` isn't in the OS either; conda's `bzip2` package may still provide one in `/opt/conda/bin`. Use `curl` (present) instead of `wget`, or `dnf install wget git`.
+  - from Ubuntu: `apt-get`, `dpkg`, `perl`, `cmp`/`diff`, `hostname`, `less`, `unzip`.
+  - Pipelines that run their own shell commands in this image need checking for these before they move to v2.101.0.
+  - The miniforge image also ran `conda activate base` from `~/.bashrc`; `PATH` already covers it, so only `CONDA_PREFIX`/`CONDA_DEFAULT_ENV` are unset in interactive shells.
 - **Python 3.13** instead of 3.14 (`python_requires` is `>=3.11`): the newest version that can be hardened (see Why Python 3.13).
 - conda's OpenSSL 3.5 instead of 3.6, replaced at runtime by the system library.
 - Miniforge is installed from its GitHub release with a pinned version and SHA-256, instead of coming with the base image; micromamba and conda's package cache are removed.

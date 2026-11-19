@@ -15,6 +15,11 @@ FIX_URLLIB3 = edit_reply(add_dependency("urllib3>=2.8.0"))
 FIX_BROTLI = edit_reply(add_dependency("brotli>=1.2.1"))
 FIX_BOTH = edit_reply(add_dependency("urllib3>=2.8.0\n    - brotli>=1.2.1"))
 
+IMAGE = "cloudos-cli:test"
+CANDIDATE = "cloudos-cli:test-candidate"
+# What autofix_loop.sh runs when it keeps a round: $IMAGE moves to that round's image.
+KEEP = (CANDIDATE, IMAGE)
+
 
 def test_clean_image_never_calls_the_model(tmp_path):
     sandbox = LoopSandbox(tmp_path)
@@ -46,6 +51,9 @@ def test_fix_in_one_round_is_committed(tmp_path):
     assert "urllib3>=2.8.0" in sandbox.environment_yml()
     assert sandbox.history()[0]["build"] == "ok"
     assert sandbox.history()[0]["still_failing"] == []
+    # The initial build is $IMAGE, every round builds the candidate, and the kept round moves $IMAGE to it.
+    assert sandbox.build_tags() == [IMAGE, CANDIDATE]
+    assert sandbox.retags() == [KEEP]
 
 
 def test_each_round_that_helps_is_committed(tmp_path):
@@ -98,6 +106,9 @@ def test_round_that_fixes_nothing_is_rolled_back(tmp_path):
     assert "numpy" not in sandbox.environment_yml()
     assert sandbox.commits_since_start() == ["Security autofix: round 2"]
     assert "no fewer than before" in sandbox.history()[0]["rolled_back"]
+    # Round 1 is rolled back, so only round 2 moves $IMAGE: the smoke test after the loop runs on the kept commit.
+    assert sandbox.build_tags() == [IMAGE, CANDIDATE, CANDIDATE]
+    assert sandbox.retags() == [KEEP]
 
 
 def test_round_that_breaks_the_build_is_rolled_back(tmp_path):
@@ -110,6 +121,8 @@ def test_round_that_breaks_the_build_is_rolled_back(tmp_path):
     assert "BREAKS-THE-BUILD" not in sandbox.environment_yml()
     assert sandbox.history()[0]["build"] == "failed"
     assert "package not found" in sandbox.history()[0]["build_log_tail"]
+    assert sandbox.build_tags() == [IMAGE, CANDIDATE, CANDIDATE]
+    assert sandbox.retags() == [KEEP]
 
 
 def test_gives_up_after_max_rounds(tmp_path):
@@ -121,6 +134,9 @@ def test_gives_up_after_max_rounds(tmp_path):
     assert sandbox.outputs() == {"changed": "false", "initial": "2", "remaining": "2", "rounds": "2"}
     assert sandbox.model_calls() == 2
     assert sandbox.worktree_clean()
+    # Every round was rolled back, so $IMAGE is still the initial build of the unchanged commit.
+    assert sandbox.build_tags() == [IMAGE, CANDIDATE, CANDIDATE]
+    assert sandbox.retags() == []
 
 
 def test_image_that_does_not_build_fails(tmp_path):
