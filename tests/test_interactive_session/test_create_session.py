@@ -1,8 +1,8 @@
 """Tests for interactive session create command."""
 
-import re
 import pytest
 import json
+import re
 from click.testing import CliRunner
 from cloudos_cli.__main__ import run_cloudos_cli
 from unittest import mock
@@ -1112,7 +1112,7 @@ class TestCreateSessionVolumeFlags:
 
         result = CliRunner().invoke(run_cloudos_cli, ['interactive-session', command, '--help'])
         assert result.exit_code == 0
-        # Rich colours help text under GitHub Actions; the escape codes split the sentences.
+        # rich adds colour codes when it detects CI (e.g. GITHUB_ACTIONS), so strip them before matching
         plain = re.sub(r'\x1b\[[0-9;]*m', '', result.output)
         output = ' '.join(plain.replace('│', ' ').split())
         assert f'({STORAGE_RANGE})' in output

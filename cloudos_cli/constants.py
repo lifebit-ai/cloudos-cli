@@ -17,6 +17,17 @@ HPC_NEXTFLOW_LATEST = '22.10.8'
 PLATFORM_WORKFLOW_NEXTFLOW_VERSION = '22.10.8'  # For Lifebit Platform workflows (modules)
 USER_WORKFLOW_NEXTFLOW_VERSION = '24.04.4'  # For user-imported workflows
 
+# Nextflow runtime environment variables that can be set on a job (--environment-variable).
+# Must stay consistent with the api-server allowlist (GET /v1/jobs/nextflow/versions):
+# the backend is the source of truth, this is a fast-fail check before submission.
+NEXTFLOW_ENVIRONMENT_VARIABLES = {
+    'NXF_SYNTAX_PARSER': {
+        'allowed_values': ['v1', 'v2'],
+        'min_nextflow_version': '25.04.0'
+    }
+}
+MAX_NEXTFLOW_ENVIRONMENT_VARIABLES = 20
+
 # Job abort states
 ABORT_JOB_STATES = ['running', 'initializing']
 
