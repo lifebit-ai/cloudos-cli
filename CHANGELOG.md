@@ -4,11 +4,18 @@
 
 ### Feat:
 
+- New `datasets upload` command uploads a file from your computer to a project's File Explorer (AWS workspaces only), using S3 multipart upload. Files up to S3's 5 TiB object maximum are supported. It stops before sending any data if the destination already has an item with the same name
+- New `datasets download` command downloads a File Explorer file to your computer (AWS and Azure workspaces). `--overwrite`/`-f` is needed to replace an existing local file
+- Both commands check the workspace's Airlock policy first: upload stops when importing from your computer is disabled or imports must be scanned (Airlock-In), and download stops whenever Airlock is enabled, as the platform rejects all API-key downloads then. Both show a progress bar, print the item's virtual path, and print its `s3://` or `az://` location with `--show-storage-path`
 - `job run`, `job clone` and `job resume` accept `--environment-variable NAME=VALUE` to export a Nextflow runtime environment variable before `nextflow run`. The option can be repeated. The only supported variable is `NXF_SYNTAX_PARSER` (`v1` legacy parser, `v2` strict syntax parser), which requires Nextflow 25.04.0 or later
 - The Python SDK accepts the same variables with `Job.send_job(..., environment_variable=('NXF_SYNTAX_PARSER=v2',))`, and `Job.clone_or_resume_job(..., environment_variable=...)`
 - The CLI and SDK check the variables before submitting and stop with a clear error for an unsupported name, a value other than the allowed ones, a Nextflow version that is too old, a non-Nextflow workflow, a Lifebit Platform Workflow, or Azure/HPC (whose only Nextflow versions are older than 25.04.0). Without `--nextflow-version`, user-imported workflows use 24.04.4, and the error says so
 - `job clone` and `job resume` keep the environment variables of the original job; `--environment-variable` replaces the variable with the same name or adds a new one
 - `job details` shows the environment variables a job ran with
+
+### Fix:
+
+- `datasets` commands given a path outside `Data/` now explain that user-uploaded data lives under `Data/` and suggest the corrected path, with the same wording in `mkdir`, `mv`, `cp`, `rename`, `rm` and `upload`. `mkdir` no longer accepts paths such as `Dataxyz/...`, and prints the new folder's virtual path
 
 ### Breaking:
 
