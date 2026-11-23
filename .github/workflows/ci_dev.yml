@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   job_list_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -47,7 +47,7 @@ jobs:
         echo q | cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID
   job_list_filtering_dev:
     needs: job_run_and_status_dev
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -81,7 +81,7 @@ jobs:
         #echo q | cloudos job list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --filter-queue "cost_saving_standard_nextflow" --last-n-jobs 10
   job_details_dev:
     needs: job_run_and_status_dev
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -106,7 +106,7 @@ jobs:
         cloudos job details --cloudos-url $CLOUDOS_URL --workspace-id $CLOUDOS_WORKSPACE_ID --apikey $CLOUDOS_TOKEN --job-id $JOB_ID
   job_workdir_dev:
     needs: job_run_and_status_dev
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -131,7 +131,7 @@ jobs:
         cloudos job workdir --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
   job_related_analyses_dev:
     needs: job_run_and_status_dev
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -155,7 +155,7 @@ jobs:
         JOB_ID="${{ needs.job_run_and_status_dev.outputs.job_id }}"
         cloudos job related --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id $JOB_ID
   import_gitlab_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -178,7 +178,7 @@ jobs:
         run: |
           cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_gitlab --workflow-url https://gitlab.com/lifebit-ai/spammer-nf --repository-platform gitlab
   import_github_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -201,7 +201,7 @@ jobs:
         run: |
           cloudos workflow import --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --workflow-name imported_from_github --workflow-url https://github.com/lifebit-ai/spammer-nf --repository-platform github
   job_run_and_status_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     outputs:
       job_id: ${{ steps.get-job-id.outputs.job_id }}
     strategy:
@@ -241,7 +241,7 @@ jobs:
     needs: job_run_and_status_dev
     outputs:
       job_id: ${{ steps.get-resumed-job-id.outputs.job_id }}
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -274,7 +274,7 @@ jobs:
         echo "Job resumed successfully!"
   logs_results_aws_dev:
     needs: job_run_and_status_dev
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -298,7 +298,7 @@ jobs:
         run: |
           cloudos job ${{ matrix.feature }} --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_run_and_status_dev.outputs.job_id }}
   workflow_list_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -326,7 +326,7 @@ jobs:
         # json
         cloudos workflow list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format json
   project_list_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -354,7 +354,7 @@ jobs:
         # json
         cloudos project list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format json
   queue_list_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -382,7 +382,7 @@ jobs:
         # json
         cloudos queue list --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --output-format json
   dataset_list_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -406,7 +406,7 @@ jobs:
       run: |
         cloudos datasets ls --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --project-name "$PROJECT_NAME" 
   dataset_move_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -431,7 +431,7 @@ jobs:
         cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name DB-new Data/test_mv/test_file.txt --destination-project-name "$PROJECT_NAME" Data/mv_test
         cloudos datasets mv --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/test_file.txt --destination-project-name DB-new Data/test_mv
   dataset_rename_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -456,7 +456,7 @@ jobs:
         cloudos datasets rename --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_rename new_renamed_folder
         cloudos datasets rename --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/new_renamed_folder test_rename
   bash_job_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     outputs:
       job_id: ${{ steps.get-bash-job-id.outputs.job_id }}
     strategy:
@@ -504,7 +504,7 @@ jobs:
         echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
   bash_job_clone_dev:
     needs: bash_job_dev
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -539,7 +539,7 @@ jobs:
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL"
   bash_array_job_run_and_multiple_projects_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     outputs:
       job_id: ${{ steps.get-bash-array-job-id.outputs.job_id }}
     strategy:
@@ -590,7 +590,7 @@ jobs:
         echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
   bash_array_clone_dev:
     needs: bash_array_job_run_and_multiple_projects_dev
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -625,7 +625,7 @@ jobs:
           --apikey "$CLOUDOS_TOKEN" \
           --cloudos-url "$CLOUDOS_URL"
   dataset_copy_and_remove_dev:
-          runs-on: ubuntu-latest
+          runs-on: qa-members-ge-sm-amd-dind
           strategy:
             matrix:
               python-version: ["3.11"]
@@ -650,7 +650,7 @@ jobs:
               cloudos datasets cp --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/mv_test/diffexpr-results.csv Data/test_copy
               cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/test_copy/diffexpr-results.csv --force
   dataset_mkdir_and_remove_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -676,7 +676,7 @@ jobs:
         cloudos datasets rm --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --project-name "$PROJECT_NAME" Data/rm_test
   archive_unarchive_job_dev:
     needs: job_run_and_status_dev
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -702,7 +702,7 @@ jobs:
         cloudos job archive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids $JOB_ID
         cloudos job unarchive --cloudos-url "$CLOUDOS_URL" --apikey "$CLOUDOS_TOKEN" --workspace-id "$CLOUDOS_WORKSPACE_ID" --job-ids $JOB_ID
   configure_profile_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -760,7 +760,7 @@ jobs:
 
         echo "Configure profile workflow test completed successfully!"
   job_run_and_abort_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -827,7 +827,7 @@ jobs:
         echo "Job abort command executed successfully!"
   delete_workdir_dev:
     needs: [job_run_and_status_dev, job_workdir_dev, job_resume_dev]
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -851,7 +851,7 @@ jobs:
           cloudos job workdir --delete --yes --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_resume_dev.outputs.job_id }}
   delete_results_dev:
     needs: [job_run_and_status_dev, job_workdir_dev, job_resume_dev]
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -874,7 +874,7 @@ jobs:
         run: |
           cloudos job results --delete --yes --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --job-id ${{ needs.job_resume_dev.outputs.job_id }}
   params_file_dev:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -913,7 +913,7 @@ jobs:
             --params-file "$PARAMS_FILE" \
             --wait-completion
   interactive_session_list:
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -938,7 +938,7 @@ jobs:
   interactive_session_create:
     outputs:
       session_id: ${{ steps.get-session-id.outputs.session_id }}
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -969,7 +969,7 @@ jobs:
         echo "session_id=$SESSION_ID" >> $GITHUB_OUTPUT
   interactive_session_status:
     needs: interactive_session_create
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -998,7 +998,7 @@ jobs:
         done
   interactive_session_pause:
     needs: interactive_session_create
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -1024,7 +1024,7 @@ jobs:
         cloudos interactive-session pause --cloudos-url $CLOUDOS_URL --apikey $CLOUDOS_TOKEN --workspace-id $CLOUDOS_WORKSPACE_ID --session-id $SESSION_ID --yes
   interactive_session_resume:
     needs: [interactive_session_pause, interactive_session_create]
-    runs-on: ubuntu-latest
+    runs-on: qa-members-ge-sm-amd-dind
     strategy:
       matrix:
         python-version: ["3.11"]
