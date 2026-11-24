@@ -1,5 +1,18 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.101.0 (2026-11-16)
+
+### Feat:
+
+- The Docker image (`quay.io/lifebitaiorg/cloudos-cli:v2.101.0` and `:latest`) is now built for FIPS: every HTTPS call the CLI makes goes through Red Hat's OpenSSL FIPS provider when the host is in FIPS mode: module `3.0.7-cda111b5812c30d4`, on FIPS 140-3 certificate CMVP #5573, whose tested environments are RHEL 9 (validation on RHEL 10 is unconfirmed: Red Hat lists RHEL 10.2 as TBD). On other hosts every algorithm OpenSSL offers works, except `hashlib.blake2b`/`blake2s` and `hashlib.new("blake2b")`, which raise `ValueError` on every host (CPython's `_blake2` is removed); use `hashlib.new("blake2b512")`/`hashlib.new("blake2s256")` instead. See `docker/fips/README.md`
+- `docker/fips/smoketest.sh` checks the image in forced FIPS mode (`OPENSSL_FORCE_FIPS_MODE=1`): the CLI starts, Python only loads the system `libcrypto`, the certified provider is installed and loads, and MD5, HMAC-MD5 and BLAKE2 are refused. The release and the PR image scan run it, so a dependency change that undoes the FIPS hardening fails the build
+
+### Breaking (Docker image only):
+
+- The image is based on Red Hat UBI 10.3 instead of `condaforge/miniforge3` (Ubuntu 24.04). Ubuntu tools such as `apt-get`, `dpkg`, `perl`, `cmp`/`diff` and `hostname` are no longer in the image, nor are `wget`, `git` and `tini`, which the `condaforge/miniforge3` base added (`curl` is there). Images built on top of it must install OS packages with `dnf`, and pipelines that run their own shell commands in it need checking for these tools
+- Python 3.13 instead of 3.14 in the image, the newest version whose hashing can be kept inside the FIPS module. The `pip` package still supports Python >= 3.11
+- The CLI, `environment.yml`, `PATH`, `LANG`/`LC_ALL`, `CMD` and `ENTRYPOINT` are unchanged
+
 ## v2.100.0 (2026-11-13)
 
 ### Feat:

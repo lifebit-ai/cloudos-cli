@@ -31,10 +31,12 @@ dependencies:
     - requests>=2.31.0
 """
 
-# Fails the build when environment.yml asks for something that can't install.
+# Logs each call's arguments (one line per call) and fails the build when environment.yml asks for something that
+# can't install.
 FAKE_DOCKER = """\
 #!/bin/sh
-if grep -q BREAKS-THE-BUILD environment.yml; then
+echo "$*" >> "$FAKE_DOCKER_LOG"
+if [ "$1" = build ] && grep -q BREAKS-THE-BUILD environment.yml; then
   echo "conda: package not found" >&2
   exit 1
 fi
@@ -164,6 +166,7 @@ class LoopSandbox:
         self.replies_file = tmp_path / "replies.json"
         self.replies_file.write_text(json.dumps(list(replies)))
         self.counter = tmp_path / "model_calls"
+        self.docker_log = tmp_path / "docker_calls"
 
         self.env = git_env(tmp_path)
         self.env.update({
@@ -171,6 +174,7 @@ class LoopSandbox:
             "PYTHONPATH": str(fake_modules),
             "FAKE_BEDROCK_REPLIES": str(self.replies_file),
             "FAKE_BEDROCK_COUNTER": str(self.counter),
+            "FAKE_DOCKER_LOG": str(self.docker_log),
             "IMAGE": "cloudos-cli:test",
             "BEDROCK_MODEL_ID": "test-model",
             "AUTOFIX_DIR": str(self.autofix_dir),
@@ -195,6 +199,20 @@ class LoopSandbox:
 
     def model_calls(self):
         return int(self.counter.read_text()) if self.counter.exists() else 0
+
+    def docker_calls(self):
+        """Each docker call's arguments, as a list of words, in order."""
+        if not self.docker_log.exists():
+            return []
+        return [line.split() for line in self.docker_log.read_text().splitlines()]
+
+    def build_tags(self):
+        """The -t tag of each `docker build`, in order."""
+        return [args[args.index("-t") + 1] for args in self.docker_calls() if args[0] == "build"]
+
+    def retags(self):
+        """Each `docker tag SOURCE TARGET`, as (SOURCE, TARGET)."""
+        return [tuple(args[1:]) for args in self.docker_calls() if args[0] == "tag"]
 
     def history(self):
         return json.loads((self.autofix_dir / "history.json").read_text())
