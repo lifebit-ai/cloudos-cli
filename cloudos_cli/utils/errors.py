@@ -17,6 +17,16 @@ class BadRequestException(Exception):
         try:
             response_body = rv.json()
             error_message = response_body.get('message')
+            # Request validation errors, listed in "errors" or "data":
+            # [{"instancePath": "/query/limit", "message": "must be <= 25", ...}, ...]
+            details = '; '.join(
+                f"{e['instancePath']}: {e.get('message')}" if e.get('instancePath') else e['message']
+                for key in ('errors', 'data') if isinstance(response_body.get(key), list)
+                for e in response_body[key]
+                if isinstance(e, dict) and e.get('message') and ('instancePath' in e or key == 'errors')
+            )
+            if details:
+                error_message = f"{error_message} ({details})" if error_message else details
         except (ValueError, AttributeError):
             # Response is not JSON or doesn't have expected structure
             pass

@@ -13,6 +13,8 @@ The following sections are all the modules and submodules of the `cloudos_cli` p
    cloudos_cli.clos
    cloudos_cli.configure
    cloudos_cli.configure.configure
+   cloudos_cli.data_catalogue
+   cloudos_cli.data_catalogue.data_catalogue
    cloudos_cli.datasets
    cloudos_cli.datasets.datasets
    cloudos_cli.import_wf
