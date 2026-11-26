@@ -1,5 +1,17 @@
 ## lifebit-ai/cloudos-cli: changelog
 
+## v2.102.0 (2026-11-26)
+
+### Feat:
+
+- New `cloudos data-catalogue` command group, the command-line version of **Organisation Settings > Object Data Connect**, for organisation admins:
+  - `import` adds datasets (S3 or Azure location URIs) to the data catalogue of the organisation and shares them with workspaces, given by name or ID, or with all the workspaces of the same cloud provider (`--share-with-all`). Datasets can be described with options or imported in bulk from Lifebit metadata (`.meta`) files with `--from-file`
+  - `share` adds workspaces to, or removes them from, the workspaces a dataset is shared with, asking for confirmation before removing access
+  - `list`, `info` and `rm` list, show and remove datasets
+  - Location URIs, names and workspaces are checked before anything is sent: datasets can only be shared with workspaces of the same cloud provider
+  - The organisation is taken from `--organisation-id`, or from the organisation of the workspace (`--workspace-id` or the profile)
+- Error messages from the Lifebit Platform now include the details of request validation errors
+
 ## v2.101.0 (2026-11-16)
 
 ### Feat:

@@ -4,6 +4,7 @@ import rich_click as click
 import sys
 import logging
 from rich.console import Console
+from rich.markup import escape
 from cloudos_cli.logging.logger import setup_logging
 
 # Global debug state
@@ -30,7 +31,7 @@ def custom_exception_handler(exc_type, exc_value, exc_traceback):
         else:
             error_msg = f"{exc_type.__name__}"
         logger.error(exc_value)
-        console.print(f"[bold red]Error: {error_msg}[/bold red]")
+        console.print(f"[bold red]Error: {escape(error_msg)}[/bold red]")
 
         # For network errors, give helpful context
         if 'HTTPSConnectionPool' in str(exc_value) or 'Max retries exceeded' in str(exc_value):

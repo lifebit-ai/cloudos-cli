@@ -25,6 +25,7 @@ from cloudos_cli.procurement.cli import procurement
 from cloudos_cli.datasets.cli import datasets
 from cloudos_cli.configure.cli import configure
 from cloudos_cli.interactive_session.cli import interactive_session
+from cloudos_cli.data_catalogue.cli import data_catalogue
 
 
 # Install the custom exception handler
@@ -65,6 +66,7 @@ run_cloudos_cli.add_command(procurement)
 run_cloudos_cli.add_command(datasets)
 run_cloudos_cli.add_command(configure)
 run_cloudos_cli.add_command(interactive_session)
+run_cloudos_cli.add_command(data_catalogue)
 
 if __name__ == '__main__':
     run_cloudos_cli()

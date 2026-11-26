@@ -84,6 +84,12 @@ Python package for interacting with Lifebit Platform
       - [List Procurement Images](#list-procurement-images)
       - [Set Procurement Organization Image](#set-procurement-organization-image)
       - [Reset Procurement Organization Image](#reset-procurement-organization-image)
+    - [Data Catalogue](#data-catalogue)
+      - [Import Datasets](#import-datasets)
+      - [Share Datasets with Workspaces](#share-datasets-with-workspaces)
+      - [List Datasets](#list-datasets)
+      - [Show Dataset Details](#show-dataset-details)
+      - [Remove Datasets](#remove-datasets)
     - [Cromwell and WDL Pipeline Support](#cromwell-and-wdl-pipeline-support)
       - [Manage Cromwell Server](#manage-cromwell-server)
       - [Run WDL Workflows](#run-wdl-workflows)
@@ -183,6 +189,7 @@ CloudOS python package: a package for interacting with Lifebit Platform.
 │ bash               Lifebit Platform bash functionality.                                                                       │
 │ configure          Lifebit Platform configuration.                                                                            │
 │ cromwell           Cromwell server functionality: check status, start and stop.                                      │
+│ data-catalogue     Lifebit Platform data catalogue (Object Data Connect) functionality.                              │
 │ datasets           Lifebit Platform datasets functionality.                                                                   │
 │ job                Lifebit Platform job functionality: run, check and abort jobs in Lifebit Platform.                                  │
 │ procurement        Lifebit Platform procurement functionality.                                                                │
@@ -3091,6 +3098,134 @@ cloudos procurement images reset --profile procurement_profile --image-type "Job
 ```bash
 # Reset image configuration to Lifebit Platform defaults
 cloudos procurement images reset --profile procurement_profile --image-type "JobDefault" --provider "aws" --region "us-east-1" --procurement-id "your_procurement_id_here" --organisation-id "your_organization_id"
+```
+
+
+### Data Catalogue
+
+The `cloudos data-catalogue` commands do from the command line what **Organisation Settings > Object Data Connect** does in the Lifebit Platform: import datasets (object-storage location URIs) into the data catalogue of your organisation and share them with workspaces. Shared datasets appear in the **Federated Data > Data catalog** tab of those workspaces.
+
+> [!NOTE]
+> These commands require the API key of an **organisation admin**.
+
+All the commands accept these options:
+
+- `--apikey` / `-k`: Your Lifebit Platform API key (required). It must belong to an organisation admin
+- `--cloudos-url` / `-c`: The Lifebit Platform URL you are trying to access (default: https://cloudos.lifebit.ai)
+- `--organisation-id`: The organisation that owns the data catalogue. If not given, it is taken from the organisation of `--workspace-id` (or the workspace of your profile)
+- `--workspace-id`: Any workspace of your organisation. It is only used to find the organisation; datasets are **not** shared with it
+- `--disable-ssl-verification`: Disable SSL certificate verification
+- `--ssl-cert`: Path to your SSL certificate file
+- `--profile`: Profile to use from the config file
+
+Workspaces can be given by name or ID. A dataset can only be shared with workspaces running on the same cloud provider as the dataset. Access is applied in the background, so it can take a few moments before a dataset is available in the workspaces.
+
+#### Import Datasets
+
+Import a dataset and share it with one or more workspaces:
+
+```bash
+cloudos data-catalogue import \
+    --profile my_profile \
+    --organisation-id "your_organisation_id" \
+    --name "featured-pipelines" \
+    --description "Featured pipelines test data" \
+    --location "s3://lifebit-featured-datasets/pipelines/" \
+    --share-with-workspace "nf-core-tests"
+```
+
+**Import command options:**
+
+- `--name`: The dataset name. It must be unique in the organisation
+- `--description`: The dataset description
+- `--location`: A location URI of the dataset. Can be used several times. AWS locations use `s3://bucket/path` (S3 access point ARNs are also accepted) and Azure locations use `az://account.blob.core.windows.net/container/path`
+- `--cloud-provider`: `AWS` (default) or `Azure`
+- `--share-with-workspace`: A workspace name or ID to share the dataset with. Can be used several times
+- `--share-with-all`: Share the dataset with all active workspaces of the same cloud provider
+- `--author`, `--release`, `--dataset-version`, `--study-type`, `--number-of-participants`: Optional metadata
+- `--trait`, `--ancestry`: Optional metadata. Can be used several times
+- `--from-file`: Import datasets from Lifebit metadata (`.meta`) or JSON files instead of using the options above. Can be used several times
+
+Several datasets can be imported at once from metadata files, the same files that the **Upload** tab of the Lifebit Platform accepts:
+
+```bash
+cloudos data-catalogue import --profile my_profile --organisation-id "your_organisation_id" \
+    --from-file dataset1.meta --from-file dataset2.meta --share-with-all
+```
+
+where each file looks like:
+
+```json
+{
+  "dataset_name": "featured-pipelines",
+  "free_text_description": "Featured pipelines test data",
+  "cloud_provider": "AWS",
+  "location": "s3://lifebit-featured-datasets/pipelines/",
+  "metadata": {
+    "traits": ["C50"],
+    "ancestry": ["EUR"],
+    "number_of_participant": 1000,
+    "study_type": "cohort"
+  }
+}
+```
+
+A file can also contain a list of such objects. All the datasets imported together must use the same cloud provider.
+
+#### Share Datasets with Workspaces
+
+`cloudos data-catalogue share` adds workspaces to, or removes them from, the workspaces a dataset is shared with. Workspaces that are not mentioned keep their access:
+
+```bash
+# Give access to two more workspaces
+cloudos data-catalogue share --profile my_profile --organisation-id "your_organisation_id" \
+    --item-id "dataset_id" --share-with-workspace "workspace-a" --share-with-workspace "workspace-b"
+
+# Remove access from a workspace
+cloudos data-catalogue share --profile my_profile --organisation-id "your_organisation_id" \
+    --item-id "dataset_id" --unshare-workspace "workspace-a"
+```
+
+**Share command options:**
+
+- `--item-id`: The ID of the dataset (required). It is shown by `import` and `list`
+- `--share-with-workspace`: A workspace name or ID to give access to. Can be used several times
+- `--share-with-all`: Give access to all active workspaces of the same cloud provider
+- `--unshare-workspace`: A workspace name or ID to remove access from. Can be used several times
+- `--unshare-all`: Remove access from all workspaces
+- `--yes` / `-y`: Do not ask for confirmation when removing access
+
+#### List Datasets
+
+```bash
+cloudos data-catalogue list --profile my_profile --organisation-id "your_organisation_id"
+```
+
+**List command options:**
+
+- `--search`: Only show datasets matching this text
+- `--page`: The page to show (default: 1)
+- `--limit`: The number of datasets per page (default: 10, maximum: 100)
+- `--output-format`: `stdout` (default), `csv` or `json`. `csv` and `json` are written to a file
+- `--output-basename`: Output file base name, used with `csv` and `json` (default: `data_catalogue_list`)
+
+#### Show Dataset Details
+
+Show a dataset, its status, the workspaces it is shared with and its metadata:
+
+```bash
+cloudos data-catalogue info --profile my_profile --organisation-id "your_organisation_id" --item-id "dataset_id"
+```
+
+> [!NOTE]
+> The Lifebit Platform does not currently return the metadata of a single dataset when the request uses an API key, so `info` may show the dataset without its metadata. The metadata can be seen in the Lifebit Platform.
+
+#### Remove Datasets
+
+Remove a dataset from the data catalogue. The workspaces it was shared with lose access, but the data in the cloud storage is not deleted. Use `--yes` / `-y` to skip the confirmation:
+
+```bash
+cloudos data-catalogue rm --profile my_profile --organisation-id "your_organisation_id" --item-id "dataset_id"
 ```
 
 
